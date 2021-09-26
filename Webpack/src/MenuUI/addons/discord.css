@@ -1,0 +1,103 @@
+* {
+	outline: none;
+}
+
+.content.invalid .name {
+	color: #f04747;
+}
+
+.content {
+	display: flex;
+	--size-big: 24px;
+	--size-small: 16px;
+}
+
+.info {
+	flex: 1 1 auto;
+	min-width: 1px;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	display: flex;
+	align-items: stretch;
+	justify-content: center;
+	text-indent: 0;
+}
+
+.icon {
+	background: #36393f center / cover;
+	margin-right: 16px;
+	width: 65px;
+	height: 65px;
+	border-radius: 16px;
+	text-align: center;
+	color: #dcddde;
+	position: relative;
+}
+
+.name {
+	min-width: 0px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	align-items: center;
+	display: flex;
+	color: #FFF;
+	margin-bottom: 2px;
+	font-size: var(--size-big);
+}
+
+.join {
+	text-decoration: none;
+	margin-left: auto;
+	white-space: nowrap;
+	border-radius: 3px;
+	font-size: var(--size-small);
+	padding: 0px 20px;
+	user-select: none;
+	color: #FFF;
+	background: #3ba55d;
+	cursor: pointer;
+	align-items: center;
+	display: flex;
+}
+
+.status {
+	display: flex;
+	align-items: center;
+	margin-left: 16px;
+	color: #b9bbbe;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	font-size: var(--size-small);
+	white-space: pre-wrap;
+}
+
+.status::before {
+	content: '';
+	display: inline-block;
+	margin-right: 4px;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+}
+
+.status.online::before {
+	background: #43b581;
+}
+
+.status.total::after {
+	content: ' Members';
+}
+
+.status.online::after {
+	content: ' Online';
+}
+
+.status.total::before {
+    background: #747f8d;
+}
+
+.content.invalid .status {
+	display: none;
+}

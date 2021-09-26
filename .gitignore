@@ -1,0 +1,9 @@
+.vs
+Release
+Debug
+x64
+*.user
+*packages
+node_modules
+package-lock.json
+.initial .git file

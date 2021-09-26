@@ -1,0 +1,8 @@
+{
+	"game": {
+		"fast_load": true
+	},
+	"client": {
+		"uncap_fps": true
+	}
+}

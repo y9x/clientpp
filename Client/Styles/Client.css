@@ -1,0 +1,3 @@
+img[src="./img/client.png"], *[id*="aHider"] {
+	display: none !IMPORTANT;
+}
