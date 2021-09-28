@@ -43,16 +43,16 @@ class Menu extends Events {
 		
 		this.main();
 		
-		var Client = this.category('Client');
+		var Inst = this.category('Installation');
 		
-		Client.control('Open Folder', {
+		Inst.control('Open Folder', {
 			type: 'function',
 			value(){
 				ipc.send('open folder');
 			},
 		});
 		
-		Client.control('Uncap FPS', {
+		Inst.control('Uncap FPS', {
 			type: 'boolean',
 			walk: 'client.uncap_fps',
 		});
