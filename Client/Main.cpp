@@ -1,11 +1,12 @@
-// compile with: /D_UNICODE /DUNICODE /DWIN32 /D_WINDOWS /c
-
 #define WILL_LOG 1
 
 #define _CRT_SECURE_NO_WARNINGS
 
 #if WILL_LOG == 1
 #include <iostream>
+#define LOG(data) std::cout << data << std::endl
+#else
+#define LOG(data) void()
 #endif
 
 #include <windows.h>
@@ -96,7 +97,7 @@ public:
 			}
 		else error_creating = true;
 
-		if (error_creating)std::cout << "Had an error creating directories" << std::endl;
+		if (error_creating)LOG("Had an error creating directories");
 		else {
 			std::string config_buffer;
 			
@@ -109,9 +110,9 @@ public:
 				config = JSON::parse(config_buffer);
 			}
 			catch (JSON::exception err) {
-				// std::cout << "caught " << err.what() << std::endl;
+				// LOG("caught " << err.what());
 				if (load_resource(JSON_CONFIG, config_buffer)) {
-					// std::cout << config_buffer << std::endl;
+					// LOG(config_buffer);
 					config = JSON::parse(config_buffer);
 					save_config();
 				}
@@ -119,7 +120,7 @@ public:
 		}
 	}
 	bool save_config() {
-		std::cout << "Wrote config" << std::endl;
+		LOG("Wrote config");
 		return IOUtil::wwrite_file(directory + p_config, config.dump(1, '\t'));
 	}
 	std::wstring directory;
@@ -273,7 +274,7 @@ public:
 				
 				std::string bootstrap;
 				if (load_resource(JS_BOOTSTRAP, bootstrap)) wv_window->AddScriptToExecuteOnDocumentCreated(Convert::wstring(bootstrap).c_str(), nullptr);
-				else std::cout << "Error loading bootstrapper" << std::endl;
+				else LOG("Error loading bootstrapper");
 
 				wv_window->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT);
 				wv_window->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_STYLESHEET);
@@ -314,7 +315,7 @@ public:
 							ShellExecute(NULL, L"open", folder.directory.c_str(), L"", L"", SW_SHOW);
 						}
 					}
-					else std::cout << "Recieved invalid message" << std::endl;
+					else LOG("Recieved invalid message") << std::endl;
 					// processMessage(&message);
 					// webview->PostWebMessageAsString(message);
 
