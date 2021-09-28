@@ -1,7 +1,6 @@
-#define WILL_LOG 1
+#define WILL_LOG 0
 
 #define _CRT_SECURE_NO_WARNINGS
-
 #if WILL_LOG == 1
 #include <iostream>
 #define LOG(data) std::cout << data << std::endl
@@ -315,9 +314,7 @@ public:
 							ShellExecute(NULL, L"open", folder.directory.c_str(), L"", L"", SW_SHOW);
 						}
 					}
-					else LOG("Recieved invalid message") << std::endl;
-					// processMessage(&message);
-					// webview->PostWebMessageAsString(message);
+					else LOG("Recieved invalid message");
 
 					return S_OK;
 				}).Get(), &token);
