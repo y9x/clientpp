@@ -1,6 +1,6 @@
 'use strict';
 
-var Utils = require('./Utils'),
+var Utils = require('./libs/Utils'),
 	utils = new Utils();
 
 (async () => {	

@@ -17,12 +17,13 @@ Object.defineProperty(console, 'log', {
 
 require('./FixLoad');
 require('./Resources');
+require('./FastLoad');
 
-var HTMLProxy = require('./HTMLProxy'),
-	Category = require('./MenuUI/Window/Category'),
-	IPC = require('./IPC'),
-	Utils = require('./Utils'),
-	Events = require('./Events'),
+var HTMLProxy = require('./libs/HTMLProxy'),
+	Category = require('./libs/MenuUI/Window/Category'),
+	IPC = require('./libs/IPC'),
+	Utils = require('./libs/Utils'),
+	Events = require('./libs/Events'),
 	utils = new Utils(),
 	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data)));
 
@@ -53,7 +54,9 @@ class Menu extends Events {
 			},
 		});
 		
-		Inst.control('Uncap FPS', {
+		var Render = this.category('Rendering');
+		
+		Render.control('Uncap FPS', {
 			type: 'boolean',
 			walk: 'client.uncap_fps',
 		}).on('change', (value, init) => !init && this.relaunch());

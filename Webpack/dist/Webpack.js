@@ -2,10 +2,144 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./src/Events.js":
-/*!***********************!*\
-  !*** ./src/Events.js ***!
-  \***********************/
+/***/ "./src/FastLoad.js":
+/*!*************************!*\
+  !*** ./src/FastLoad.js ***!
+  \*************************/
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+
+
+
+var { config } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
+	Loader = __webpack_require__(/*! ./libs/Loader */ "./src/libs/Loader.js");;
+
+if(config.game.fast_load){
+	let loader = new Loader();
+	
+	loader.observe();
+	
+	loader.license({
+		github: 'https://github.com/y9x/',
+		discord: 'https://y9x.github.io/discord/',
+		forum: 'https://forum.sys32.dev/',
+	});
+	
+	loader.load({}, {});
+}
+
+/***/ }),
+
+/***/ "./src/FixLoad.js":
+/*!************************!*\
+  !*** ./src/FixLoad.js ***!
+  \************************/
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+
+
+
+var Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
+	utils = new Utils();
+
+(async () => {	
+	var ui_base = await utils.wait_for(() => document.querySelector('#uiBase')),
+		MIN_WIDTH = 1700,
+		MIN_HEIGHT = 900;
+		
+	if(localStorage?.kro_setngss_uiScaling === 'false')return;
+	
+	var ls = localStorage.kro_setngss_scaleUI,
+		scale_ui = ls != void[] ? ls : 0.7;
+	
+	scale_ui = Math.min(1, Math.max(0.1, Number(scale_ui)));
+	scale_ui = 1 + (1 - scale_ui);
+	
+	var height = window.innerHeight,
+		width = window.innerWidth,
+		min_width = MIN_WIDTH * scale_ui,
+		min_height = MIN_HEIGHT * scale_ui,
+		width_scale = width / min_width,
+		height_scale = height / min_height,
+		elm = document.getElementById('uiBase'),
+		style = height_scale < width_scale ? {
+			transform: height_scale,
+			width: width / height_scale,
+			height: min_height,
+		} : {
+			transform: width_scale,
+			width: min_width,
+			height: height / width_scale,
+		};
+	
+	ui_base.style.transform = 'scale(' + style.transform.toFixed(3) + ')';
+	ui_base.style.width = style.width.toFixed(3) + 'px';
+	ui_base.style.height = style.height.toFixed(3) + 'px';
+})();
+
+/***/ }),
+
+/***/ "./src/Resources.js":
+/*!**************************!*\
+  !*** ./src/Resources.js ***!
+  \**************************/
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+
+
+
+var Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
+	utils = new Utils();
+
+// wait for krunker css
+// utils.wait_for(() => document.querySelector(`link[href*='/css/main_custom.css']`))
+
+var { css, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js");
+
+for(let [ name, data ] of Object.entries(css)){
+	let url = URL.createObjectURL(new Blob([ data ], { type: 'text/css' }));
+	
+	let link = document.head.appendChild(Object.assign(document.createElement('link'), {
+		rel: 'stylesheet',
+		href: url,
+	}));
+
+	link.addEventListener('load', () => {
+		URL.revokeObjectURL(url);
+	});
+	
+	document.head.appendChild(link);
+}
+
+for(let [ name, data ] of Object.entries(js)){
+	let module = { exports: {} },
+		ev = `(function(module,exports){${data}//# sourceURL=${name}\n})`;
+	
+	// console.log(ev);
+
+	try{
+		eval(ev)(module, module.exports);
+	}catch(err){
+		console.error(`Error loading script ${name}:\n`, err);
+		// todo: postMessage write to logs.txt in client folder
+	}
+}
+
+/***/ }),
+
+/***/ "./src/Runtime.js":
+/*!************************!*\
+  !*** ./src/Runtime.js ***!
+  \************************/
+/***/ ((module) => {
+
+
+
+module.exports = _RUNTIME_DATA_;
+
+/***/ }),
+
+/***/ "./src/libs/Events.js":
+/*!****************************!*\
+  !*** ./src/libs/Events.js ***!
+  \****************************/
 /***/ ((module) => {
 
 
@@ -67,58 +201,10 @@ module.exports = Events;
 
 /***/ }),
 
-/***/ "./src/FixLoad.js":
-/*!************************!*\
-  !*** ./src/FixLoad.js ***!
-  \************************/
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
-
-
-
-var Utils = __webpack_require__(/*! ./Utils */ "./src/Utils.js"),
-	utils = new Utils();
-
-(async () => {	
-	var ui_base = await utils.wait_for(() => document.querySelector('#uiBase')),
-		MIN_WIDTH = 1700,
-		MIN_HEIGHT = 900;
-		
-	if(localStorage?.kro_setngss_uiScaling === 'false')return;
-	
-	var ls = localStorage.kro_setngss_scaleUI,
-		scale_ui = ls != void[] ? ls : 0.7;
-	
-	scale_ui = Math.min(1, Math.max(0.1, Number(scale_ui)));
-	scale_ui = 1 + (1 - scale_ui);
-	
-	var height = window.innerHeight,
-		width = window.innerWidth,
-		min_width = MIN_WIDTH * scale_ui,
-		min_height = MIN_HEIGHT * scale_ui,
-		width_scale = width / min_width,
-		height_scale = height / min_height,
-		elm = document.getElementById('uiBase'),
-		style = height_scale < width_scale ? {
-			transform: height_scale,
-			width: width / height_scale,
-			height: min_height,
-		} : {
-			transform: width_scale,
-			width: min_width,
-			height: height / width_scale,
-		};
-	
-	ui_base.style.transform = 'scale(' + style.transform.toFixed(3) + ')';
-	ui_base.style.width = style.width.toFixed(3) + 'px';
-	ui_base.style.height = style.height.toFixed(3) + 'px';
-})();
-
-/***/ }),
-
-/***/ "./src/HTMLProxy.js":
-/*!**************************!*\
-  !*** ./src/HTMLProxy.js ***!
-  \**************************/
+/***/ "./src/libs/HTMLProxy.js":
+/*!*******************************!*\
+  !*** ./src/libs/HTMLProxy.js ***!
+  \*******************************/
 /***/ ((module) => {
 
 
@@ -164,15 +250,15 @@ module.exports = HTMLProxy;
 
 /***/ }),
 
-/***/ "./src/IPC.js":
-/*!********************!*\
-  !*** ./src/IPC.js ***!
-  \********************/
+/***/ "./src/libs/IPC.js":
+/*!*************************!*\
+  !*** ./src/libs/IPC.js ***!
+  \*************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 
 
-var Events = __webpack_require__(/*! ./Events */ "./src/Events.js");
+var Events = __webpack_require__(/*! ./Events */ "./src/libs/Events.js");
 
 class IPC extends Events {
 	#send
@@ -192,16 +278,224 @@ module.exports = IPC;
 
 /***/ }),
 
-/***/ "./src/MenuUI/Control.js":
-/*!*******************************!*\
-  !*** ./src/MenuUI/Control.js ***!
-  \*******************************/
+/***/ "./src/libs/Loader.js":
+/*!****************************!*\
+  !*** ./src/libs/Loader.js ***!
+  \****************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 
 
-var { utils } = __webpack_require__(/*! ./consts */ "./src/MenuUI/consts.js"),
-	Events = __webpack_require__(/*! ../Events */ "./src/Events.js");
+var Utils = __webpack_require__(/*! ./Utils */ "./src/libs/Utils.js"),
+	Request = __webpack_require__(/*! ./Request */ "./src/libs/Request.js"),
+	Events = __webpack_require__(/*! ./Events */ "./src/libs/Events.js"),
+	utils = new Utils();
+
+class Loader extends Events {
+	gconsts = {
+		playerHeight: 11,
+		cameraHeight: 1.5,
+		headScale: 2,
+		armScale: 1.3,
+		armInset: 0.1,
+		chestWidth: 2.6,
+		hitBoxPad: 1,
+		crouchDst: 3,
+		recoilMlt: 0.3,
+		nameOffset: 0.6,
+		nameOffsetHat: 0.8,
+	};
+	api =  false ? 0 : 'https://api.sys32.dev/';
+	matchmaker = 'https://matchmaker.krunker.io/';
+	badge = '[GameLoader]';
+		// outcome of above maps
+	vars = {};
+	context = {
+		key: '_' + Math.random().toString().substr(2),
+	};
+	has_instruct = this.has_instruct.bind(this);
+	stacks = new Set();
+	api_v2 = new URL('v2/', this.api);
+	
+	meta = utils.promise();
+	patches = new Map();
+	variables = new Map();
+	log(...text){
+		console.log(this.badge, ...text);
+	}
+	var(label, regex, index){
+		return this.variables.set(label, [ regex, index ]), this;
+	}
+	patch(label, regex, replacement){
+		return this.patches.set(label, [ regex, replacement ]), this;
+	}
+	observe(){
+		this.loadp = new Promise(resolve => new MutationObserver((muts, observer) => muts.forEach(mut => [...mut.addedNodes].forEach(node => {
+			if(node.tagName == 'DIV' && node.id == 'instructionHolder'){
+				this.instruction_holder = node;
+				
+				new MutationObserver(() => setTimeout(() => this.emit('instruct', this.has_instruct), 200)).observe(this.instruction_holder, {
+					attributes: true,
+					attributeFilter: [ 'style' ],
+				});
+			}
+			
+			if(node.tagName == 'SCRIPT' && node.textContent.includes('Yendis Entertainment')){
+				node.textContent = '';
+				resolve();
+			}
+		}))).observe(document, { childList: true, subtree: true }));
+	}
+	has_instruct(...test){
+		if(!this.instruction_holder)return false
+		var instruction = this.instruction_holder.textContent.trim().toLowerCase();
+		for(let string of test)if(instruction.includes(test))return true;
+		return false;
+	}
+	async report_error(where, err){
+		if(typeof err != 'object')return;
+		
+		var body = {
+			name: err.name,
+			message: err.message,
+			stack: err.stack,
+			where: where,
+		};
+		
+		if(this.stacks.has(err.stack))return;
+		
+		console.error('Where:', where, '\nUncaught', err);
+		
+		this.stacks.add(err.stack);
+		
+		await Request({
+			target: this.api_v2,
+			endpoint: 'error',
+			data: body,
+		});
+	}
+	async show_error(title, message){
+		await this.load;
+		
+		var holder = document.querySelector('#instructionHolder'),
+			instructions = document.querySelector('#instructions');
+		
+		holder.style.display = 'block';
+		holder.style.pointerEvents = 'all';
+		
+		instructions.innerHTML = `<div style='color:#FFF9'>${title}</div><div style='margin-top:10px;font-size:20px;color:#FFF6'>${message}</div>`;
+	}
+	async token(){
+		await this.meta;
+		
+		return await Request({
+			target: this.api_v2,
+			endpoint: 'token',
+			data: await Request({
+				target: this.matchmaker,
+				endpoint: 'generate-token',
+				headers: {
+					'client-key': this.meta.key,
+				},
+				result: 'json',
+			}),
+			result: 'json',
+		});
+	}
+	apply_patches(source){
+		var missing;
+		
+		for(var [ label, [ regex, index ] ] of this.variables){
+			var value = (source.match(regex) || 0)[index];
+			
+			if(value)this.vars[label] = value;
+			else (missing || (missing = {}))[label] = [ regex, index ];
+		}
+		
+		console.log('Game Variables:');
+		console.table(this.vars);
+		
+		if(missing){
+			console.log('Missing:');
+			console.table(missing);
+		}
+		
+		for(var [ label, [ input, replacement ] ] of this.patches){
+			if(!source.match(input))console.error('Could not patch', label);
+			
+			source = source.replace(input, replacement);
+		}
+		
+		return source;
+	}
+	async license(input_meta){
+		var meta = await Request({
+			target: this.api_v2,
+			endpoint: 'meta',
+			data: {
+				...input_meta,
+				needs_key: true,
+			},
+			method: 'POST',
+			result: 'json',
+		});
+		
+		if(meta.error){
+			utils.add_ele('style', document.documentElement, {
+				textContent: '#initLoader,#instructionsUpdate{display:none!IMPORTANT}',
+			});
+			
+			this.show_error(meta.error.title, meta.error.message);
+			this.meta.reject();
+		}else this.meta.resolve(this.meta = meta);
+	}
+	async source(){
+		await this.meta;
+		
+		return await Request({
+			target: this.api_v2,
+			endpoint: 'source',
+			query: {
+				build: this.meta.build,
+			},
+			result: 'text',
+			cache: true,
+		});
+	}
+	async load(add_args = {}, add_context = {}){
+		var args = {
+				...add_args,
+				[this.context.key]: this.context,
+				WP_fetchMMToken: this.token(),
+			},
+			source = this.apply_patches(await this.source());
+		
+		Object.assign(this.context, add_context);
+		
+		try{
+			await this.loadp;
+			new Function(...Object.keys(args), source)(...Object.values(args));
+		}catch(err){
+			this.report_error('loading', err);
+			this.show_error(err.message, `Post a screenshot of this error on <a href='https://forum.sys32.dev/'>the forums</a> or <a href='/'>click here</a> to try again.`);
+		}
+	}
+};
+
+module.exports = Loader;
+
+/***/ }),
+
+/***/ "./src/libs/MenuUI/Control.js":
+/*!************************************!*\
+  !*** ./src/libs/MenuUI/Control.js ***!
+  \************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+
+
+var { utils } = __webpack_require__(/*! ./consts */ "./src/libs/MenuUI/consts.js"),
+	Events = __webpack_require__(/*! ../Events */ "./src/libs/Events.js");
 
 class Control extends Events {
 	constructor(name, data, category){
@@ -475,16 +769,16 @@ module.exports = Control;
 
 /***/ }),
 
-/***/ "./src/MenuUI/Window/Category.js":
-/*!***************************************!*\
-  !*** ./src/MenuUI/Window/Category.js ***!
-  \***************************************/
+/***/ "./src/libs/MenuUI/Window/Category.js":
+/*!********************************************!*\
+  !*** ./src/libs/MenuUI/Window/Category.js ***!
+  \********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 
 
-var { utils } = __webpack_require__(/*! ../consts */ "./src/MenuUI/consts.js"),
-	Control = __webpack_require__(/*! ../Control */ "./src/MenuUI/Control.js");
+var { utils } = __webpack_require__(/*! ../consts */ "./src/libs/MenuUI/consts.js"),
+	Control = __webpack_require__(/*! ../Control */ "./src/libs/MenuUI/Control.js");
 
 class Category {
 	constructor(tab, label){
@@ -561,15 +855,15 @@ module.exports = Category;
 
 /***/ }),
 
-/***/ "./src/MenuUI/consts.js":
-/*!******************************!*\
-  !*** ./src/MenuUI/consts.js ***!
-  \******************************/
+/***/ "./src/libs/MenuUI/consts.js":
+/*!***********************************!*\
+  !*** ./src/libs/MenuUI/consts.js ***!
+  \***********************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 
-var Utils = __webpack_require__(/*! ../utils */ "./src/utils.js"),
+var Utils = __webpack_require__(/*! ../utils */ "./src/libs/utils.js"),
 	utils = new Utils();
 
 exports.utils = utils;
@@ -588,69 +882,115 @@ exports.select = node => node.addEventListener('click', () => {
 
 /***/ }),
 
-/***/ "./src/Resources.js":
-/*!**************************!*\
-  !*** ./src/Resources.js ***!
-  \**************************/
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
-
-
-
-var Utils = __webpack_require__(/*! ./Utils */ "./src/Utils.js"),
-	utils = new Utils();
-
-// wait for krunker css
-// utils.wait_for(() => document.querySelector(`link[href*='/css/main_custom.css']`))
-
-var { css, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js");
-
-for(let [ name, data ] of Object.entries(css)){
-	let url = URL.createObjectURL(new Blob([ data ], { type: 'text/css' }));
-	
-	let link = document.head.appendChild(Object.assign(document.createElement('link'), {
-		rel: 'stylesheet',
-		href: url,
-	}));
-
-	link.addEventListener('load', () => {
-		URL.revokeObjectURL(url);
-	});
-	
-	document.head.appendChild(link);
-}
-
-for(let [ name, data ] of Object.entries(js)){
-	let module = { exports: {} },
-		ev = `(function(module,exports){${data}//# sourceURL=${name}\n})`;
-	
-	// console.log(ev);
-
-	try{
-		eval(ev)(module, module.exports);
-	}catch(err){
-		console.error(`Error loading script ${name}:\n`, err);
-		// todo: postMessage write to logs.txt in client folder
-	}
-}
-
-/***/ }),
-
-/***/ "./src/Runtime.js":
-/*!************************!*\
-  !*** ./src/Runtime.js ***!
-  \************************/
+/***/ "./src/libs/Request.js":
+/*!*****************************!*\
+  !*** ./src/libs/Request.js ***!
+  \*****************************/
 /***/ ((module) => {
 
 
 
-module.exports = _RUNTIME_DATA_;
+var is_obj = data => typeof data == 'object' && data != null,
+	is_url = data => typeof data == 'string' || data instanceof Location || data instanceof URL,
+	headers_obj = headers => {
+		if(!is_obj(headers))return {};
+		else if(headers instanceof Headers){
+			let out = {};
+			
+			for(let [ key, value ] of headers)out[key] = value;
+			
+			return out;
+		}else return headers;
+	};
+
+var request = input => {
+	if(!is_obj(input))throw new TypeError('Input must be an object');
+	
+	var opts = {
+			cache: 'no-cache',
+			headers: headers_obj(input.headers),
+		},
+		url = request.resolve(input);
+	
+	switch(input.cache){
+		case true:
+			opts.cache = 'force-cache';
+			break;
+		case'query':	
+			url.search += '?' + Date.now();
+			break;
+	}
+	if(input.cache == true)opts.cache = 'force-cache';
+	
+	if(is_obj(input.data)){
+		opts.method = 'POST';
+		opts.body = JSON.stringify(input.data);
+		opts.headers['content-type'] = 'application/json';
+	}
+	
+	if(typeof input.method == 'string')opts.method = input.method;
+	
+	if(input.sync){
+		opts.xhr = true;
+		opts.synchronous = true;
+	}
+	
+	var result = ['text', 'json', 'arrayBuffer'].includes(input.result) ? input.result : 'text';
+	
+	return (opts.xhr ? request.fetch_xhr : window.fetch.bind(window))(url, opts).then(res => res[result]());
+};
+
+// request.fetch = window.fetch.bind(window);
+
+request.fetch_xhr = (url, opts = {}) => {
+	if(!is_url(url))throw new TypeError('url param is not resolvable');
+	
+	var url = new URL(url, location).href,
+		method = typeof opts.method == 'string' ? opts.method : 'GET';
+	
+	// if(opts.cache == 'no-cache')url += '?' + Date.now();
+	
+	var req = new XMLHttpRequest();
+	
+	req.open(method, url, !opts.synchronous);
+	
+	return new Promise((resolve, reject) => {
+		req.addEventListener('load', () => resolve({
+			async text(){
+				return req.responseText;
+			},
+			async json(){
+				return JSON.parse(req.responseText);
+			},
+			headers: new Headers(),
+		}));
+		
+		req.addEventListener('error', event => reject(event.error));
+		
+		req.send(opts.body);
+	});
+};
+
+request.resolve = input => {
+	if(!is_url(input.target))throw new TypeError('Target must be specified');
+	
+	var url = new URL(input.target);
+	
+	if(is_url(input.endpoint))url = new URL(input.endpoint, url);
+	
+	if(typeof input.query == 'object' && input.query != null)url.search = '?' + new URLSearchParams(Object.entries(input.query));
+	
+	return url;
+};
+
+module.exports = request;
 
 /***/ }),
 
-/***/ "./src/Utils.js":
-/*!**********************!*\
-  !*** ./src/Utils.js ***!
-  \**********************/
+/***/ "./src/libs/Utils.js":
+/*!***************************!*\
+  !*** ./src/libs/Utils.js ***!
+  \***************************/
 /***/ ((module) => {
 
 
@@ -825,10 +1165,10 @@ module.exports = Utils;
 
 /***/ }),
 
-/***/ "./src/utils.js":
-/*!**********************!*\
-  !*** ./src/utils.js ***!
-  \**********************/
+/***/ "./src/libs/utils.js":
+/*!***************************!*\
+  !*** ./src/libs/utils.js ***!
+  \***************************/
 /***/ ((module) => {
 
 
@@ -1065,12 +1405,13 @@ Object.defineProperty(console, 'log', {
 
 __webpack_require__(/*! ./FixLoad */ "./src/FixLoad.js");
 __webpack_require__(/*! ./Resources */ "./src/Resources.js");
+__webpack_require__(/*! ./FastLoad */ "./src/FastLoad.js");
 
-var HTMLProxy = __webpack_require__(/*! ./HTMLProxy */ "./src/HTMLProxy.js"),
-	Category = __webpack_require__(/*! ./MenuUI/Window/Category */ "./src/MenuUI/Window/Category.js"),
-	IPC = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
-	Utils = __webpack_require__(/*! ./Utils */ "./src/Utils.js"),
-	Events = __webpack_require__(/*! ./Events */ "./src/Events.js"),
+var HTMLProxy = __webpack_require__(/*! ./libs/HTMLProxy */ "./src/libs/HTMLProxy.js"),
+	Category = __webpack_require__(/*! ./libs/MenuUI/Window/Category */ "./src/libs/MenuUI/Window/Category.js"),
+	IPC = __webpack_require__(/*! ./libs/IPC */ "./src/libs/IPC.js"),
+	Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
+	Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
 	utils = new Utils(),
 	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data)));
 
@@ -1101,7 +1442,9 @@ class Menu extends Events {
 			},
 		});
 		
-		Inst.control('Uncap FPS', {
+		var Render = this.category('Rendering');
+		
+		Render.control('Uncap FPS', {
 			type: 'boolean',
 			walk: 'client.uncap_fps',
 		}).on('change', (value, init) => !init && this.relaunch());
