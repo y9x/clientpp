@@ -223,25 +223,42 @@ private:
 
 		return wv;
 	}
-public:
-	Window(HINSTANCE hInstance, int nCmdShow)  : folder(L"GC++") {
+	std::wstring cmdline() {
+		std::vector<std::wstring> cmds = {
+			L"--enable-force-dark"
+		};
+
+		if (folder.config["client"]["uncap_fps"].get<bool>()) cmds.push_back(L"--disable-frame-rate-limit");
+
+		std::wstring cmdline;
+		bool first = false;
+
+		for (std::wstring cmd : cmds) {
+			if (first) first = false;
+			else cmdline += L" ";
+
+			cmdline += cmd;
+		}
+
+		return cmdline;
+	}
+	HINSTANCE hinst;
+	int cmdshow;
+	void init() {
 		Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
-		SetIcon(LoadIcon(hInstance, MAKEINTRESOURCE(MAINICON)));
+		SetIcon(LoadIcon(hinst, MAKEINTRESOURCE(MAINICON)));
 		NONCLIENTMETRICS metrics = {};
 		metrics.cbSize = sizeof(metrics);
 		SystemParametersInfo(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0);
 		HFONT default_font = CreateFontIndirect(&metrics.lfCaptionFont);
 
 		CoInitialize(NULL);
-		
+
 		auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
-		
-		std::wstring commandline;
 
-		if (folder.config["client"]["uncap_fps"].get<bool>()) commandline += L"--disable-frame-rate-limit";
+		std::wstring cm = cmdline();
+		options->put_AdditionalBrowserArguments(cm.c_str());
 
-		options->put_AdditionalBrowserArguments(commandline.c_str());
-		
 		CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 			env->CreateCoreWebView2Controller(m_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>([env, this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
 				if (controller != nullptr) {
@@ -252,7 +269,7 @@ public:
 				wil::com_ptr<ICoreWebView2Controller2> controller2;
 				controller2 = wv_control.query<ICoreWebView2Controller2>();
 				if (controller2) controller2->put_DefaultBackgroundColor(colorref2webview(RGB(255, 255, 255)));
-				
+
 				ICoreWebView2Settings* settings;
 				wv_window->get_Settings(&settings);
 				settings->put_IsScriptEnabled(TRUE);
@@ -270,14 +287,13 @@ public:
 				wv_control->put_ZoomFactor(2);
 
 				EventRegistrationToken token;
-				
+
 				std::string bootstrap;
 				if (load_resource(JS_BOOTSTRAP, bootstrap)) wv_window->AddScriptToExecuteOnDocumentCreated(Convert::wstring(bootstrap).c_str(), nullptr);
 				else LOG("Error loading bootstrapper");
 
 				wv_window->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT);
-				wv_window->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_STYLESHEET);
-					
+
 				wv_window->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
 					TaskPtr<PWSTR> mpt;
 					args->TryGetWebMessageAsString(&mpt.get());
@@ -290,7 +306,7 @@ public:
 							JSON response = JSON::array();
 
 							response[0] = "eval webpack";
-							
+
 							std::string js_webpack = "throw Error('Failure loading Webpack.js');";
 							load_resource(JS_WEBPACK, js_webpack);
 							std::string js_webpack_map;
@@ -298,7 +314,7 @@ public:
 							// if (load_resource(JS_WEBPACK, js_webpack)) {
 							// js_webpack = Manipulate::replace_all(js_webpack, "_RUNTIME_DATA_", data.dump());
 							// js_webpack += "//# sourceURL=webpack.js";
-							
+
 							js_webpack += "\n//# sourceMappingURL=data:application/json;base64," + Base64::Encode(js_webpack_map);
 
 							response[1] = js_webpack;
@@ -313,6 +329,10 @@ public:
 						else if (event == "open folder") {
 							ShellExecute(NULL, L"open", folder.directory.c_str(), L"", L"", SW_SHOW);
 						}
+						else if (event == "relaunch") {
+							if (::IsWindow(m_hWnd)) DestroyWindow();
+							init();
+						}
 					}
 					else LOG("Recieved invalid message");
 
@@ -320,6 +340,7 @@ public:
 				}).Get(), &token);
 
 				wv_window->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>([env, this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
+					// memory doesnt need to be allocated/deallocated since it assigns to a pointer...
 					TaskPtr<LPWSTR> sender_uriptr;
 					sender->get_Source(&sender_uriptr.get());
 
@@ -330,13 +351,18 @@ public:
 					std::wstring uri = uriptr.get();
 					std::wstring host = uri_host(uri);
 
-					for (std::wstring test : blocked_script_hosts) {
-						if (test == host) {
-							wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-							env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"Content-Type: text/plain", &response);
-							args->put_Response(response.get());
-							break;
-						}
+					if (uri_path(uri).starts_with(L"/pkg/loader.wasm")) {
+						wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+						env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"Content-Type: text/plain", &response);
+						args->put_Response(response.get());
+						return S_OK;
+					}
+
+					for (std::wstring test : blocked_script_hosts) if (is_host(test, host)) {
+						wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+						env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"Content-Type: text/plain", &response);
+						args->put_Response(response.get());
+						break;
 					}
 
 					return S_OK;
@@ -351,7 +377,7 @@ public:
 		}).Get());
 
 		ResizeClient(700, 500);
-		ShowWindow(nCmdShow);
+		ShowWindow(cmdshow);
 		UpdateWindow();
 
 		MSG msg;
@@ -361,6 +387,10 @@ public:
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+	}
+public:
+	Window(HINSTANCE h, int c) : hinst(h), cmdshow(c), folder(L"GC++") {
+		init();
 	}
 	~Window() {
 		// app shutdown

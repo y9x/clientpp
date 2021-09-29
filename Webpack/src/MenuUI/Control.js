@@ -74,7 +74,7 @@ class BooleanControl extends Control {
 	create(){
 		this.switch = utils.add_ele('label', this.content, {
 			className: 'switch',
-			textContent: 'Run',
+			textContent: this.data.button || 'Run',
 			style: {
 				'margin-left': '10px',
 			},

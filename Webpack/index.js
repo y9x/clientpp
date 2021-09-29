@@ -7,8 +7,23 @@ var path = require('path'),
 	TerserPlugin = require('terser-webpack-plugin'),
 	dist = path.join(__dirname, 'dist'),
 	serve = path.join(dist, 'serve'),
-	{ ModifyPlugin, errors } = require('./ModifyPlugin'),
-	terser = {
+	{ errors } = require('./ModifyPlugin'),
+	folder = path.join(__dirname, 'src'),
+	callback = (err, stats) => {
+		if(errors(err, stats))return console.error('Build of bootstrapper failed');
+		else console.log('Build of bootstrapper success');
+	},
+	compiler = webpack({
+		entry: folder,
+		output: {
+			path: dist,
+			filename: 'Webpack.js',
+		},
+		context: __dirname,
+		// inline work can be done from the client
+		// base64 strings are 3x larger
+		devtool: 'source-map',
+		mode: production ? 'production' : 'development',
 		optimization: {
 			minimize: production,
 			minimizer: [ new TerserPlugin({
@@ -22,37 +37,7 @@ var path = require('path'),
 				},
 			}) ],
 		},
-	},
-	folder = path.join(__dirname, 'src');
+	});
 
-var compiler = webpack({
-	entry: folder,
-	output: {
-		path: dist,
-		filename: 'Webpack.js',
-	},
-	context: __dirname,
-	devtool: 'source-map',
-	plugins: [
-			new ModifyPlugin({
-				file: 'Webpack.js',
-				stage: 'result',
-				replace: [
-					[ '//# sourceMappingURL=Webpack.js.map', '' ],
-				],
-			}),
-		],
-	// false
-	mode: production ? 'production' : 'development',
-	...terser,
-}, (err, stats) => {
-	if(errors(err, stats))return console.error('Creating compiler bootstrapper failed');
-	
-	var callback = (err, stats) => {
-		if(errors(err, stats))return console.error('Build of bootstrapper failed');
-		else console.log('Build of bootstrapper success');
-	};
-	
-	if(process.argv.includes('-once'))compiler.run(callback);
-	else compiler.watch({}, callback);
-});
+if(process.argv.includes('-once'))compiler.run(callback);
+else compiler.watch({}, callback);

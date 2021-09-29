@@ -45,8 +45,9 @@ class Menu extends Events {
 		
 		var Inst = this.category('Installation');
 		
-		Inst.control('Open Folder', {
+		Inst.control('Folder', {
 			type: 'function',
+			button: 'Open',
 			value(){
 				ipc.send('open folder');
 			},
@@ -55,9 +56,20 @@ class Menu extends Events {
 		Inst.control('Uncap FPS', {
 			type: 'boolean',
 			walk: 'client.uncap_fps',
+		}).on('change', (value, init) => !init && this.relaunch());
+		
+		var Game = this.category('Game');
+		
+		// loads krunker from api.sys32.dev
+		Game.control('Fast Loading', {
+			type: 'boolean',
+			walk: 'game.fast_load',
 		});
 		
 		for(let category of this.categories)category.update(true);
+	}
+	relaunch(){
+		
 	}
 	categories = new Set();
 	category(label){
