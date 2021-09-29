@@ -7,3 +7,4 @@ x64
 node_modules
 package-lock.json
 .initial .git file
+enc_temp_folder

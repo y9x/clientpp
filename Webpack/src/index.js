@@ -69,7 +69,7 @@ class Menu extends Events {
 		for(let category of this.categories)category.update(true);
 	}
 	relaunch(){
-		
+		ipc.send('relaunch');
 	}
 	categories = new Set();
 	category(label){

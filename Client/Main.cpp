@@ -294,7 +294,7 @@ private:
 
 				wv_window->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT);
 
-				wv_window->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
+				wv_window->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([env,this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
 					TaskPtr<PWSTR> mpt;
 					args->TryGetWebMessageAsString(&mpt.get());
 
@@ -331,6 +331,10 @@ private:
 						}
 						else if (event == "relaunch") {
 							if (::IsWindow(m_hWnd)) DestroyWindow();
+
+							// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
+							wv_control->Close();
+							
 							init();
 						}
 					}
@@ -350,13 +354,6 @@ private:
 					request->get_Uri(&uriptr.get());
 					std::wstring uri = uriptr.get();
 					std::wstring host = uri_host(uri);
-
-					if (uri_path(uri).starts_with(L"/pkg/loader.wasm")) {
-						wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-						env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"Content-Type: text/plain", &response);
-						args->put_Response(response.get());
-						return S_OK;
-					}
 
 					for (std::wstring test : blocked_script_hosts) if (is_host(test, host)) {
 						wil::com_ptr<ICoreWebView2WebResourceResponse> response;

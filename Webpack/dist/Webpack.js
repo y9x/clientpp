@@ -274,7 +274,7 @@ class BooleanControl extends Control {
 	create(){
 		this.switch = utils.add_ele('label', this.content, {
 			className: 'switch',
-			textContent: this.data.button || 'Run',
+			textContent: 'Run',
 			style: {
 				'margin-left': '10px',
 			},
@@ -330,7 +330,7 @@ class FunctionControl extends Control {
 	create(){
 		utils.add_ele('div', this.content, {
 			className: 'settingsBtn',
-			textContent: 'Run',
+			textContent: this.data.button || 'Run',
 		}).addEventListener('click', () => this.interact());
 	}
 	interact(){
@@ -1117,7 +1117,7 @@ class Menu extends Events {
 		for(let category of this.categories)category.update(true);
 	}
 	relaunch(){
-		
+		ipc.send('relaunch');
 	}
 	categories = new Set();
 	category(label){
