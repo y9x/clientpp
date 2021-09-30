@@ -76,8 +76,8 @@ std::string create_log_badge(std::string type) {
 #include "../Utils/IOUtil.h"
 #include "../Utils/JSON.h"
 #include "../Utils/Base64.h"
-#include "resource.h"
 #include "./Socket.h"
+#include "resource.h"
 
 using namespace StringUtil;
 using namespace Microsoft::WRL;
