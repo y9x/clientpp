@@ -46,8 +46,10 @@ std::string create_log_badge(std::string type) {
 	std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	std::string ts = std::ctime(&now);
 	ts.pop_back();
-	result += " [" + ts + "]: ";
+	result += " [" + ts + "]";
 #endif
+
+	result += ": ";
 
 	return result;
 }
