@@ -61,6 +61,11 @@ class Menu extends Events {
 			walk: 'client.uncap_fps',
 		}).on('change', (value, init) => !init && this.relaunch());
 		
+		Render.control('Fullscreen', {
+			type: 'boolean',
+			walk: 'client.fullscreen',
+		}).on('change', (value, init) => !init && ipc.send('fullscreen', value));
+		
 		var Game = this.category('Game');
 		
 		// loads krunker from api.sys32.dev

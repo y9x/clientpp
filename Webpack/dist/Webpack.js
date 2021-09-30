@@ -1349,7 +1349,7 @@ module.exports = Utils;
   \*****************************/
 /***/ ((module) => {
 
-module.exports = JSON.parse('{"game":{"fast_load":true},"client":{"uncap_fps":true}}');
+module.exports = JSON.parse('{"game":{"fast_load":true},"client":{"uncap_fps":true,"fullscreen":false}}');
 
 /***/ })
 
@@ -1448,6 +1448,12 @@ class Menu extends Events {
 			type: 'boolean',
 			walk: 'client.uncap_fps',
 		}).on('change', (value, init) => !init && this.relaunch());
+		
+		Render.control('Fullscreen', {
+			type: 'boolean',
+			walk: 'client.fullscreen',
+			// document.body.requestFullscreen()
+		}).on('change', (value, init) => !init && ipc.send('fullscreen', value));
 		
 		var Game = this.category('Game');
 		

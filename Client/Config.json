@@ -3,6 +3,7 @@
 		"fast_load": true
 	},
 	"client": {
-		"uncap_fps": true
+		"uncap_fps": true,
+		"fullscreen":  false
 	}
 }

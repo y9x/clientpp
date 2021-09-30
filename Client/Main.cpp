@@ -1,20 +1,61 @@
-#define WILL_LOG 0
+#define WILL_LOG 1
 
 #define _CRT_SECURE_NO_WARNINGS
-#if WILL_LOG == 1
+
 #include <iostream>
-#define LOG(data) std::cout << data << std::endl
+#include <string>
+#include <windows.h>
+#include <chrono>
+#include <ctime>
+
+#if WILL_LOG == 1
+#define LOG_COUT std::cout
 #else
-#define LOG(data) void()
+class FileCout : private std::streambuf, public std::ostream {
+private:
+	std::string buffer;
+	int overflow(int c) override {
+		if (c == EOF) return 0;
+		
+		buffer += c;
+		
+		if (c == '\n') {
+			FILE* handle = _wfopen(path.c_str(), L"a");
+			if (handle) {
+				fwrite(buffer.data(), sizeof(char), buffer.size(), handle);
+				fclose(handle);
+			}
+			buffer.erase();
+		}
+
+		return 0;
+	}
+public:
+	std::wstring path;
+	FileCout(std::wstring p) : std::ostream(this), path(p) {}
+};
+
+FileCout fc(L"./TmpLogs.txt");
+#define LOG_COUT fc
 #endif
 
-#include <windows.h>
+std::string create_log_badge(std::string type) {
+	std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	std::string ts = std::ctime(&now);
+	ts.pop_back();
+	return "[" + type + "] [" + ts + "]: ";
+}
+
+// #define LOG(data) LOG_COUT << data << '\n'
+#define LOG_INFO(data) LOG_COUT << create_log_badge("Info") << data << '\n'
+#define LOG_WARN(data) LOG_COUT << create_log_badge("Warning") << data << '\n'
+#define LOG_ERROR(data) LOG_COUT << create_log_badge("Error") << data << '\n'
+
 #include <vector>
 #include <atlbase.h>
 #include <atlwin.h>
 #include <atlenc.h>
 #include <stdlib.h>
-#include <string>
 #include <tchar.h>
 #include <wrl.h>
 #include <wil/com.h>
@@ -26,6 +67,8 @@
 #include "../Utils/JSON.h"
 #include "../Utils/Base64.h"
 #include "resource.h"
+
+#define RECT_ARGS(r) r.left, r.top, r.right - r.left, r.bottom - r.top
 
 using namespace StringUtil;
 using namespace Microsoft::WRL;
@@ -74,6 +117,56 @@ bool load_resource(int resource, std::string& string) {
 }
 
 class ClientFolder {
+public:
+	std::wstring directory;
+	std::wstring p_scripts = L"\\Scripts";
+	std::wstring p_styles = L"\\Styles";
+	std::wstring p_swapper = L"\\Swapper";
+	std::wstring p_config = L"\\Config.json";
+	std::wstring p_log = L"\\Log.txt";
+	JSON config = JSON::object();
+	ClientFolder(std::wstring n) : name(n) {
+		directory = _wgetenv(L"USERPROFILE");
+		directory += L"\\Documents\\" + name;
+
+		if (OVR(CreateDirectory(directory.c_str(), NULL))) {
+			LOG_INFO("Created " << Convert::string(directory));
+
+			for (std::wstring sdir : directories) {
+				if (OVR(CreateDirectory((directory + sdir).c_str(), NULL))) LOG_INFO("Created " << Convert::string(directory + sdir));
+				else error_creating = true;
+			}
+
+#if WILL_LOG != 1
+			fc.path = directory + p_log;
+#endif
+		}
+		else LOG_ERROR("Creation"), error_creating = true;
+
+		if (error_creating)LOG_ERROR("Had an error creating directories");
+		else {
+			std::string config_buffer;
+
+			bool read = false;
+			bool needs_save = false;
+
+			IOUtil::wread_file(directory + p_config, config_buffer);
+
+			try {
+				config = JSON::parse(config_buffer);
+			}
+			catch (JSON::exception err) {
+				if (load_resource(JSON_CONFIG, config_buffer)) {
+					config = JSON::parse(config_buffer);
+					save_config();
+				}
+			}
+		}
+	}
+	bool save_config() {
+		LOG_INFO("Wrote config");
+		return IOUtil::wwrite_file(directory + p_config, config.dump(1, '\t'));
+	}
 private:
 	std::wstring name;
 	std::vector<std::wstring> directories{ p_scripts, p_styles, p_swapper };
@@ -85,48 +178,6 @@ private:
 		else return false;
 	}
 	bool error_creating = false;
-public:
-	JSON config = JSON::object();
-	ClientFolder(std::wstring n) : name(n) {
-		directory = _wgetenv(L"USERPROFILE");
-		directory += L"\\Documents\\" + name;
-		if (OVR(CreateDirectory(directory.c_str(), NULL)))
-			for (std::wstring sdir : directories) {
-				if (!OVR(CreateDirectory((directory + sdir).c_str(), NULL))) error_creating = true;
-			}
-		else error_creating = true;
-
-		if (error_creating)LOG("Had an error creating directories");
-		else {
-			std::string config_buffer;
-			
-			bool read = false;
-			bool needs_save = false;
-
-			IOUtil::wread_file(directory + p_config, config_buffer);
-
-			try {
-				config = JSON::parse(config_buffer);
-			}
-			catch (JSON::exception err) {
-				// LOG("caught " << err.what());
-				if (load_resource(JSON_CONFIG, config_buffer)) {
-					// LOG(config_buffer);
-					config = JSON::parse(config_buffer);
-					save_config();
-				}
-			}
-		}
-	}
-	bool save_config() {
-		LOG("Wrote config");
-		return IOUtil::wwrite_file(directory + p_config, config.dump(1, '\t'));
-	}
-	std::wstring directory;
-	std::wstring p_scripts = L"\\Scripts";
-	std::wstring p_styles = L"\\Styles";
-	std::wstring p_swapper = L"\\Swapper";
-	std::wstring p_config = L"\\Config.json";
 };
 
 template<class T>
@@ -145,6 +196,22 @@ public:
 	/*T operator T() {
 		return ptr;
 	}*/
+};
+
+struct Vector2 {
+	long x;
+	long y;
+	bool operator = (POINT p) {
+		x = p.x;
+		y = p.y;
+		return true;
+	}
+	operator POINT () {
+		POINT point;
+		point.x = x;
+		point.y = y;
+		return point;
+	}
 };
 
 class Window : public CWindowImpl<Window> {
@@ -201,14 +268,8 @@ private:
 					search.obj[Convert::string(it.file()).c_str()] = buffer;
 			}
 		
-		// std::string js_fixload;
-		// if (load_resource(JS_FIXLOAD, js_fixload))injections["js"]["Client/FixLoad.js"] = js_fixload;
-
 		std::string css_client;
 		if (load_resource(CSS_CLIENT, css_client)) data["css"]["Client/Client.css"] = css_client;
-
-		// Client/Menu.js
-		// if (injections["js"].contains("Menu.js"))injections["js"]["Menu.js"] = Manipulate::replace_all(injections["js"]["Menu.js"].get<std::string>(), "_RUNTIME_CLIENT_CONFIG_", folder.config.dump());
 
 		data["config"] = folder.config;
 
@@ -244,6 +305,51 @@ private:
 	}
 	HINSTANCE hinst;
 	int cmdshow;
+	bool fullscreen = false;
+	RECT windowed;
+	bool enter_fullscreen() {
+		if (fullscreen) return false;
+
+		DEVMODE fullscreenSettings;
+		
+		GetClientRect(&windowed);
+		ClientToScreen(&windowed);
+		
+		EnumDisplaySettings(NULL, 0, &fullscreenSettings);
+		int fullscreenWidth = fullscreenSettings.dmPelsWidth;
+		int fullscreenHeight = fullscreenSettings.dmPelsHeight;
+
+		
+
+		SetWindowLongPtr(GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TOPMOST);
+		SetWindowLongPtr(GWL_STYLE, WS_POPUP | WS_VISIBLE);
+		SetWindowPos(HWND_TOPMOST, 0, 0, fullscreenWidth, fullscreenHeight, SWP_SHOWWINDOW);
+		// isChangeSuccessful = ChangeDisplaySettings(&fullscreenSettings, CDS_FULLSCREEN) == DISP_CHANGE_SUCCESSFUL;
+		ShowWindow(SW_MAXIMIZE);
+
+		resize_wv();
+
+		return fullscreen = true;
+	}
+	bool exit_fullscreen() {
+		if (!fullscreen) return false; 
+		
+		//  windowX, int windowY, int windowedWidth, int windowedHeight, int windowedPaddingX, int windowedPaddingY) {
+
+		SetWindowLongPtr(GWL_EXSTYLE, WS_EX_LEFT);
+		SetWindowLongPtr(GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+		// width = r.right - r.left;
+		// height = r.bottom - r.top;
+		// windowed.left, windowY, windowedWidth, windowedHeight
+		SetWindowPos(HWND_NOTOPMOST, RECT_ARGS(windowed), SWP_SHOWWINDOW);
+		ShowWindow(SW_RESTORE);
+
+		fullscreen = false;
+
+		resize_wv();
+
+		return true;
+	}
 	void init() {
 		Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
 		SetIcon(LoadIcon(hinst, MAKEINTRESOURCE(MAINICON)));
@@ -285,12 +391,14 @@ private:
 				resize_wv();
 
 				wv_control->put_ZoomFactor(2);
-
+				
+				if (folder.config["client"]["fullscreen"].get<bool>()) enter_fullscreen();
+				
 				EventRegistrationToken token;
 
 				std::string bootstrap;
 				if (load_resource(JS_BOOTSTRAP, bootstrap)) wv_window->AddScriptToExecuteOnDocumentCreated(Convert::wstring(bootstrap).c_str(), nullptr);
-				else LOG("Error loading bootstrapper");
+				else LOG_ERROR("Error loading bootstrapper");
 
 				wv_window->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT);
 
@@ -337,8 +445,12 @@ private:
 							
 							init();
 						}
+						else if (event == "fullscreen") {
+							if (message[1].get<bool>()) enter_fullscreen();
+							else exit_fullscreen();
+						}
 					}
-					else LOG("Recieved invalid message");
+					else LOG_ERROR("Recieved invalid message");
 
 					return S_OK;
 				}).Get(), &token);
@@ -379,7 +491,9 @@ private:
 
 		MSG msg;
 		BOOL ret;
-
+		
+		LOG_INFO("Client Initialized");
+		
 		while (ret = GetMessage(&msg, 0, 0, 0)) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
@@ -403,18 +517,17 @@ public:
 	bool open_link(std::string url) {
 		return ShellExecute(m_hWnd, L"open", Convert::wstring(url).c_str(), NULL, NULL, SW_SHOW);
 	}
-	void resize_wv() {
+	bool resize_wv() {
+		if (wv_control == nullptr) return false;
+		
 		RECT bounds;
 		GetClientRect(&bounds);
 		wv_control->put_Bounds(bounds);
+
+		return true;
 	}
 	LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
-		if (wv_control != nullptr) {
-			resize_wv();
-			return true;
-		}
-
-		return false;
+		return resize_wv();
 	}
 	LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
 		PostQuitMessage(EXIT_SUCCESS);
