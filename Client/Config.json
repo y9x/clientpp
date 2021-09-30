@@ -1,9 +1,10 @@
 {
 	"game": {
-		"fast_load": true
+		"fast_load": true,
+		"f4_seek":  true
 	},
 	"client": {
 		"uncap_fps": true,
-		"fullscreen":  false
+		"fullscreen": false
 	}
 }

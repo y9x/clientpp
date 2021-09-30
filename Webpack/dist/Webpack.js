@@ -1349,7 +1349,7 @@ module.exports = Utils;
   \*****************************/
 /***/ ((module) => {
 
-module.exports = JSON.parse('{"game":{"fast_load":true},"client":{"uncap_fps":true,"fullscreen":false}}');
+module.exports = JSON.parse('{"game":{"fast_load":true,"f4_seek":true},"client":{"uncap_fps":true,"fullscreen":false}}');
 
 /***/ })
 
@@ -1452,7 +1452,6 @@ class Menu extends Events {
 		Render.control('Fullscreen', {
 			type: 'boolean',
 			walk: 'client.fullscreen',
-			// document.body.requestFullscreen()
 		}).on('change', (value, init) => !init && ipc.send('fullscreen', value));
 		
 		var Game = this.category('Game');
@@ -1462,6 +1461,11 @@ class Menu extends Events {
 			type: 'boolean',
 			walk: 'game.fast_load',
 		});
+		
+		Game.control('Seek new Lobby [F4]', {
+			type: 'boolean',
+			walk: 'game.f4_seek',
+		}).on('change', (value, init) => !init && setTimeout(() => ipc.send('reload config')));
 		
 		for(let category of this.categories)category.update(true);
 	}

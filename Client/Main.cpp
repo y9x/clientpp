@@ -144,24 +144,28 @@ public:
 		else LOG_ERROR("Creation"), error_creating = true;
 
 		if (error_creating)LOG_ERROR("Had an error creating directories");
-		else {
-			std::string config_buffer;
+		else load_config();
+	}
+	bool load_config() {
+		std::string config_buffer;
 
-			bool read = false;
-			bool needs_save = false;
+		bool read = false;
+		bool needs_save = false;
 
-			IOUtil::wread_file(directory + p_config, config_buffer);
+		IOUtil::wread_file(directory + p_config, config_buffer);
 
-			try {
-				config = JSON::parse(config_buffer);
-			}
-			catch (JSON::exception err) {
-				if (load_resource(JSON_CONFIG, config_buffer)) {
-					config = JSON::parse(config_buffer);
-					save_config();
-				}
-			}
+		try {
+			config = JSON::parse(config_buffer);
 		}
+		catch (JSON::exception err) {
+			if (load_resource(JSON_CONFIG, config_buffer)) {
+				config = JSON::parse(config_buffer);
+				save_config();
+			}
+			else return false;
+		}
+
+		return true;
 	}
 	bool save_config() {
 		LOG_INFO("Wrote config");
@@ -449,6 +453,9 @@ private:
 							if (message[1].get<bool>()) enter_fullscreen();
 							else exit_fullscreen();
 						}
+						else if (event == "reload config") {
+							folder.load_config();
+						}
 					}
 					else LOG_ERROR("Recieved invalid message");
 
@@ -495,6 +502,19 @@ private:
 		LOG_INFO("Client Initialized");
 		
 		while (ret = GetMessage(&msg, 0, 0, 0)) {
+			if (msg.message == WM_KEYDOWN) {
+				char code = (char)msg.wParam;
+
+				switch (code) {
+				case VK_F4:
+					if (folder.config["game"]["f4_seek"].get<bool>()) wv_window->Navigate(L"https://krunker.io/");
+					break;
+				case VK_F5:
+					wv_window->Reload();
+					break;
+				}
+			}
+
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}

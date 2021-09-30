@@ -74,6 +74,11 @@ class Menu extends Events {
 			walk: 'game.fast_load',
 		});
 		
+		Game.control('Seek new Lobby [F4]', {
+			type: 'boolean',
+			walk: 'game.f4_seek',
+		}).on('change', (value, init) => !init && setTimeout(() => ipc.send('reload config')));
+		
 		for(let category of this.categories)category.update(true);
 	}
 	relaunch(){
