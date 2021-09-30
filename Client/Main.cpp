@@ -1,4 +1,4 @@
-#define WILL_LOG 1
+#define WILL_LOG 0
 
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -51,6 +51,8 @@ std::string create_log_badge(std::string type) {
 #define LOG_WARN(data) LOG_COUT << create_log_badge("Warning") << data << '\n'
 #define LOG_ERROR(data) LOG_COUT << create_log_badge("Error") << data << '\n'
 
+#define RECT_ARGS(r) r.left, r.top, r.right - r.left, r.bottom - r.top
+
 #include <vector>
 #include <atlbase.h>
 #include <atlwin.h>
@@ -67,8 +69,6 @@ std::string create_log_badge(std::string type) {
 #include "../Utils/JSON.h"
 #include "../Utils/Base64.h"
 #include "resource.h"
-
-#define RECT_ARGS(r) r.left, r.top, r.right - r.left, r.bottom - r.top
 
 using namespace StringUtil;
 using namespace Microsoft::WRL;
@@ -390,7 +390,7 @@ private:
 
 				resize_wv();
 
-				wv_control->put_ZoomFactor(2);
+				wv_control->put_ZoomFactor(1);
 				
 				if (folder.config["client"]["fullscreen"].get<bool>()) enter_fullscreen();
 				
