@@ -77,6 +77,7 @@ std::string create_log_badge(std::string type) {
 #include "../Utils/JSON.h"
 #include "../Utils/Base64.h"
 #include "resource.h"
+#include "./Socket.h"
 
 using namespace StringUtil;
 using namespace Microsoft::WRL;
@@ -229,7 +230,7 @@ struct Vector2 {
 class Window : public CWindowImpl<Window> {
 private:
 	std::wstring title = L"Guru Client++";
-	std::vector<std::wstring> blocked_script_hosts{
+	std::vector<std::wstring> blocked_script_hosts {
 		L"cookie-cdn.cookiepro.com",
 		L"www.googletagmanager.com",
 		L"pagead2.googlesyndication.com",
@@ -360,6 +361,36 @@ private:
 		return true;
 	}
 	void init() {
+		std::string send;
+
+		std::string worker = "client-trial.gang.workers.dev";
+
+		for (std::string line : std::vector<std::string> {
+			"GET / HTTP/1.0",
+			"Host: " + worker,
+			"Connection: close",
+			"",
+		}) {
+			send += line + "\r\n";
+		}
+
+		Socket socket;
+		socket.connect(worker, 80);
+		socket.send(send);
+
+		std::string body = socket.read();
+
+		bool active = body.find("Trial 1 Active") != std::string::npos;
+
+		std::cout << "Trial " << (active ? "Active" : "Inactive") << std::endl;
+
+		socket.close();
+		
+		if (!active) {
+			PostQuitMessage(EXIT_SUCCESS);
+			return;
+		}
+
 		Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
 		SetIcon(LoadIcon(hinst, MAKEINTRESOURCE(MAINICON)));
 		NONCLIENTMETRICS metrics = {};
