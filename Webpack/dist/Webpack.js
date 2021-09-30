@@ -278,6 +278,62 @@ module.exports = IPC;
 
 /***/ }),
 
+/***/ "./src/libs/Keybind.js":
+/*!*****************************!*\
+  !*** ./src/libs/Keybind.js ***!
+  \*****************************/
+/***/ ((module) => {
+
+
+
+class Keybind {
+	static keybinds = new Set();
+	constructor(key, callback){
+		this.keys = new Set();
+		this.callbacks = new Set();
+		Keybind.keybinds.add(this);
+		
+		if(typeof key == 'string'){
+			this.key(key);
+			key = callback;
+		}
+		
+		if(typeof key == 'function')this.callback(callback);
+	}
+	delete(){
+		Keybind.keybinds.delete(this);
+	}
+	set_key(...args){
+		return this.keys = new Set(), this.key(...args);
+	}
+	set_callback(...args){
+		return this.callbacks = new Set(), this.key(...args);
+	}
+	key(...keys){
+		for(let key of keys)this.keys.add(key);
+		return this;
+	}
+	callback(...funcs){
+		for(let func of funcs)this.callbacks.add(func);
+		return this;
+	}
+};
+
+window.addEventListener('keydown', event => {
+	if(event.repeat)return;
+	for(let node of [...event.composedPath()])if(node.tagName)for(let part of ['INPUT', 'TEXTAREA'])if(node.tagName.includes(part))return;
+	
+	//  || keybind.repeat
+	for(let keybind of Keybind.keybinds)if((!event.repeat) && keybind.keys.has(event.code)){
+		event.preventDefault();
+		for(let callback of keybind.callbacks)callback();
+	}
+});
+
+module.exports = Keybind;
+
+/***/ }),
+
 /***/ "./src/libs/Loader.js":
 /*!****************************!*\
   !*** ./src/libs/Loader.js ***!
@@ -1412,8 +1468,9 @@ var HTMLProxy = __webpack_require__(/*! ./libs/HTMLProxy */ "./src/libs/HTMLProx
 	IPC = __webpack_require__(/*! ./libs/IPC */ "./src/libs/IPC.js"),
 	Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
+	Keybind = __webpack_require__(/*! ./libs/Keybind */ "./src/libs/Keybind.js");
 	utils = new Utils(),
-	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data)));
+	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data))),
 
 chrome.webview.addEventListener('message', ({ data }) => ipc.emit(...JSON.parse(data)));
 
@@ -1465,7 +1522,13 @@ class Menu extends Events {
 		Game.control('Seek new Lobby [F4]', {
 			type: 'boolean',
 			walk: 'game.f4_seek',
-		}).on('change', (value, init) => !init && setTimeout(() => ipc.send('reload config')));
+		});
+		
+		new Keybind('F4', () => {
+			if(this.config.game.f4_seek)location.assign('/');
+		});
+		
+		// .on('change', (value, init) => !init && setTimeout(() => ipc.send('reload config')));
 		
 		for(let category of this.categories)category.update(true);
 	}

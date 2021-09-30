@@ -502,19 +502,6 @@ private:
 		LOG_INFO("Client Initialized");
 		
 		while (ret = GetMessage(&msg, 0, 0, 0)) {
-			if (msg.message == WM_KEYDOWN) {
-				char code = (char)msg.wParam;
-
-				switch (code) {
-				case VK_F4:
-					if (folder.config["game"]["f4_seek"].get<bool>()) wv_window->Navigate(L"https://krunker.io/");
-					break;
-				case VK_F5:
-					wv_window->Reload();
-					break;
-				}
-			}
-
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}

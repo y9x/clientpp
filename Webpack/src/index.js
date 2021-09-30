@@ -24,8 +24,9 @@ var HTMLProxy = require('./libs/HTMLProxy'),
 	IPC = require('./libs/IPC'),
 	Utils = require('./libs/Utils'),
 	Events = require('./libs/Events'),
+	Keybind = require('./libs/Keybind');
 	utils = new Utils(),
-	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data)));
+	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data))),
 
 chrome.webview.addEventListener('message', ({ data }) => ipc.emit(...JSON.parse(data)));
 
@@ -77,7 +78,13 @@ class Menu extends Events {
 		Game.control('Seek new Lobby [F4]', {
 			type: 'boolean',
 			walk: 'game.f4_seek',
-		}).on('change', (value, init) => !init && setTimeout(() => ipc.send('reload config')));
+		});
+		
+		new Keybind('F4', () => {
+			if(this.config.game.f4_seek)location.assign('/');
+		});
+		
+		// .on('change', (value, init) => !init && setTimeout(() => ipc.send('reload config')));
 		
 		for(let category of this.categories)category.update(true);
 	}
