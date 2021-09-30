@@ -92,6 +92,20 @@ namespace IOUtil {
 		return cnext = true;
 	}
 
+	bool file_exists(std::string path) {
+		FILE* file = fopen(path.c_str(), "r");
+		if (!file)return false;
+		fclose(file);
+		return true;
+	}
+
+	bool file_exists(std::wstring path) {
+		FILE* file = _wfopen(path.c_str(), L"r");
+		if (!file)return false;
+		fclose(file);
+		return true;
+	}
+
 	bool read_file(std::string path, std::string& buffer) {
 		FILE* file = fopen(path.c_str(), "r");
 
@@ -112,7 +126,7 @@ namespace IOUtil {
 		return true;
 	}
 
-	bool wread_file(std::wstring path, std::string& buffer) {
+	bool read_file(std::wstring path, std::string& buffer) {
 		FILE* file = _wfopen(path.c_str(), L"r");
 
 		if (!file)return false;
@@ -143,7 +157,7 @@ namespace IOUtil {
 		return true;
 	}
 	
-	bool wwrite_file(std::wstring path, std::string buffer) {
+	bool write_file(std::wstring path, std::string buffer) {
 		FILE* file = _wfopen(path.c_str(), L"w");
 
 		if (!file)return false;

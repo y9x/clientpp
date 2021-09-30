@@ -1,4 +1,4 @@
-#define WILL_LOG 0
+#define WILL_LOG 1
 
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -40,10 +40,16 @@ FileCout fc(L"./TmpLogs.txt");
 #endif
 
 std::string create_log_badge(std::string type) {
+	std::string result = "[" + type + "]";
+
+#if WILL_LOG == 0
 	std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	std::string ts = std::ctime(&now);
 	ts.pop_back();
-	return "[" + type + "] [" + ts + "]: ";
+	result += " [" + ts + "]: ";
+#endif
+
+	return result;
 }
 
 // #define LOG(data) LOG_COUT << data << '\n'
@@ -152,7 +158,7 @@ public:
 		bool read = false;
 		bool needs_save = false;
 
-		IOUtil::wread_file(directory + p_config, config_buffer);
+		IOUtil::read_file(directory + p_config, config_buffer);
 
 		try {
 			config = JSON::parse(config_buffer);
@@ -169,7 +175,7 @@ public:
 	}
 	bool save_config() {
 		LOG_INFO("Wrote config");
-		return IOUtil::wwrite_file(directory + p_config, config.dump(1, '\t'));
+		return IOUtil::write_file(directory + p_config, config.dump(1, '\t'));
 	}
 private:
 	std::wstring name;
@@ -242,8 +248,12 @@ private:
 	std::wstring uri_path(std::wstring uri) {
 		if (uri.starts_with(L"https://")) uri = uri.substr(8);
 		else if (uri.starts_with(L"http://")) uri = uri.substr(7);
-		
-		return uri.substr(uri.find_first_of(L'/'));
+		uri = uri.substr(uri.find_first_of(L'/'));
+
+		int query = uri.find_first_of(L'?');
+		if(query != -1)uri = uri.substr(0, query);
+
+		return uri;
 	}
 	bool is_host(std::wstring host, std::wstring match) {
 		return host == match || host.ends_with(L'.' + match);
@@ -404,8 +414,10 @@ private:
 				if (load_resource(JS_BOOTSTRAP, bootstrap)) wv_window->AddScriptToExecuteOnDocumentCreated(Convert::wstring(bootstrap).c_str(), nullptr);
 				else LOG_ERROR("Error loading bootstrapper");
 
-				wv_window->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT);
-
+				// COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT
+				// recieve all requests for resource swapper
+				wv_window->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
+				
 				wv_window->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([env,this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
 					TaskPtr<PWSTR> mpt;
 					args->TryGetWebMessageAsString(&mpt.get());
@@ -474,7 +486,34 @@ private:
 					std::wstring uri = uriptr.get();
 					std::wstring host = uri_host(uri);
 
-					for (std::wstring test : blocked_script_hosts) if (is_host(test, host)) {
+					if (is_host(host, L"krunker.io")) {
+						std::wstring path = folder.directory + folder.p_swapper + uri_path(uri);
+						// path = Manipulate::replace_all(path, L"\\", L"/");
+						
+						if (IOUtil::file_exists(path)) {
+							// Create an empty IStream:
+							IStream* stream = nullptr;
+							if (CreateStreamOnHGlobal(NULL, TRUE, (LPSTREAM*)&stream) == S_OK) {
+								std::string data;
+
+								if (IOUtil::read_file(path, data)) {
+									ULONG written = 0;
+									
+									if (stream->Write(data.data(), data.length(), &written) == S_OK) {
+										LOG_INFO("Wrote " << written);
+
+										wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+										env->CreateWebResourceResponse(stream, 200, L"OK", L"", &response);
+										args->put_Response(response.get());
+									}
+									else LOG_ERROR("Error writing to IStream");
+
+								}
+								else LOG_ERROR("Error reading " << Convert::string(path));
+							}
+							else LOG_ERROR("Error creating IStream on HGlobal");
+						}
+					}else for (std::wstring test : blocked_script_hosts) if (is_host(test, host)) {
 						wil::com_ptr<ICoreWebView2WebResourceResponse> response;
 						env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"Content-Type: text/plain", &response);
 						args->put_Response(response.get());

@@ -49,13 +49,16 @@ namespace IOUtil {
 		bool operator++ ();
 	};
 
-	// reads a file into buffer, returns true if successful, false if failure
-	bool wread_file(std::wstring path, std::string& buffer);
-	// writes a file from the buffer, for small data
-	bool wwrite_file(std::wstring path, std::string buffer);
+	// returns true if a handle to the file can be created, false if failure
+	bool file_exists(std::wstring path);
+	bool file_exists(std::string path);
 
 	// reads a file into buffer, returns true if successful, false if failure
+	bool read_file(std::wstring path, std::string& buffer);
 	bool read_file(std::string path, std::string& buffer);
+	
 	// writes a file from the buffer, for small data
 	bool write_file(std::string path, std::string buffer);
+	bool write_file(std::wstring path, std::string buffer);
+
 };

@@ -1468,9 +1468,9 @@ var HTMLProxy = __webpack_require__(/*! ./libs/HTMLProxy */ "./src/libs/HTMLProx
 	IPC = __webpack_require__(/*! ./libs/IPC */ "./src/libs/IPC.js"),
 	Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
-	Keybind = __webpack_require__(/*! ./libs/Keybind */ "./src/libs/Keybind.js");
+	Keybind = __webpack_require__(/*! ./libs/Keybind */ "./src/libs/Keybind.js"),
 	utils = new Utils(),
-	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data))),
+	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data)));
 
 chrome.webview.addEventListener('message', ({ data }) => ipc.emit(...JSON.parse(data)));
 

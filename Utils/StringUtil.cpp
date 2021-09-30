@@ -68,6 +68,14 @@ namespace StringUtil {
 			return string;
 		}
 
+		std::wstring replace_all(std::wstring string, const std::wstring& from, const std::wstring& to) {
+			size_t start_pos = 0;
+			while ((start_pos = string.find(from, start_pos)) != std::wstring::npos) {
+				string.replace(start_pos, from.length(), to);
+				start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+			}
+			return string;
+		}
 
 		std::vector<std::string> split(const std::string& str, char delim) {
 			std::vector<std::string> strings;

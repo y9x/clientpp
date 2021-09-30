@@ -24,9 +24,9 @@ var HTMLProxy = require('./libs/HTMLProxy'),
 	IPC = require('./libs/IPC'),
 	Utils = require('./libs/Utils'),
 	Events = require('./libs/Events'),
-	Keybind = require('./libs/Keybind');
+	Keybind = require('./libs/Keybind'),
 	utils = new Utils(),
-	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data))),
+	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data)));
 
 chrome.webview.addEventListener('message', ({ data }) => ipc.emit(...JSON.parse(data)));
 
