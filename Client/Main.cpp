@@ -491,29 +491,17 @@ private:
 					if (is_host(host, L"krunker.io")) {
 						std::wstring path = folder.directory + folder.p_swapper + uri_path(uri);
 						// path = Manipulate::replace_all(path, L"\\", L"/");
-						
+
 						if (IOUtil::file_exists(path)) {
 							// Create an empty IStream:
-							IStream* stream = nullptr;
-							if (CreateStreamOnHGlobal(NULL, TRUE, (LPSTREAM*)&stream) == S_OK) {
-								std::string data;
-
-								if (IOUtil::read_file(path, data)) {
-									ULONG written = 0;
-									
-									if (stream->Write(data.data(), data.length(), &written) == S_OK) {
-										LOG_INFO("Wrote " << written);
-
-										wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-										env->CreateWebResourceResponse(stream, 200, L"OK", L"", &response);
-										args->put_Response(response.get());
-									}
-									else LOG_ERROR("Error writing to IStream");
-
-								}
-								else LOG_ERROR("Error reading " << Convert::string(path));
+							IStream* stream;
+							
+							if (SHCreateStreamOnFileEx(path.c_str(), STGM_READ | STGM_SHARE_DENY_WRITE, 0, false, 0, &stream) == S_OK) {
+								wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+								env->CreateWebResourceResponse(stream, 200, L"OK", L"", &response);
+								args->put_Response(response.get());
 							}
-							else LOG_ERROR("Error creating IStream on HGlobal");
+							else LOG_ERROR("Error creating IStream on path: " << Convert::string(path));
 						}
 					}else for (std::wstring test : blocked_script_hosts) if (is_host(test, host)) {
 						wil::com_ptr<ICoreWebView2WebResourceResponse> response;
