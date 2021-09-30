@@ -1,4 +1,4 @@
-#define WILL_LOG 1
+#define WILL_LOG 0
 
 #define _CRT_SECURE_NO_WARNINGS
 
