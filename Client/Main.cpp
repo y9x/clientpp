@@ -330,7 +330,6 @@ private:
 		
 		GetClientRect(&windowed);
 		ClientToScreen(&windowed);
-		
 		EnumDisplaySettings(NULL, 0, &fullscreenSettings);
 		int fullscreenWidth = fullscreenSettings.dmPelsWidth;
 		int fullscreenHeight = fullscreenSettings.dmPelsHeight;
@@ -340,7 +339,6 @@ private:
 		SetWindowLongPtr(GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TOPMOST);
 		SetWindowLongPtr(GWL_STYLE, WS_POPUP | WS_VISIBLE);
 		SetWindowPos(HWND_TOPMOST, 0, 0, fullscreenWidth, fullscreenHeight, SWP_SHOWWINDOW);
-		// isChangeSuccessful = ChangeDisplaySettings(&fullscreenSettings, CDS_FULLSCREEN) == DISP_CHANGE_SUCCESSFUL;
 		ShowWindow(SW_MAXIMIZE);
 
 		resize_wv();
@@ -350,13 +348,8 @@ private:
 	bool exit_fullscreen() {
 		if (!fullscreen) return false; 
 		
-		//  windowX, int windowY, int windowedWidth, int windowedHeight, int windowedPaddingX, int windowedPaddingY) {
-
 		SetWindowLongPtr(GWL_EXSTYLE, WS_EX_LEFT);
 		SetWindowLongPtr(GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
-		// width = r.right - r.left;
-		// height = r.bottom - r.top;
-		// windowed.left, windowY, windowedWidth, windowedHeight
 		SetWindowPos(HWND_NOTOPMOST, RECT_ARGS(windowed), SWP_SHOWWINDOW);
 		ShowWindow(SW_RESTORE);
 

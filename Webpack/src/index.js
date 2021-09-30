@@ -84,6 +84,12 @@ class Menu extends Events {
 			if(this.config.game.f4_seek)location.assign('/');
 		});
 		
+		new Keybind('F11', () => {
+			this.config.client.fullscreen = !this.config.client.fullscreen;
+			this.save_config();
+			ipc.send('fullscreen', this.config.client.fullscreen);
+		});
+		
 		// .on('change', (value, init) => !init && setTimeout(() => ipc.send('reload config')));
 		
 		for(let category of this.categories)category.update(true);
@@ -97,7 +103,7 @@ class Menu extends Events {
 		this.categories.add(cat);
 		return cat;
 	}
-	async save_config(){
+	save_config(){
 		ipc.send('save config', this.config);
 	}
 	async main(){
