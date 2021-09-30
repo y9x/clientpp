@@ -71,9 +71,9 @@ void Socket::connect(std::string host, int port) {
 }
 
 void Socket::close() {
-	if (socket != INVALID_SOCKET && ::closesocket(socket) == SOCKET_ERROR);
+	if (socket != INVALID_SOCKET) ::closesocket(socket);
 	socket = INVALID_SOCKET;
-	if (WSACleanup() == SOCKET_ERROR);
+	WSACleanup();
 }
 
 Socket::~Socket() {
