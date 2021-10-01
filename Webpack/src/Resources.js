@@ -27,8 +27,6 @@ for(let [ name, data ] of Object.entries(js)){
 	let module = { exports: {} },
 		ev = `(function(module,exports){${data}//# sourceURL=${name}\n})`;
 	
-	// console.log(ev);
-
 	try{
 		eval(ev)(module, module.exports);
 	}catch(err){
