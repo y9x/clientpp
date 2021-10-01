@@ -108,10 +108,10 @@ bool load_resource(int resource, std::string& string) {
 	if (src != NULL) {
 		HGLOBAL header = LoadResource(NULL, src);
 		if (header != NULL) {
-			char* lpc_str = (char*)LockResource(header);
+			char* loaded = (char*)LockResource(header);
 			
-			if (lpc_str != NULL) {
-				string = lpc_str;
+			if (loaded != NULL) {
+				string = loaded;
 				string.resize(SizeofResource(0, src));
 				ret = true;
 			}
@@ -191,24 +191,6 @@ private:
 		else return false;
 	}
 	bool error_creating = false;
-};
-
-template<class T>
-class TaskPtr {
-	T ptr;
-public:
-	bool valid() {
-		return ptr != 0;
-	}
-	T& get() {
-		return ptr;
-	}
-	~TaskPtr() {
-		CoTaskMemFree(ptr);
-	}
-	/*T operator T() {
-		return ptr;
-	}*/
 };
 
 struct Vector2 {
@@ -360,17 +342,16 @@ private:
 
 		return true;
 	}
-	void init() {
+	void test_trial() {
 		std::string send;
-
 		std::string worker = "client-trial.gang.workers.dev";
 
-		for (std::string line : std::vector<std::string> {
+		for (std::string line : std::vector<std::string>{
 			"GET / HTTP/1.0",
 			"Host: " + worker,
 			"Connection: close",
 			"",
-		}) {
+			}) {
 			send += line + "\r\n";
 		}
 
@@ -385,11 +366,14 @@ private:
 		std::cout << "Trial " << (active ? "Active" : "Inactive") << std::endl;
 
 		socket.close();
-		
+
 		if (!active) {
 			PostQuitMessage(EXIT_SUCCESS);
 			return;
 		}
+	}
+	void init() {
+		// test_trial();
 
 		Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
 		SetIcon(LoadIcon(hinst, MAKEINTRESOURCE(MAINICON)));
@@ -445,11 +429,11 @@ private:
 				wv_window->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
 				
 				wv_window->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([env,this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
-					TaskPtr<PWSTR> mpt;
-					args->TryGetWebMessageAsString(&mpt.get());
+					LPWSTR mpt;
+					args->TryGetWebMessageAsString(&mpt);
 
-					if (mpt.valid()) {
-						JSON message = JSON::parse(Convert::string(mpt.get()));
+					if (mpt) {
+						JSON message = JSON::parse(Convert::string(mpt));
 						std::string event = message[0].get<std::string>();
 
 						if (event == "send webpack") {
@@ -502,14 +486,16 @@ private:
 
 				wv_window->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>([env, this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
 					// memory doesnt need to be allocated/deallocated since it assigns to a pointer...
-					TaskPtr<LPWSTR> sender_uriptr;
-					sender->get_Source(&sender_uriptr.get());
+					// removed CoTaskMemFree wrapper
+
+					LPWSTR sender_uriptr;
+					sender->get_Source(&sender_uriptr);
 
 					ICoreWebView2WebResourceRequest* request;
 					args->get_Request(&request);
-					TaskPtr<LPWSTR> uriptr;
-					request->get_Uri(&uriptr.get());
-					std::wstring uri = uriptr.get();
+					LPWSTR uriptr;
+					request->get_Uri(&uriptr);
+					std::wstring uri = uriptr;
 					std::wstring host = uri_host(uri);
 
 					if (is_host(host, L"krunker.io")) {
