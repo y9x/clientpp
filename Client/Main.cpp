@@ -1,4 +1,6 @@
-#define WILL_LOG 0
+#define WILL_LOG 1
+
+#define VERSION 1
 
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -357,38 +359,42 @@ private:
 
 		return true;
 	}
-	void test_trial() {
+	bool check_for_updates() {
 		std::string send;
 
-		std::string worker = "client-trial.gang.workers.dev";
+		std::string worker = "y9x.github.io";
 
 		for (std::string line : std::vector<std::string>{
-			"GET / HTTP/1.0",
+			"GET /userscripts/client.json HTTP/1.0",
 			"Host: " + worker,
 			"Connection: close",
 			"",
-			}) {
-			send += line + "\r\n";
-		}
-
+		}) send += line + "\r\n";
+		
 		Socket socket;
 		socket.connect(worker, 80);
 		socket.send(send);
 
 		std::string body = socket.read();
 
-		bool active = body.find("Trial 1 Active") != std::string::npos;
-
-		std::cout << "Trial " << (active ? "Active" : "Inactive") << std::endl;
-
 		socket.close();
 
-		if (!active) {
-			PostQuitMessage(EXIT_SUCCESS);
-			return;
-		}
+		LOG_INFO(body);
+
+		double latest_version = 2;
+		std::wstring link = L"https://www.google.com/";
+
+		if (
+			VERSION > latest_version ||
+			::MessageBox(NULL, L"A new client update is available. Download?", title.c_str(), MB_YESNO) != IDYES
+		) return false;
+
+		ShellExecute(NULL, L"open", link.c_str(), L"", L"", SW_SHOW);
+		PostQuitMessage(EXIT_SUCCESS);
 	}
 	void init() {
+		if (check_for_updates()) return;
+
 		Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
 		SetIcon(LoadIcon(hinst, MAKEINTRESOURCE(MAINICON)));
 		NONCLIENTMETRICS metrics = {};
@@ -560,7 +566,6 @@ private:
 	}
 public:
 	Window(HINSTANCE h, int c) : hinst(h), cmdshow(c), folder(L"GC++") {
-		test_trial();
 		init();
 	}
 	~Window() {
@@ -571,7 +576,7 @@ public:
 	void alert(std::string description, UINT flags = 0) {
 		MessageBox(Convert::wstring(description).c_str(), title.c_str(), MB_OK | flags);
 	}
-	bool prompt(std::string description, UINT flags = 0) {
+	bool confirm(std::string description, UINT flags = 0) {
 		return MessageBox(Convert::wstring(description).c_str(), title.c_str(), MB_YESNO | flags) == IDYES;
 	}
 	bool open_link(std::string url) {
