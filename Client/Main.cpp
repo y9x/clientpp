@@ -573,15 +573,6 @@ public:
 		// assertion error
 		if (::IsWindow(m_hWnd)) DestroyWindow();
 	}
-	void alert(std::string description, UINT flags = 0) {
-		MessageBox(Convert::wstring(description).c_str(), title.c_str(), MB_OK | flags);
-	}
-	bool confirm(std::string description, UINT flags = 0) {
-		return MessageBox(Convert::wstring(description).c_str(), title.c_str(), MB_YESNO | flags) == IDYES;
-	}
-	bool open_link(std::string url) {
-		return ShellExecute(m_hWnd, L"open", Convert::wstring(url).c_str(), NULL, NULL, SW_SHOW);
-	}
 	bool resize_wv() {
 		if (wv_control == nullptr) return false;
 		
