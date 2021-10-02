@@ -564,6 +564,15 @@ private:
 			DispatchMessage(&msg);
 		}
 	}
+	bool resize_wv() {
+		if (wv_control == nullptr) return false;
+
+		RECT bounds;
+		GetClientRect(&bounds);
+		wv_control->put_Bounds(bounds);
+
+		return true;
+	}
 public:
 	Window(HINSTANCE h, int c) : hinst(h), cmdshow(c), folder(L"GC++") {
 		init();
@@ -572,15 +581,6 @@ public:
 		// app shutdown
 		// assertion error
 		if (::IsWindow(m_hWnd)) DestroyWindow();
-	}
-	bool resize_wv() {
-		if (wv_control == nullptr) return false;
-		
-		RECT bounds;
-		GetClientRect(&bounds);
-		wv_control->put_Bounds(bounds);
-
-		return true;
 	}
 	LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
 		return resize_wv();
