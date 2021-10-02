@@ -521,7 +521,7 @@ private:
 							
 							if (SHCreateStreamOnFileEx(path.c_str(), STGM_READ | STGM_SHARE_DENY_WRITE, 0, false, 0, &stream) == S_OK) {
 								wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-								env->CreateWebResourceResponse(stream, 200, L"OK", L"", &response);
+								env->CreateWebResourceResponse(stream, 200, L"OK", L"access-control-allow-origin: https://krunker.io\naccess-control-expose-headers: Content-Length, Content-Type, Date, Server, Transfer-Encoding, X-GUploader-UploadID, X-Google-Trace", &response);
 								args->put_Response(response.get());
 							}
 							else LOG_ERROR("Error creating IStream on path: " << Convert::string(path));
