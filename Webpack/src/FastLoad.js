@@ -1,9 +1,9 @@
 'use strict';
 
-var { config } = require('./Runtime'),
-	Loader = require('./libs/Loader');;
+var { config, js } = require('./Runtime'),
+	Loader = require('./libs/Loader');
 
-if(config.game.fast_load){
+if(config.game.fast_load && !js.length){
 	let loader = new Loader();
 	
 	loader.observe();

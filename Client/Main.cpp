@@ -128,6 +128,7 @@ bool load_resource(int resource, std::string& string) {
 class ClientFolder {
 public:
 	std::wstring directory;
+	std::wstring p_profile = L"\\Profile";
 	std::wstring p_scripts = L"\\Scripts";
 	std::wstring p_styles = L"\\Styles";
 	std::wstring p_swapper = L"\\Swapper";
@@ -182,7 +183,7 @@ public:
 	}
 private:
 	std::wstring name;
-	std::vector<std::wstring> directories{ p_scripts, p_styles, p_swapper };
+	std::vector<std::wstring> directories{ p_scripts, p_styles, p_swapper, p_profile };
 	int last_error = 0;
 	// true if the result of CreateDirectory is nonzero or if GetLastError equals ERROR_ALREADY_EXISTS, otherwise false
 	bool OVR(int result) {
@@ -229,10 +230,13 @@ private:
 	std::wstring title = L"Guru Client++";
 	std::vector<std::wstring> blocked_script_hosts {
 		L"cookie-cdn.cookiepro.com",
-		L"www.googletagmanager.com",
-		L"pagead2.googlesyndication.com",
+		L"googletagmanager.com",
+		L"googlesyndication.com",
 		L"a.pub.network",
-		L"paypalobjects.com"
+		L"paypalobjects.com",
+		L"doubleclick.net",
+		L"adinplay.com",
+		L"syndication.twitter.com"
 	};
 	ClientFolder folder;
 	std::wstring uri_host(std::wstring host) {
@@ -256,10 +260,10 @@ private:
 		return uri;
 	}
 	bool is_host(std::wstring host, std::wstring match) {
-		return host == match || host.ends_with(L'.' + match);
+		return host == match || host.ends_with(L"." + match);
 	}
 	wil::com_ptr<ICoreWebView2Controller> wv_control;
-	wil::com_ptr<ICoreWebView2> wv_window;
+	wil::com_ptr<ICoreWebView2> wv_game;
 	JSON runtime_data() {
 		JSON data = JSON::object();
 
@@ -398,12 +402,12 @@ private:
 
 		std::wstring cm = cmdline();
 		options->put_AdditionalBrowserArguments(cm.c_str());
-
-		CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+		
+		CreateCoreWebView2EnvironmentWithOptions(nullptr, (folder.directory + folder.p_profile).c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 			env->CreateCoreWebView2Controller(m_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>([env, this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
 				if (controller != nullptr) {
 					wv_control = controller;
-					wv_control->get_CoreWebView2(&wv_window);
+					wv_control->get_CoreWebView2(&wv_game);
 				}
 
 				wil::com_ptr<ICoreWebView2Controller2> controller2;
@@ -411,14 +415,14 @@ private:
 				if (controller2) controller2->put_DefaultBackgroundColor(colorref2webview(RGB(255, 255, 255)));
 
 				ICoreWebView2Settings* settings;
-				wv_window->get_Settings(&settings);
+				wv_game->get_Settings(&settings);
 				settings->put_IsScriptEnabled(TRUE);
 				settings->put_AreDefaultScriptDialogsEnabled(TRUE);
 				settings->put_IsWebMessageEnabled(TRUE);
 #if _DEBUG != 1
 				settings->put_AreDevToolsEnabled(FALSE);
 #else
-				wv_window->OpenDevToolsWindow();
+				wv_game->OpenDevToolsWindow();
 #endif
 				settings->put_IsZoomControlEnabled(FALSE);
 
@@ -431,14 +435,14 @@ private:
 				EventRegistrationToken token;
 
 				std::string bootstrap;
-				if (load_resource(JS_BOOTSTRAP, bootstrap)) wv_window->AddScriptToExecuteOnDocumentCreated(Convert::wstring(bootstrap).c_str(), nullptr);
+				if (load_resource(JS_BOOTSTRAP, bootstrap)) wv_game->AddScriptToExecuteOnDocumentCreated(Convert::wstring(bootstrap).c_str(), nullptr);
 				else LOG_ERROR("Error loading bootstrapper");
 
 				// COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT
 				// recieve all requests for resource swapper
-				wv_window->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
+				wv_game->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
 				
-				wv_window->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([env,this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
+				wv_game->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([env,this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
 					LPWSTR mpt;
 					args->TryGetWebMessageAsString(&mpt);
 
@@ -494,7 +498,7 @@ private:
 					return S_OK;
 				}).Get(), &token);
 
-				wv_window->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>([env, this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
+				wv_game->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>([env, this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
 					// memory doesnt need to be allocated/deallocated since it assigns to a pointer...
 					LPWSTR sender_uriptr;
 					sender->get_Source(&sender_uriptr);
@@ -511,6 +515,7 @@ private:
 						// path = Manipulate::replace_all(path, L"\\", L"/");
 
 						if (IOUtil::file_exists(path)) {
+							LOG_INFO("Swapping " << Convert::string(path));
 							// Create an empty IStream:
 							IStream* stream;
 							
@@ -521,7 +526,7 @@ private:
 							}
 							else LOG_ERROR("Error creating IStream on path: " << Convert::string(path));
 						}
-					}else for (std::wstring test : blocked_script_hosts) if (is_host(test, host)) {
+					}else for (std::wstring test : blocked_script_hosts) if (is_host(host, test)) {
 						wil::com_ptr<ICoreWebView2WebResourceResponse> response;
 						env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"Content-Type: text/plain", &response);
 						args->put_Response(response.get());
@@ -531,7 +536,7 @@ private:
 					return S_OK;
 				}).Get(), &token);
 
-				wv_window->Navigate(L"https://krunker.io/");
+				wv_game->Navigate(L"https://krunker.io/");
 
 				return S_OK;
 			}).Get());

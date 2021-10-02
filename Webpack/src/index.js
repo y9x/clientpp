@@ -26,13 +26,14 @@ var HTMLProxy = require('./libs/HTMLProxy'),
 	Events = require('./libs/Events'),
 	Keybind = require('./libs/Keybind'),
 	utils = new Utils(),
-	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data)));
+	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data))),
+	{ config: runtime_config, js } = require('./Runtime');
 
 chrome.webview.addEventListener('message', ({ data }) => ipc.emit(...JSON.parse(data)));
 
 class Menu extends Events {
 	html = new HTMLProxy();
-	config = require('./Runtime').config;
+	config = runtime_config;
 	default_config = require('../../Client/Config.json');
 	tab = {
 		content: this.html,
@@ -70,7 +71,7 @@ class Menu extends Events {
 		var Game = this.category('Game');
 		
 		// loads krunker from api.sys32.dev
-		Game.control('Fast Loading', {
+		if(!js.length)Game.control('Fast Loading', {
 			type: 'boolean',
 			walk: 'game.fast_load',
 		});
