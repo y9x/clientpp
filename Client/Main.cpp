@@ -224,8 +224,6 @@ public:
 
 		config = traverse_copy(new_config, default_config, default_config);
 
-		std::cout << " Config: " << config << std::endl;
-
 		return true;
 	}
 	JSON traverse_copy(JSON value, JSON match, JSON preset_result = JSON::object()) {
