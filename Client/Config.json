@@ -1,6 +1,6 @@
 {
 	"game": {
-		"fast_load": false,
+		"fast_load": true,
 		"f4_seek":  true
 	},
 	"client": {

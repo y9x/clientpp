@@ -140,6 +140,7 @@ public:
 	std::wstring p_config = L"\\Config.json";
 	std::wstring p_icon = L"\\Guru.ico";
 	std::wstring p_log = L"\\Log.txt";
+	JSON default_config = JSON::object();
 	JSON config = JSON::object();
 	ClientFolder(std::wstring n) : name(n) {
 		directory = _wgetenv(L"USERPROFILE");
@@ -197,6 +198,9 @@ public:
 		}
 		else LOG_ERROR("Creation"), error_creating = true;
 
+		std::string config_buffer;
+		if (load_resource(JSON_CONFIG, config_buffer)) default_config = JSON::parse(config_buffer);
+
 		if (error_creating)LOG_ERROR("Had an error creating directories");
 		else load_config();
 	}
@@ -205,20 +209,41 @@ public:
 
 		IOUtil::read_file(directory + p_config, config_buffer);
 
+		JSON new_config = JSON::object();
+
 		try {
-			config = JSON::parse(config_buffer);
+			new_config = JSON::parse(config_buffer);
 		}
 		catch (JSON::exception err) {
-			if (load_resource(JSON_CONFIG, config_buffer)) {
-				config = JSON::parse(config_buffer);
-				// non-unicode, might lose data
-				config["window"]["icon"] = Convert::string(directory + p_icon);
-				save_config();
-			}
-			else return false;
+			new_config = default_config;
+			// JSON::parse(config_buffer);
+			// non-unicode, might lose data
+			new_config["window"]["icon"] = Convert::string(directory + p_icon);
+			save_config();
 		}
 
+		config = traverse_copy(new_config, default_config, default_config);
+
+		std::cout << " Config: " << config << std::endl;
+
 		return true;
+	}
+	JSON traverse_copy(JSON value, JSON match, JSON preset_result = JSON::object()) {
+		JSON result;
+		if (value.is_object()) {
+			result = preset_result; // JSON::object();
+			for (auto [skey, svalue] : value.items()) {
+				if (match.contains(skey)) {
+					result[skey] = traverse_copy(svalue, match[skey]);
+				}
+				// selse std::cout << skey << " from " << value << " does not match " << match << std::endl;;
+			}
+		}
+		else {
+			result = value;
+		}
+
+		return result;
 	}
 	bool save_config() {
 		LOG_INFO("Wrote config");
@@ -405,12 +430,15 @@ private:
 		return true;
 	}
 	bool check_for_updates() {
+		// add https library
+		// statically linked, well documented, modern
+
 		std::string send;
 
 		std::string worker = "y9x.github.io";
 
 		for (std::string line : std::vector<std::string>{
-			"GET /userscripts/client.json HTTP/1.0",
+			"GET /userscripts/serve.json HTTP/1.0",
 			"Host: " + worker,
 			"Connection: close",
 			"",
@@ -426,15 +454,14 @@ private:
 
 		LOG_INFO(body);
 
-		double latest_version = 2;
-		std::wstring link = L"https://www.google.com/";
-
+		JSON serve = JSON::parse(body);
+		
 		if (
-			VERSION > latest_version ||
+			VERSION > serve["client"]["version"].get<double>() ||
 			::MessageBox(NULL, L"A new client update is available. Download?", title.c_str(), MB_YESNO) != IDYES
 		) return false;
 
-		ShellExecute(NULL, L"open", link.c_str(), L"", L"", SW_SHOW);
+		ShellExecute(NULL, L"open", Convert::wstring(serve["client"]["url"].get<std::string>()).c_str(), L"", L"", SW_SHOW);
 		PostQuitMessage(EXIT_SUCCESS);
 	}
 	void init() {
