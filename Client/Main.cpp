@@ -1,14 +1,34 @@
 #define WILL_LOG 1
-
 #define VERSION 1
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include <iostream>
-#include <string>
 #include <windows.h>
+#include <iostream>
+#include <vector>
 #include <chrono>
 #include <ctime>
+#include <atlbase.h>
+#include <atlwin.h>
+#include <atlenc.h>
+#include <stdlib.h>
+#include <tchar.h>
+#include <wrl.h>
+#include <wil/com.h>
+#include <thread>
+#include <mutex>
+#include "WebView2.h"
+#include "WebView2EnvironmentOptions.h"
+#include "WebView2.h"
+#include "../Utils/StringUtil.h"
+#include "../Utils/IOUtil.h"
+#include "../Utils/JSON.h"
+#include "../Utils/Base64.h"
+#include "./Socket.h"
+#include "resource.h"
+
+using namespace StringUtil;
+using namespace Microsoft::WRL;
 
 #if WILL_LOG == 1
 #define LOG_COUT std::cout
@@ -56,36 +76,11 @@ std::string create_log_badge(std::string type) {
 	return result;
 }
 
-// #define LOG(data) LOG_COUT << data << '\n'
 #define LOG_INFO(data) LOG_COUT << create_log_badge("Info") << data << '\n'
 #define LOG_WARN(data) LOG_COUT << create_log_badge("Warning") << data << '\n'
 #define LOG_ERROR(data) LOG_COUT << create_log_badge("Error") << data << '\n'
 
 #define RECT_ARGS(r) r.left, r.top, r.right - r.left, r.bottom - r.top
-
-#include <vector>
-#include <atlbase.h>
-#include <atlwin.h>
-#include <atlenc.h>
-#include <stdlib.h>
-#include <tchar.h>
-#include <wrl.h>
-#include <wil/com.h>
-#include "WebView2.h"
-#include "WebView2EnvironmentOptions.h"
-#include "WebView2.h"
-#include "../Utils/StringUtil.h"
-#include "../Utils/IOUtil.h"
-#include "../Utils/JSON.h"
-#include "../Utils/Base64.h"
-#include "./Socket.h"
-#include "resource.h"
-#include <thread>
-#include <thread>
-#include <mutex>
-
-using namespace StringUtil;
-using namespace Microsoft::WRL;
 
 // manage RECT and retrieve unique pointer on stack
 class Rect2D {
@@ -199,7 +194,10 @@ public:
 		else LOG_ERROR("Creation"), error_creating = true;
 
 		std::string config_buffer;
-		if (load_resource(JSON_CONFIG, config_buffer)) default_config = JSON::parse(config_buffer);
+		if (load_resource(JSON_CONFIG, config_buffer)) {
+			default_config = JSON::parse(config_buffer);
+			default_config["window"]["meta"]["icon"] = Convert::string(directory + p_icon);
+		}
 
 		if (error_creating)LOG_ERROR("Had an error creating directories");
 		else load_config();
@@ -210,7 +208,8 @@ public:
 		IOUtil::read_file(directory + p_config, config_buffer);
 
 		JSON new_config = JSON::object();
-
+		bool save = false;
+		
 		try {
 			new_config = JSON::parse(config_buffer);
 		}
@@ -218,23 +217,26 @@ public:
 			new_config = default_config;
 			// JSON::parse(config_buffer);
 			// non-unicode, might lose data
-			new_config["window"]["icon"] = Convert::string(directory + p_icon);
-			save_config();
+			save = true;
 		}
 
-		config = traverse_copy(new_config, default_config, default_config);
+		config = traverse_copy(new_config, default_config, save, default_config);
 
+		if (save) save_config();
+		
 		return true;
 	}
-	JSON traverse_copy(JSON value, JSON match, JSON preset_result = JSON::object()) {
-		JSON result;
+	JSON traverse_copy(JSON value, JSON match, bool& bad_key, JSON result = JSON::object()) {
 		if (value.is_object()) {
-			result = preset_result; // JSON::object();
+			// result = preset_result; // JSON::object();
 			for (auto [skey, svalue] : value.items()) {
 				if (match.contains(skey)) {
-					result[skey] = traverse_copy(svalue, match[skey]);
+					result[skey] = traverse_copy(svalue, match[skey], bad_key);
 				}
-				// selse std::cout << skey << " from " << value << " does not match " << match << std::endl;;
+				else {
+					bad_key = true;
+					LOG_WARN(skey << " from " << value << " does not match " << match);
+				}
 			}
 		}
 		else {
@@ -480,7 +482,7 @@ private:
 
 		CoInitialize(NULL);
 
-		auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
+		auto options = Make<CoreWebView2EnvironmentOptions>();
 
 		std::wstring cm = cmdline();
 		options->put_AdditionalBrowserArguments(cm.c_str());
@@ -637,21 +639,22 @@ private:
 					request->get_Uri(&uriptr);
 					std::wstring uri = uriptr;
 					std::wstring host = uri_host(uri);
+					std::wstring path = uri_path(uri);
 
 					if (is_host(host, L"krunker.io")) {
-						std::wstring path = folder.directory + folder.p_swapper + uri_path(uri);
+						std::wstring swap = folder.directory + folder.p_swapper + path;
 						
-						if (IOUtil::file_exists(path)) {
+						if (IOUtil::file_exists(swap)) {
 							LOG_INFO("Swapping " << Convert::string(path));
 							// Create an empty IStream:
 							IStream* stream;
 							
-							if (SHCreateStreamOnFileEx(path.c_str(), STGM_READ | STGM_SHARE_DENY_WRITE, 0, false, 0, &stream) == S_OK) {
+							if (SHCreateStreamOnFileEx(swap.c_str(), STGM_READ | STGM_SHARE_DENY_WRITE, 0, false, 0, &stream) == S_OK) {
 								wil::com_ptr<ICoreWebView2WebResourceResponse> response;
 								env->CreateWebResourceResponse(stream, 200, L"OK", L"access-control-allow-origin: https://krunker.io\naccess-control-expose-headers: Content-Length, Content-Type, Date, Server, Transfer-Encoding, X-GUploader-UploadID, X-Google-Trace", &response);
 								args->put_Response(response.get());
 							}
-							else LOG_ERROR("Error creating IStream on path: " << Convert::string(path));
+							else LOG_ERROR("Error creating IStream on swap: " << Convert::string(swap));
 						}
 					}else for (std::wstring test : blocked_script_hosts) if (is_host(host, test)) {
 						wil::com_ptr<ICoreWebView2WebResourceResponse> response;
