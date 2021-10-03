@@ -148,7 +148,7 @@ public:
 		if (OVR(CreateDirectory(directory.c_str(), NULL))) {
 			LOG_INFO("Created " << Convert::string(directory));
 			
-			/*HRSRC src = FindResource(NULL, MAKEINTRESOURCE(ICON_GURU), RT_RCDATA);
+			HRSRC src = FindResource(NULL, MAKEINTRESOURCE(ICON_GURU), RT_RCDATA);
 
 			if (src != NULL) {
 				HGLOBAL header = LoadResource(NULL, src);
@@ -156,20 +156,36 @@ public:
 					void* data = (char*)LockResource(header);
 
 					if (data != NULL) {
-						FILE* file = _wfopen((directory + p_icon).c_str(), L"w");
-						if (file) {
-							fwrite(data, 1, SizeofResource(0, src), file);
-							fclose(file);
-							LOG_INFO("Wrote " << Convert::string(directory + p_icon));
+						HANDLE file = CreateFile(
+							(directory + p_icon).c_str(),     // Filename
+							GENERIC_WRITE,          // Desired access
+							FILE_SHARE_READ,        // Share mode
+							NULL,                   // Security attributes
+							CREATE_NEW,             // Creates a new file, only if it doesn't already exist
+							FILE_ATTRIBUTE_NORMAL,  // Flags and attributes
+							NULL);                  // Template file handle
+
+						if (file != INVALID_HANDLE_VALUE) {
+							DWORD size = SizeofResource(0, src);
+
+							DWORD bytesWritten;
+							WriteFile(
+								file, // Handle to the file
+								data, // Buffer to write
+								size, // Buffer size
+								&bytesWritten,    // Bytes written
+								nullptr);         // Overlapped
+
+							CloseHandle(file);
+							LOG_INFO("Created " << Convert::string(directory + p_icon));
 						}
 					}
-
 					UnlockResource(header);
 				}
-
+				
 				FreeResource(header);
-			}*/
-			
+			}
+
 			for (std::wstring sdir : directories) {
 				if (OVR(CreateDirectory((directory + sdir).c_str(), NULL))) LOG_INFO("Created " << Convert::string(directory + sdir));
 				else error_creating = true;
