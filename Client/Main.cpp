@@ -82,6 +82,7 @@ std::string create_log_badge(std::string type) {
 #include "resource.h"
 #include <thread>
 #include <thread>
+#include <mutex>
 
 using namespace StringUtil;
 using namespace Microsoft::WRL;
@@ -112,10 +113,10 @@ bool load_resource(int resource, std::string& string) {
 	if (src != NULL) {
 		HGLOBAL header = LoadResource(NULL, src);
 		if (header != NULL) {
-			char* lpc_str = (char*)LockResource(header);
+			char* data = (char*)LockResource(header);
 			
-			if (lpc_str != NULL) {
-				string = lpc_str;
+			if (data != NULL) {
+				string = data;
 				string.resize(SizeofResource(0, src));
 				ret = true;
 			}
@@ -137,7 +138,7 @@ public:
 	std::wstring p_styles = L"\\Styles";
 	std::wstring p_swapper = L"\\Swapper";
 	std::wstring p_config = L"\\Config.json";
-	std::wstring p_icon = L"\\guru.ico";
+	std::wstring p_icon = L"\\Guru.ico";
 	std::wstring p_log = L"\\Log.txt";
 	JSON config = JSON::object();
 	ClientFolder(std::wstring n) : name(n) {
@@ -146,15 +147,28 @@ public:
 
 		if (OVR(CreateDirectory(directory.c_str(), NULL))) {
 			LOG_INFO("Created " << Convert::string(directory));
+			
+			HRSRC src = FindResource(NULL, MAKEINTRESOURCE(ICON_GURU), RT_RCDATA);
 
-			// guru.ico
-			HRSRC info = FindResource(NULL, MAKEINTRESOURCE(MAINICON), RT_RCDATA);
-			HGLOBAL res = LoadResource(NULL, info);
-			LPVOID mem = LockResource(info);
-			DWORD size = SizeofResource(NULL, info);
-			HANDLE hFile = CreateFile((directory + p_icon).c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-			WriteFile(hFile, mem, size, nullptr, NULL);
-			CloseHandle(hFile);
+			if (src != NULL) {
+				HGLOBAL header = LoadResource(NULL, src);
+				if (header != NULL) {
+					void* data = (char*)LockResource(header);
+
+					if (data != NULL) {
+						FILE* file = _wfopen((directory + p_icon).c_str(), L"w");
+						if (file) {
+							fwrite(data, 1, SizeofResource(0, src), file);
+							fclose(file);
+							LOG_INFO("Wrote " << Convert::string(directory + p_icon));
+						}
+					}
+
+					UnlockResource(header);
+				}
+
+				FreeResource(header);
+			}
 			
 			for (std::wstring sdir : directories) {
 				if (OVR(CreateDirectory((directory + sdir).c_str(), NULL))) LOG_INFO("Created " << Convert::string(directory + sdir));
@@ -172,9 +186,6 @@ public:
 	}
 	bool load_config() {
 		std::string config_buffer;
-
-		bool read = false;
-		bool needs_save = false;
 
 		IOUtil::read_file(directory + p_config, config_buffer);
 
@@ -281,6 +292,8 @@ private:
 	}
 	wil::com_ptr<ICoreWebView2Controller> wv_control;
 	wil::com_ptr<ICoreWebView2> wv_game;
+	std::vector<JSON> wv_game_post;
+	std::mutex mtx;
 	JSON runtime_data() {
 		JSON data = JSON::object();
 
@@ -530,7 +543,7 @@ private:
 						else if (event == "reload config") {
 							folder.load_config();
 						}
-						else if (event == "browse file") {
+						else if (event == "browse file") new std::thread([this](JSON id) {
 							wchar_t filename[MAX_PATH];
 
 							OPENFILENAME ofn;
@@ -545,7 +558,8 @@ private:
 							ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
 
 							JSON response = JSON::array();
-							response[0] = message[1];
+							response[0] = id;
+							// message[1];
 
 							if (GetOpenFileName(&ofn)) {
 								response[1] = Convert::string(filename);
@@ -554,9 +568,11 @@ private:
 							else {
 								response[2] = true;
 							}
-
-							sender->PostWebMessageAsJson(Convert::wstring(response.dump()).c_str());
-						}
+								
+							mtx.lock(); 
+							wv_game_post.push_back(response);
+							mtx.unlock();
+						}, message[1]);
 					}
 					else LOG_ERROR("Recieved invalid message");
 
@@ -619,6 +635,13 @@ private:
 		LOG_INFO("Client Initialized");
 		
 		while (ret = GetMessage(&msg, 0, 0, 0)) {
+			mtx.lock();
+			for (JSON message : wv_game_post) {
+				wv_game->PostWebMessageAsJson(Convert::wstring(message.dump()).c_str());
+			}
+			wv_game_post.clear();
+			mtx.unlock();
+
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
