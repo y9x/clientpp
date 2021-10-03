@@ -78,14 +78,30 @@ class Menu extends Events {
 		
 		this.main();
 		
-		var Inst = this.category('Installation');
+		var Folder = this.category('Folders');
 		
-		Inst.control('Folder', {
+		/*Folder.control('Root', {
 			type: 'function',
 			button: 'Open',
-			value(){
-				ipc.send('open folder');
-			},
+			value: () => ipc.send('open', 'root'),
+		});*/
+		
+		Folder.control('Scripts', {
+			type: 'function',
+			button: 'Open',
+			value: () => ipc.send('open', 'scripts'),
+		});
+		
+		Folder.control('Styles', {
+			type: 'function',
+			button: 'Open',
+			value: () => ipc.send('open', 'styles'),
+		});
+		
+		Folder.control('Resource Swapper', {
+			type: 'function',
+			button: 'Open',
+			value: () => ipc.send('open', 'swapper'),
 		});
 		
 		var Render = this.category('Rendering');

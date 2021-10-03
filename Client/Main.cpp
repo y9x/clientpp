@@ -515,8 +515,14 @@ private:
 							folder.config = message[1];
 							folder.save_config();
 						}
-						else if (event == "open folder") {
-							ShellExecute(NULL, L"open", folder.directory.c_str(), L"", L"", SW_SHOW);
+						else if (event == "open") {
+							std::wstring open;
+
+							if (message[1] == "scripts") open = folder.p_scripts;
+							else if (message[1] == "styles") open = folder.p_styles;
+							else if (message[1] == "swapper") open = folder.p_swapper;
+
+							ShellExecute(NULL, L"open", (folder.directory + open).c_str(), L"", L"", SW_SHOW);
 						}
 						else if (event == "relaunch") {
 							if (::IsWindow(m_hWnd)) DestroyWindow();
