@@ -62,7 +62,7 @@ class Category {
 		for(let control of this.controls)control.show_content();
 	}
 	control(name, data){
-		for(let type of Control.Types)if(type.id == data.type){
+		for(let [ cls, type ] of Object.entries(Control.Types))if(type.id == data.type){
 			let control = new type(name, data, this);
 			
 			this.controls.add(control);

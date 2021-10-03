@@ -1,6 +1,9 @@
 'use strict';
 
 /*
+use fast load for development
+prevents the game loader from disabling console
+
 console.log('Running');
 
 var log = console.log;
@@ -21,6 +24,7 @@ require('./FastLoad');
 
 var HTMLProxy = require('./libs/HTMLProxy'),
 	Category = require('./libs/MenuUI/Window/Category'),
+	Control = require('./libs/MenuUI/Control'),
 	IPC = require('./libs/IPC'),
 	Utils = require('./libs/Utils'),
 	Events = require('./libs/Events'),
@@ -29,7 +33,35 @@ var HTMLProxy = require('./libs/HTMLProxy'),
 	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data))),
 	{ config: runtime_config, js } = require('./Runtime');
 
-chrome.webview.addEventListener('message', ({ data }) => ipc.emit(...JSON.parse(data)));
+class FilePicker extends Control.Types.TextBoxControl {
+	static id = 'filepicker';
+	create(...args){
+		super.create(...args);
+		this.browse = utils.add_ele('div', this.content, {
+			className: 'settingsBtn',
+			textContent: 'Browse',
+			style: {
+				width: '100px',
+			},
+			events: {
+				click: () => {
+					var id = Math.random();
+					
+					ipc.once(id, (data, error) => {
+						if(error)return;
+						this.value = this.input.value = data;
+					});
+					
+					ipc.send('browse file', id, '.ico');
+				},
+			},
+		});
+	}
+};
+
+Control.Types.FilePicker = FilePicker;
+
+chrome.webview.addEventListener('message', ({ data }) => ipc.emit(...data));
 
 class Menu extends Events {
 	html = new HTMLProxy();
@@ -66,7 +98,7 @@ class Menu extends Events {
 		Render.control('Fullscreen', {
 			type: 'boolean',
 			walk: 'client.fullscreen',
-		}).on('change', (value, init) => !init && ipc.send('fullscreen', value));
+		}).on('change', (value, init) => !init && ipc.send('fullscreen'));
 		
 		var Game = this.category('Game');
 		
@@ -88,7 +120,35 @@ class Menu extends Events {
 		new Keybind('F11', () => {
 			this.config.client.fullscreen = !this.config.client.fullscreen;
 			this.save_config();
-			ipc.send('fullscreen', this.config.client.fullscreen);
+			ipc.send('fullscreen');
+		});
+		
+		var Window = this.category('Window');
+		
+		Window.control('Replace Icon & Title', {
+			type: 'boolean',
+			walk: 'window.meta.replace',
+		}).on('change', (value, init) => {
+			if(init)return;
+			
+			if(value)ipc.send('update meta');
+			else ipc.send('revert meta');
+		});
+		
+		Window.control('New Title', {
+			type: 'textbox',
+			walk: 'window.meta.title',
+		}).on('change', (value, init) => {
+			if(!init && this.config.window.meta.replace)
+				ipc.send('update meta');
+		});
+		
+		Window.control('New Icon', {
+			type: 'filepicker',
+			walk: 'window.meta.icon',
+		}).on('change', (value, init) => {
+			if(!init && this.config.window.meta.replace)
+				ipc.send('update meta');
 		});
 		
 		// .on('change', (value, init) => !init && setTimeout(() => ipc.send('reload config')));

@@ -3,15 +3,18 @@
 var Utils = require('./libs/Utils'),
 	utils = new Utils();
 
-(async () => {	
+(async () => {
+	if(localStorage.kro_setngss_scaleUI == void[])
+		localStorage.kro_setngss_scaleUI = 1;
+	
 	var ui_base = await utils.wait_for(() => document.querySelector('#uiBase')),
 		MIN_WIDTH = 1700,
 		MIN_HEIGHT = 900;
 		
-	if(localStorage?.kro_setngss_uiScaling === 'false')return;
+	if(localStorage.kro_setngss_uiScaling === 'false')return;
 	
 	var ls = localStorage.kro_setngss_scaleUI,
-		scale_ui = ls != void[] ? ls : 0.7;
+		scale_ui = ls != void[] ? parseInt(ls) : 0.7;
 	
 	scale_ui = Math.min(1, Math.max(0.1, Number(scale_ui)));
 	scale_ui = 1 + (1 - scale_ui);

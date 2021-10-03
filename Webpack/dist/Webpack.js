@@ -40,15 +40,18 @@ if(config.game.fast_load && !js.length){
 var Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	utils = new Utils();
 
-(async () => {	
+(async () => {
+	if(localStorage.kro_setngss_scaleUI == void[])
+		localStorage.kro_setngss_scaleUI = 1;
+	
 	var ui_base = await utils.wait_for(() => document.querySelector('#uiBase')),
 		MIN_WIDTH = 1700,
 		MIN_HEIGHT = 900;
 		
-	if(localStorage?.kro_setngss_uiScaling === 'false')return;
+	if(localStorage.kro_setngss_uiScaling === 'false')return;
 	
 	var ls = localStorage.kro_setngss_scaleUI,
-		scale_ui = ls != void[] ? ls : 0.7;
+		scale_ui = ls != void[] ? parseInt(ls) : 0.7;
 	
 	scale_ui = Math.min(1, Math.max(0.1, Number(scale_ui)));
 	scale_ui = 1 + (1 - scale_ui);
@@ -679,7 +682,10 @@ class FunctionControl extends Control {
 		utils.add_ele('div', this.content, {
 			className: 'settingsBtn',
 			textContent: this.data.button || 'Run',
-		}).addEventListener('click', () => this.interact());
+			events: {
+				click: () => this.interact(),
+			},
+		});
 	}
 	interact(){
 		this.value();
@@ -807,7 +813,7 @@ class ColorControl extends Control {
 	}
 };
 
-Control.Types = [
+Control.Types = {
 	KeybindControl,
 	SelectControl,
 	BooleanControl,
@@ -817,7 +823,7 @@ Control.Types = [
 	SliderControl,
 	ColorControl,
 	LinkControl,
-];
+};
 
 module.exports = Control;
 
@@ -893,7 +899,7 @@ class Category {
 		for(let control of this.controls)control.show_content();
 	}
 	control(name, data){
-		for(let type of Control.Types)if(type.id == data.type){
+		for(let [ cls, type ] of Object.entries(Control.Types))if(type.id == data.type){
 			let control = new type(name, data, this);
 			
 			this.controls.add(control);
@@ -1403,7 +1409,7 @@ module.exports = Utils;
   \*****************************/
 /***/ ((module) => {
 
-module.exports = JSON.parse('{"game":{"fast_load":false,"f4_seek":true},"client":{"uncap_fps":false,"fullscreen":false}}');
+module.exports = JSON.parse('{"game":{"fast_load":false,"f4_seek":true},"client":{"uncap_fps":false,"fullscreen":false},"window":{"meta":{"replace":false,"title":"Client++","icon":""}}}');
 
 /***/ })
 
@@ -1443,6 +1449,9 @@ var __webpack_exports__ = {};
 
 
 /*
+use fast load for development
+prevents the game loader from disabling console
+
 console.log('Running');
 
 var log = console.log;
@@ -1463,6 +1472,7 @@ __webpack_require__(/*! ./FastLoad */ "./src/FastLoad.js");
 
 var HTMLProxy = __webpack_require__(/*! ./libs/HTMLProxy */ "./src/libs/HTMLProxy.js"),
 	Category = __webpack_require__(/*! ./libs/MenuUI/Window/Category */ "./src/libs/MenuUI/Window/Category.js"),
+	Control = __webpack_require__(/*! ./libs/MenuUI/Control */ "./src/libs/MenuUI/Control.js"),
 	IPC = __webpack_require__(/*! ./libs/IPC */ "./src/libs/IPC.js"),
 	Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
@@ -1471,7 +1481,35 @@ var HTMLProxy = __webpack_require__(/*! ./libs/HTMLProxy */ "./src/libs/HTMLProx
 	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data))),
 	{ config: runtime_config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js");
 
-chrome.webview.addEventListener('message', ({ data }) => ipc.emit(...JSON.parse(data)));
+class FilePicker extends Control.Types.TextBoxControl {
+	static id = 'filepicker';
+	create(...args){
+		super.create(...args);
+		this.browse = utils.add_ele('div', this.content, {
+			className: 'settingsBtn',
+			textContent: 'Browse',
+			style: {
+				width: '100px',
+			},
+			events: {
+				click: () => {
+					var id = Math.random();
+					
+					ipc.once(id, (data, error) => {
+						if(error)return;
+						this.value = this.input.value = data;
+					});
+					
+					ipc.send('browse file', id, '.ico');
+				},
+			},
+		});
+	}
+};
+
+Control.Types.FilePicker = FilePicker;
+
+chrome.webview.addEventListener('message', ({ data }) => ipc.emit(...data));
 
 class Menu extends Events {
 	html = new HTMLProxy();
@@ -1508,7 +1546,7 @@ class Menu extends Events {
 		Render.control('Fullscreen', {
 			type: 'boolean',
 			walk: 'client.fullscreen',
-		}).on('change', (value, init) => !init && ipc.send('fullscreen', value));
+		}).on('change', (value, init) => !init && ipc.send('fullscreen'));
 		
 		var Game = this.category('Game');
 		
@@ -1530,7 +1568,35 @@ class Menu extends Events {
 		new Keybind('F11', () => {
 			this.config.client.fullscreen = !this.config.client.fullscreen;
 			this.save_config();
-			ipc.send('fullscreen', this.config.client.fullscreen);
+			ipc.send('fullscreen');
+		});
+		
+		var Window = this.category('Window');
+		
+		Window.control('Replace Icon & Title', {
+			type: 'boolean',
+			walk: 'window.meta.replace',
+		}).on('change', (value, init) => {
+			if(init)return;
+			
+			if(value)ipc.send('update meta');
+			else ipc.send('revert meta');
+		});
+		
+		Window.control('New Title', {
+			type: 'textbox',
+			walk: 'window.meta.title',
+		}).on('change', (value, init) => {
+			if(!init && this.config.window.meta.replace)
+				ipc.send('update meta');
+		});
+		
+		Window.control('New Icon', {
+			type: 'filepicker',
+			walk: 'window.meta.icon',
+		}).on('change', (value, init) => {
+			if(!init && this.config.window.meta.replace)
+				ipc.send('update meta');
 		});
 		
 		// .on('change', (value, init) => !init && setTimeout(() => ipc.send('reload config')));

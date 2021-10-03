@@ -131,7 +131,10 @@ class FunctionControl extends Control {
 		utils.add_ele('div', this.content, {
 			className: 'settingsBtn',
 			textContent: this.data.button || 'Run',
-		}).addEventListener('click', () => this.interact());
+			events: {
+				click: () => this.interact(),
+			},
+		});
 	}
 	interact(){
 		this.value();
@@ -259,7 +262,7 @@ class ColorControl extends Control {
 	}
 };
 
-Control.Types = [
+Control.Types = {
 	KeybindControl,
 	SelectControl,
 	BooleanControl,
@@ -269,6 +272,6 @@ Control.Types = [
 	SliderControl,
 	ColorControl,
 	LinkControl,
-];
+};
 
 module.exports = Control;

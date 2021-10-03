@@ -6,5 +6,12 @@
 	"client": {
 		"uncap_fps": false,
 		"fullscreen": false
+	},
+	"window": {
+		"meta": {
+			"replace": false,
+			"title": "Client++",
+			"icon": ""
+		}
 	}
 }

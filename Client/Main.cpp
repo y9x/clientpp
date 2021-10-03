@@ -80,6 +80,8 @@ std::string create_log_badge(std::string type) {
 #include "../Utils/Base64.h"
 #include "./Socket.h"
 #include "resource.h"
+#include <thread>
+#include <thread>
 
 using namespace StringUtil;
 using namespace Microsoft::WRL;
@@ -135,6 +137,7 @@ public:
 	std::wstring p_styles = L"\\Styles";
 	std::wstring p_swapper = L"\\Swapper";
 	std::wstring p_config = L"\\Config.json";
+	std::wstring p_icon = L"\\guru.ico";
 	std::wstring p_log = L"\\Log.txt";
 	JSON config = JSON::object();
 	ClientFolder(std::wstring n) : name(n) {
@@ -144,6 +147,15 @@ public:
 		if (OVR(CreateDirectory(directory.c_str(), NULL))) {
 			LOG_INFO("Created " << Convert::string(directory));
 
+			// guru.ico
+			HRSRC info = FindResource(NULL, MAKEINTRESOURCE(MAINICON), RT_RCDATA);
+			HGLOBAL res = LoadResource(NULL, info);
+			LPVOID mem = LockResource(info);
+			DWORD size = SizeofResource(NULL, info);
+			HANDLE hFile = CreateFile((directory + p_icon).c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+			WriteFile(hFile, mem, size, nullptr, NULL);
+			CloseHandle(hFile);
+			
 			for (std::wstring sdir : directories) {
 				if (OVR(CreateDirectory((directory + sdir).c_str(), NULL))) LOG_INFO("Created " << Convert::string(directory + sdir));
 				else error_creating = true;
@@ -172,6 +184,8 @@ public:
 		catch (JSON::exception err) {
 			if (load_resource(JSON_CONFIG, config_buffer)) {
 				config = JSON::parse(config_buffer);
+				// non-unicode, might lose data
+				config["window"]["icon"] = Convert::string(directory + p_icon);
 				save_config();
 			}
 			else return false;
@@ -230,6 +244,7 @@ struct Vector2 {
 class Window : public CWindowImpl<Window> {
 private:
 	std::wstring title = L"Guru Client++";
+	std::wstring og_title = title;
 	std::vector<std::wstring> blocked_script_hosts {
 		L"cookie-cdn.cookiepro.com",
 		L"googletagmanager.com",
@@ -304,7 +319,8 @@ private:
 	}
 	std::wstring cmdline() {
 		std::vector<std::wstring> cmds = {
-			L"--enable-force-dark"
+			L"--enable-force-dark",
+			// disable-background-timer-throttling
 		};
 
 		if (folder.config["client"]["uncap_fps"].get<bool>()) cmds.push_back(L"--disable-frame-rate-limit");
@@ -393,10 +409,16 @@ private:
 		PostQuitMessage(EXIT_SUCCESS);
 	}
 	void init() {
-		if (check_for_updates()) return;
+		// if (check_for_updates()) return;
 
+		if (folder.config["window"]["meta"]["replace"].get<bool>())
+			title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
+		
 		Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
-		SetIcon(LoadIcon(hinst, MAKEINTRESOURCE(MAINICON)));
+		if (folder.config["window"]["meta"]["replace"].get<bool>())
+			SetIcon((HICON)LoadImage(hinst, Convert::wstring(folder.config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
+		else SetIcon(LoadIcon(hinst, MAKEINTRESOURCE(MAINICON)));
+		
 		NONCLIENTMETRICS metrics = {};
 		metrics.cbSize = sizeof(metrics);
 		SystemParametersInfo(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0);
@@ -474,7 +496,7 @@ private:
 							response[1] = js_webpack;
 							response[2] = runtime_data();
 
-							sender->PostWebMessageAsString(Convert::wstring(response.dump()).c_str());
+							sender->PostWebMessageAsJson(Convert::wstring(response.dump()).c_str());
 						}
 						else if (event == "save config") {
 							folder.config = message[1];
@@ -492,11 +514,48 @@ private:
 							init();
 						}
 						else if (event == "fullscreen") {
-							if (message[1].get<bool>()) enter_fullscreen();
+							if (folder.config["client"]["fullscreen"].get<bool>()) enter_fullscreen();
 							else exit_fullscreen();
+						}
+						else if (event == "update meta") {
+							title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
+							SetIcon((HICON)LoadImage(hinst, Convert::wstring(folder.config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE)); 
+							SetWindowText(title.c_str());
+						}
+						else if (event == "revert meta") {
+							title = og_title;
+							SetIcon(LoadIcon(hinst, MAKEINTRESOURCE(MAINICON)));
+							SetWindowText(title.c_str());
 						}
 						else if (event == "reload config") {
 							folder.load_config();
+						}
+						else if (event == "browse file") {
+							wchar_t filename[MAX_PATH];
+
+							OPENFILENAME ofn;
+							ZeroMemory(&filename, sizeof(filename));
+							ZeroMemory(&ofn, sizeof(ofn));
+							ofn.lStructSize = sizeof(ofn);
+							ofn.hwndOwner = NULL;  // If you have a window to center over, put its HANDLE here
+							ofn.lpstrFilter = L"Icon Files\0*.ico\0Any File\0*.*\0";
+							ofn.lpstrFile = filename;
+							ofn.nMaxFile = MAX_PATH;
+							ofn.lpstrTitle = L"Select a new icon";
+							ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
+
+							JSON response = JSON::array();
+							response[0] = message[1];
+
+							if (GetOpenFileName(&ofn)) {
+								response[1] = Convert::string(filename);
+								response[2] = false;
+							}
+							else {
+								response[2] = true;
+							}
+
+							sender->PostWebMessageAsJson(Convert::wstring(response.dump()).c_str());
 						}
 					}
 					else LOG_ERROR("Recieved invalid message");
