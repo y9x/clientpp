@@ -593,8 +593,7 @@ private:
 
 					if (is_host(host, L"krunker.io")) {
 						std::wstring path = folder.directory + folder.p_swapper + uri_path(uri);
-						// path = Manipulate::replace_all(path, L"\\", L"/");
-
+						
 						if (IOUtil::file_exists(path)) {
 							LOG_INFO("Swapping " << Convert::string(path));
 							// Create an empty IStream:
