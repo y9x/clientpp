@@ -148,7 +148,7 @@ public:
 		if (OVR(CreateDirectory(directory.c_str(), NULL))) {
 			LOG_INFO("Created " << Convert::string(directory));
 			
-			HRSRC src = FindResource(NULL, MAKEINTRESOURCE(ICON_GURU), RT_RCDATA);
+			/*HRSRC src = FindResource(NULL, MAKEINTRESOURCE(ICON_GURU), RT_RCDATA);
 
 			if (src != NULL) {
 				HGLOBAL header = LoadResource(NULL, src);
@@ -168,7 +168,7 @@ public:
 				}
 
 				FreeResource(header);
-			}
+			}*/
 			
 			for (std::wstring sdir : directories) {
 				if (OVR(CreateDirectory((directory + sdir).c_str(), NULL))) LOG_INFO("Created " << Convert::string(directory + sdir));

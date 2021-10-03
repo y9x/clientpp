@@ -70,8 +70,6 @@ JS_BOOTSTRAP            RCDATA                  "Bootstrap.js"
 
 JS_WEBPACK_MAP          RCDATA                  "..\\Webpack\\dist\\Webpack.js.map"
 
-ICON_GURU               RCDATA                  "Icon.ico"
-
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
