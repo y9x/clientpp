@@ -160,7 +160,7 @@ private:
 
 		SetWindowLongPtr(GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TOPMOST);
 		SetWindowLongPtr(GWL_STYLE, WS_POPUP | WS_VISIBLE);
-		SetWindowPos(0 /* HWND_TOPMOST */, 0, 0, fullscreenWidth, fullscreenHeight, SWP_SHOWWINDOW);
+		SetWindowPos(0, 0, 0, fullscreenWidth, fullscreenHeight, SWP_SHOWWINDOW);
 		ShowWindow(SW_MAXIMIZE);
 
 		resize_wv();
@@ -181,23 +181,13 @@ private:
 
 		return true;
 	}
-	void init() {
-		if (folder.config["window"]["meta"]["replace"].get<bool>())
-			title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
-		
-		Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
-		
-		if (folder.config["window"]["meta"]["replace"].get<bool>())
-			SetIcon((HICON)LoadImage(hinst, Convert::wstring(folder.config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
-		else SetIcon(LoadIcon(hinst, MAKEINTRESOURCE(MAINICON)));
-		
-		CoInitialize(NULL);
+	void init_webview2() {
 
 		auto options = Make<CoreWebView2EnvironmentOptions>();
 
 		std::wstring cm = cmdline();
 		options->put_AdditionalBrowserArguments(cm.c_str());
-		
+
 		CreateCoreWebView2EnvironmentWithOptions(nullptr, (folder.directory + folder.p_profile).c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 			env->CreateCoreWebView2Controller(m_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>([env, this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
 				if (controller == nullptr) {
@@ -207,7 +197,7 @@ private:
 
 				game_control = controller;
 				game_control->get_CoreWebView2(&game);
-				
+
 				wil::com_ptr<ICoreWebView2Controller2> controller2;
 				controller2 = game_control.query<ICoreWebView2Controller2>();
 				if (controller2) controller2->put_DefaultBackgroundColor(colorref2webview(RGB(0, 0, 0)));
@@ -227,9 +217,9 @@ private:
 				resize_wv();
 
 				game_control->put_ZoomFactor(1);
-				
+
 				if (folder.config["client"]["fullscreen"].get<bool>()) enter_fullscreen();
-				
+
 				EventRegistrationToken token;
 
 				std::string bootstrap;
@@ -239,8 +229,8 @@ private:
 				// COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT
 				// recieve all requests for resource swapper
 				game->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
-				
-				game->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([env,this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
+
+				game->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([env, this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
 					LPWSTR mpt;
 					args->TryGetWebMessageAsString(&mpt);
 
@@ -257,7 +247,7 @@ private:
 							load_resource(JS_WEBPACK, js_webpack);
 							std::string js_webpack_map;
 							load_resource(JS_WEBPACK_MAP, js_webpack_map);
-							
+
 							js_webpack += "\n//# sourceMappingURL=data:application/json;base64," + Base64::Encode(js_webpack_map);
 
 							response[1] = js_webpack;
@@ -281,12 +271,13 @@ private:
 							ShellExecute(NULL, L"open", open.c_str(), L"", L"", SW_SHOW);
 						}
 						else if (event == "relaunch") {
-							if (::IsWindow(m_hWnd)) DestroyWindow();
+							// if (::IsWindow(m_hWnd)) DestroyWindow();
 
 							// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
 							game_control->Close();
-							
-							init();
+
+							init_webview2();
+							// init();
 						}
 						else if (event == "fullscreen") {
 							if (folder.config["client"]["fullscreen"].get<bool>()) enter_fullscreen();
@@ -294,7 +285,7 @@ private:
 						}
 						else if (event == "update meta") {
 							title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
-							SetIcon((HICON)LoadImage(hinst, Convert::wstring(folder.config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE)); 
+							SetIcon((HICON)LoadImage(hinst, Convert::wstring(folder.config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
 							SetWindowText(title.c_str());
 						}
 						else if (event == "revert meta") {
@@ -324,7 +315,7 @@ private:
 								std::cout << label << " : " << filter << std::endl;
 
 								label += " (" + filter + ")";
-								
+
 								filters += Convert::wstring(label);
 								filters += L'\0';
 								filters += Convert::wstring(filter);
@@ -342,7 +333,7 @@ private:
 
 							JSON response = JSON::array();
 							response[0] = message[1];
-							
+
 							if (GetOpenFileName(&ofn)) {
 								response[1] = Convert::string(filename);
 								response[2] = false;
@@ -350,8 +341,8 @@ private:
 							else {
 								response[2] = true;
 							}
-								
-							mtx.lock(); 
+
+							mtx.lock();
 							game_post.push_back(response);
 							mtx.unlock();
 						}, message);
@@ -374,12 +365,12 @@ private:
 
 					if (uri.HostEquals(L"krunker.io")) {
 						std::wstring swap = folder.directory + folder.p_swapper + uri.pathname();
-						
+
 						if (IOUtil::file_exists(swap)) {
 							LOG_INFO("Swapping " << Convert::string(uri.pathname()));
 							// Create an empty IStream:
 							IStream* stream;
-							
+
 							if (SHCreateStreamOnFileEx(swap.c_str(), STGM_READ | STGM_SHARE_DENY_WRITE, 0, false, 0, &stream) == S_OK) {
 								wil::com_ptr<ICoreWebView2WebResourceResponse> response;
 								env->CreateWebResourceResponse(stream, 200, L"OK", L"access-control-allow-origin: https://krunker.io\naccess-control-expose-headers: Content-Length, Content-Type, Date, Server, Transfer-Encoding, X-GUploader-UploadID, X-Google-Trace", &response);
@@ -387,7 +378,8 @@ private:
 							}
 							else LOG_ERROR("Error creating IStream on swap: " << Convert::string(swap));
 						}
-					}else for (std::wstring test : blocked_script_hosts) if (uri.HostEquals(test)) {
+					}
+					else for (std::wstring test : blocked_script_hosts) if (uri.HostEquals(test)) {
 						wil::com_ptr<ICoreWebView2WebResourceResponse> response;
 						env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"Content-Type: text/plain", &response);
 						args->put_Response(response.get());
@@ -404,6 +396,20 @@ private:
 
 			return S_OK;
 		}).Get());
+	}
+	void init() {
+		if (folder.config["window"]["meta"]["replace"].get<bool>())
+			title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
+		
+		Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
+		
+		if (folder.config["window"]["meta"]["replace"].get<bool>())
+			SetIcon((HICON)LoadImage(hinst, Convert::wstring(folder.config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
+		else SetIcon(LoadIcon(hinst, MAKEINTRESOURCE(MAINICON)));
+		
+		CoInitialize(NULL);
+
+		init_webview2();
 
 		ResizeClient(700, 500);
 		ShowWindow(cmdshow);
