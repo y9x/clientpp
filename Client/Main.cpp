@@ -2,7 +2,8 @@
 #define VERSION 1
 
 #define _CRT_SECURE_NO_WARNINGS
-
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+#include "./httplib.h"
 #include <windows.h>
 #include <iostream>
 #include <vector>
@@ -24,8 +25,8 @@
 #include "../Utils/IOUtil.h"
 #include "../Utils/JSON.h"
 #include "../Utils/Base64.h"
-#include "./Socket.h"
-#include "resource.h"
+#include "./resource.h"
+
 
 using namespace StringUtil;
 using namespace Microsoft::WRL;
@@ -430,42 +431,25 @@ private:
 		return true;
 	}
 	bool check_for_updates() {
-		// add https library
-		// statically linked, well documented, modern
+		httplib::Client cli("https://y9x.github.io");
+		auto res = cli.Get("/userscripts/serve.json");
 
-		std::string send;
+		LOG_INFO(res->body);
 
-		std::string worker = "y9x.github.io";
-
-		for (std::string line : std::vector<std::string>{
-			"GET /userscripts/serve.json HTTP/1.0",
-			"Host: " + worker,
-			"Connection: close",
-			"",
-		}) send += line + "\r\n";
-		
-		Socket socket;
-		socket.connect(worker, 80);
-		socket.send(send);
-
-		std::string body = socket.read();
-
-		socket.close();
-
-		LOG_INFO(body);
-
-		JSON serve = JSON::parse(body);
+		JSON serve = JSON::parse(res->body);
 		
 		if (
-			VERSION > serve["client"]["version"].get<double>() ||
+			VERSION >= serve["client"]["version"].get<double>() ||
 			::MessageBox(NULL, L"A new client update is available. Download?", title.c_str(), MB_YESNO) != IDYES
 		) return false;
 
 		ShellExecute(NULL, L"open", Convert::wstring(serve["client"]["url"].get<std::string>()).c_str(), L"", L"", SW_SHOW);
 		PostQuitMessage(EXIT_SUCCESS);
+
+		return true;
 	}
 	void init() {
-		// if (check_for_updates()) return;
+		if (check_for_updates()) return;
 
 		if (folder.config["window"]["meta"]["replace"].get<bool>())
 			title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
