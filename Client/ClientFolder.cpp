@@ -4,6 +4,7 @@
 #include "../Utils/StringUtil.h"
 #include "../Utils/IOUtil.h"
 #include "./Log.h"
+#include "./LoadRes.h"
 #include "resource.h"
 
 using namespace StringUtil;

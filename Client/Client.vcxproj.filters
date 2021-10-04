@@ -20,6 +20,9 @@
     <None Include="..\Webpack\dist\Webpack.js" />
     <None Include="..\Webpack\dist\Webpack.js.map" />
     <None Include="packages.config" />
+    <None Include="Points.h">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -49,7 +52,7 @@
     <ClCompile Include="ClientFolder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Consts.cpp">
+    <ClCompile Include="LoadRes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -79,6 +82,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ClientFolder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadRes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Consts.h">

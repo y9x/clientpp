@@ -86,6 +86,7 @@
     <None Include="Bootstrap.js" />
     <None Include="Config.json" />
     <None Include="packages.config" />
+    <None Include="Points.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Utils\Base64.cpp" />
@@ -93,7 +94,7 @@
     <ClCompile Include="..\Utils\StringUtil.cpp" />
     <ClCompile Include="..\Utils\Uri.cpp" />
     <ClCompile Include="ClientFolder.cpp" />
-    <ClCompile Include="Consts.cpp" />
+    <ClCompile Include="LoadRes.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="Updater.cpp" />
@@ -107,6 +108,7 @@
     <ClInclude Include="..\Utils\Uri.h" />
     <ClInclude Include="ClientFolder.h" />
     <ClInclude Include="Consts.h" />
+    <ClInclude Include="LoadRes.h" />
     <ClInclude Include="httplib.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="resource.h" />

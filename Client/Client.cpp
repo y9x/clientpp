@@ -22,49 +22,15 @@
 #include "../Utils/Base64.h"
 #include "../Utils/Uri.h"
 #include "./resource.h"
-#include "./Updater.h"
 #include "./Log.h"
+#include "./Consts.h"
+#include "./Updater.h"
+#include "./Points.h"
+#include "./LoadRes.h"
 #include "./ClientFolder.h"
 
 using namespace StringUtil;
 using namespace Microsoft::WRL;
-
-// manage RECT and retrieve unique pointer on stack
-class Rect2D {
-private:
-	RECT rect;
-public:
-	LONG x = 0;
-	LONG y = 0;
-	LONG width = 0;
-	LONG height = 0;
-	Rect2D(LONG lX, LONG lY, LONG lWidth, LONG lHeight) : x(lX), y(lY), width(lWidth), height(lHeight) {}
-	RECT* get() {
-		rect.left = x;
-		rect.top = y;
-		rect.right = x + width;
-		rect.bottom = y + height;
-		return &rect;
-	}
-};
-
-struct Vector2 {
-	long x;
-	long y;
-	bool operator = (POINT p) {
-		x = p.x;
-		y = p.y;
-		return true;
-	}
-	operator POINT () {
-		POINT point;
-		point.x = x;
-		point.y = y;
-		return point;
-	}
-};
-
-#define RECT_ARGS(r) r.left, r.top, r.right - r.left, r.bottom - r.top
 
 class Window : public CWindowImpl<Window> {
 private:
@@ -80,12 +46,13 @@ private:
 		L"adinplay.com",
 		L"syndication.twitter.com"
 	};
+	std::mutex mtx;
 	ClientFolder folder;
 	Updater updater;
 	wil::com_ptr<ICoreWebView2Controller> game_control;
 	wil::com_ptr<ICoreWebView2> game;
 	std::vector<JSON> game_post;
-	std::mutex mtx;
+	Vector2 game_size = Vector2(0.8, 0.8);
 	JSON runtime_data() {
 		JSON data = JSON::object();
 
@@ -144,23 +111,23 @@ private:
 		return cmdline;
 	}
 	HINSTANCE hinst;
+	RECT windowed;
 	int cmdshow;
 	bool fullscreen = false;
-	RECT windowed;
 	bool enter_fullscreen() {
 		if (fullscreen) return false;
 
-		DEVMODE fullscreenSettings;
-		
+		RECT screen;
+
+		if (!monitor_data(screen)) return false;
+
 		GetClientRect(&windowed);
 		ClientToScreen(&windowed);
-		EnumDisplaySettings(NULL, 0, &fullscreenSettings);
-		int fullscreenWidth = fullscreenSettings.dmPelsWidth;
-		int fullscreenHeight = fullscreenSettings.dmPelsHeight;
 
 		SetWindowLongPtr(GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TOPMOST);
 		SetWindowLongPtr(GWL_STYLE, WS_POPUP | WS_VISIBLE);
-		SetWindowPos(0, 0, 0, fullscreenWidth, fullscreenHeight, SWP_SHOWWINDOW);
+
+		SetWindowPos(0, &screen, SWP_SHOWWINDOW);
 		ShowWindow(SW_MAXIMIZE);
 
 		resize_wv();
@@ -182,7 +149,6 @@ private:
 		return true;
 	}
 	void init_webview2() {
-
 		auto options = Make<CoreWebView2EnvironmentOptions>();
 
 		std::wstring cm = cmdline();
@@ -409,9 +375,23 @@ private:
 		
 		CoInitialize(NULL);
 
+		Rect2D r;
+		Vector2 scr_pos;
+		Vector2 scr_size;
+
+		if (monitor_data(scr_pos, scr_size)) {
+			r.x = scr_pos.x + (r.width / 2);
+			r.y = scr_pos.y + (r.height / 2);
+
+			r.width = scr_size.x * game_size.x;
+			r.height = scr_size.y * game_size.y;
+
+			SetWindowPos(NULL, r.get(), 0);
+		}
+		else ResizeClient(700, 500);
+
 		init_webview2();
 
-		ResizeClient(700, 500);
 		ShowWindow(cmdshow);
 		UpdateWindow();
 
@@ -438,6 +418,30 @@ private:
 		RECT bounds;
 		GetClientRect(&bounds);
 		game_control->put_Bounds(bounds);
+
+		return true;
+	}
+	bool monitor_data(RECT& rect) {
+		HMONITOR monitor = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
+		MONITORINFO info;
+		info.cbSize = sizeof(info);
+
+		if (!GetMonitorInfo(monitor, &info))return LOG_ERROR("Can't get monitor info"), false;
+
+		rect = info.rcMonitor;
+
+		return true;
+	}
+	bool monitor_data(Vector2& pos, Vector2& size) {
+		RECT r;
+
+		if (!monitor_data(r))return false;
+
+		pos.x = r.left;
+		pos.y = r.top;
+
+		size.x = r.right - r.left;
+		size.y = r.bottom - r.top;
 
 		return true;
 	}

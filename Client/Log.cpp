@@ -1,7 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "./Log.h"
+#include "./Consts.h"
 
-#if WILL_LOG == 0
 FileCout::FileCout(std::wstring p) : std::ostream(this), path(p) {}
 
 int FileCout::overflow(int c) {
@@ -10,11 +10,15 @@ int FileCout::overflow(int c) {
 	buffer += c;
 
 	if (c == '\n') {
+#if WILL_LOG == 0
 		FILE* handle = _wfopen(path.c_str(), L"a");
 		if (handle) {
 			fwrite(buffer.data(), sizeof(char), buffer.size(), handle);
 			fclose(handle);
 		}
+#else
+		std::cout << buffer;
+#endif
 		buffer.erase();
 	}
 
@@ -22,7 +26,6 @@ int FileCout::overflow(int c) {
 }
 
 FileCout fc(L"./TmpLogs.txt");
-#endif
 
 std::string create_log_badge(std::string type) {
 	std::string result = "[" + type + "]";

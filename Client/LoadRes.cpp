@@ -1,5 +1,5 @@
 #include <Windows.h>
-#include "./Consts.h"
+#include "./LoadRes.h"
 
 bool load_resource(int resource, std::string& string) {
 	bool ret = false;
