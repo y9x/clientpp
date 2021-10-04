@@ -5,6 +5,7 @@
 #include "./Consts.h"
 
 #if WILL_LOG == 1
+#include <iostream>
 #define LOG_COUT std::cout
 #else
 class FileCout : private std::streambuf, public std::ostream {
