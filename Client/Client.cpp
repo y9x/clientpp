@@ -82,9 +82,9 @@ private:
 	};
 	ClientFolder folder;
 	Updater updater;
-	wil::com_ptr<ICoreWebView2Controller> wv_control;
-	wil::com_ptr<ICoreWebView2> wv_game;
-	std::vector<JSON> wv_game_post;
+	wil::com_ptr<ICoreWebView2Controller> game_control;
+	wil::com_ptr<ICoreWebView2> game;
+	std::vector<JSON> game_post;
 	std::mutex mtx;
 	JSON runtime_data() {
 		JSON data = JSON::object();
@@ -124,7 +124,8 @@ private:
 	}
 	std::wstring cmdline() {
 		std::vector<std::wstring> cmds = {
-			L"--enable-force-dark",
+			// L"--profile-directory=Profile",
+			L"--force-dark-mode",
 			// L"disable-background-timer-throttling"
 		};
 
@@ -185,15 +186,11 @@ private:
 			title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
 		
 		Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
+		
 		if (folder.config["window"]["meta"]["replace"].get<bool>())
 			SetIcon((HICON)LoadImage(hinst, Convert::wstring(folder.config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
 		else SetIcon(LoadIcon(hinst, MAKEINTRESOURCE(MAINICON)));
 		
-		NONCLIENTMETRICS metrics = {};
-		metrics.cbSize = sizeof(metrics);
-		SystemParametersInfo(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0);
-		HFONT default_font = CreateFontIndirect(&metrics.lfCaptionFont);
-
 		CoInitialize(NULL);
 
 		auto options = Make<CoreWebView2EnvironmentOptions>();
@@ -203,46 +200,47 @@ private:
 		
 		CreateCoreWebView2EnvironmentWithOptions(nullptr, (folder.directory + folder.p_profile).c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 			env->CreateCoreWebView2Controller(m_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>([env, this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
-				if (controller != nullptr) {
-					wv_control = controller;
-					wv_control->get_CoreWebView2(&wv_game);
+				if (controller == nullptr) {
+					LOG_ERROR("Controller was nullptr");
+					return S_FALSE;
 				}
 
-				LOG_INFO("Created WebView2 controller");
-
+				game_control = controller;
+				game_control->get_CoreWebView2(&game);
+				
 				wil::com_ptr<ICoreWebView2Controller2> controller2;
-				controller2 = wv_control.query<ICoreWebView2Controller2>();
-				if (controller2) controller2->put_DefaultBackgroundColor(colorref2webview(RGB(255, 255, 255)));
+				controller2 = game_control.query<ICoreWebView2Controller2>();
+				if (controller2) controller2->put_DefaultBackgroundColor(colorref2webview(RGB(0, 0, 0)));
 
 				ICoreWebView2Settings* settings;
-				wv_game->get_Settings(&settings);
+				game->get_Settings(&settings);
 				settings->put_IsScriptEnabled(TRUE);
 				settings->put_AreDefaultScriptDialogsEnabled(TRUE);
 				settings->put_IsWebMessageEnabled(TRUE);
 #if _DEBUG != 1
 				settings->put_AreDevToolsEnabled(FALSE);
 #else
-				wv_game->OpenDevToolsWindow();
+				game->OpenDevToolsWindow();
 #endif
 				settings->put_IsZoomControlEnabled(FALSE);
 
 				resize_wv();
 
-				wv_control->put_ZoomFactor(1);
+				game_control->put_ZoomFactor(1);
 				
 				if (folder.config["client"]["fullscreen"].get<bool>()) enter_fullscreen();
 				
 				EventRegistrationToken token;
 
 				std::string bootstrap;
-				if (load_resource(JS_BOOTSTRAP, bootstrap)) wv_game->AddScriptToExecuteOnDocumentCreated(Convert::wstring(bootstrap).c_str(), nullptr);
+				if (load_resource(JS_BOOTSTRAP, bootstrap)) game->AddScriptToExecuteOnDocumentCreated(Convert::wstring(bootstrap).c_str(), nullptr);
 				else LOG_ERROR("Error loading bootstrapper");
 
 				// COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT
 				// recieve all requests for resource swapper
-				wv_game->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
+				game->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
 				
-				wv_game->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([env,this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
+				game->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([env,this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
 					LPWSTR mpt;
 					args->TryGetWebMessageAsString(&mpt);
 
@@ -259,10 +257,7 @@ private:
 							load_resource(JS_WEBPACK, js_webpack);
 							std::string js_webpack_map;
 							load_resource(JS_WEBPACK_MAP, js_webpack_map);
-							// if (load_resource(JS_WEBPACK, js_webpack)) {
-							// js_webpack = Manipulate::replace_all(js_webpack, "_RUNTIME_DATA_", data.dump());
-							// js_webpack += "//# sourceURL=webpack.js";
-
+							
 							js_webpack += "\n//# sourceMappingURL=data:application/json;base64," + Base64::Encode(js_webpack_map);
 
 							response[1] = js_webpack;
@@ -289,7 +284,7 @@ private:
 							if (::IsWindow(m_hWnd)) DestroyWindow();
 
 							// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
-							wv_control->Close();
+							game_control->Close();
 							
 							init();
 						}
@@ -357,7 +352,7 @@ private:
 							}
 								
 							mtx.lock(); 
-							wv_game_post.push_back(response);
+							game_post.push_back(response);
 							mtx.unlock();
 						}, message);
 					}
@@ -366,7 +361,7 @@ private:
 					return S_OK;
 				}).Get(), &token);
 
-				wv_game->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>([env, this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
+				game->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>([env, this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
 					// memory doesnt need to be allocated/deallocated since it assigns to a pointer...
 					LPWSTR sender_uriptr;
 					sender->get_Source(&sender_uriptr);
@@ -402,7 +397,7 @@ private:
 					return S_OK;
 				}).Get(), &token);
 
-				wv_game->Navigate(L"https://krunker.io/");
+				game->Navigate(L"https://krunker.io/");
 
 				return S_OK;
 			}).Get());
@@ -421,10 +416,10 @@ private:
 		
 		while (ret = GetMessage(&msg, 0, 0, 0)) {
 			mtx.lock();
-			for (JSON message : wv_game_post) {
-				wv_game->PostWebMessageAsJson(Convert::wstring(message.dump()).c_str());
+			for (JSON message : game_post) {
+				game->PostWebMessageAsJson(Convert::wstring(message.dump()).c_str());
 			}
-			wv_game_post.clear();
+			game_post.clear();
 			mtx.unlock();
 
 			TranslateMessage(&msg);
@@ -432,11 +427,11 @@ private:
 		}
 	}
 	bool resize_wv() {
-		if (wv_control == nullptr) return false;
+		if (game_control == nullptr) return false;
 
 		RECT bounds;
 		GetClientRect(&bounds);
-		wv_control->put_Bounds(bounds);
+		game_control->put_Bounds(bounds);
 
 		return true;
 	}
