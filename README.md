@@ -2,13 +2,14 @@
 
 Krunker Client written in C++ WebView2
 
-### [License](./LICENSE)
+[License](./LICENSE)
 
-### [Discord](https://y9x.github.io/discord)
+[Discord](https://y9x.github.io/discord)
 
 ## Features:
 
 - No NodeJS and Electron overhead (Higher FPS potential)
+- Lightweight
 - Resource Swapper
 - User Styles
 - User Scripts
