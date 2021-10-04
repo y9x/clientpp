@@ -330,23 +330,13 @@ private:
 
 								label += " (" + filter + ")";
 								
-								/*
-								for (char c : label)filters.push_back((wchar_t)c);
-								filters.push_back(L'\0');
-								for (char c : filter)filters.push_back((wchar_t)c);
-								filters.push_back(L'\0');
-								*/
-
 								filters += Convert::wstring(label);
 								filters += L'\0';
 								filters += Convert::wstring(filter);
 								filters += L'\0';
 							}
 
-							// filters.push_back(L'\0');
-
 							// L"Icon Files\0*.ico\0Any File\0*.*\0"
-
 							// filters is terminated by 2 null characters
 							// each filter is terminated by 1 null character
 							ofn.lpstrFilter = filters.c_str();
@@ -357,8 +347,7 @@ private:
 
 							JSON response = JSON::array();
 							response[0] = message[1];
-							// message[1];
-
+							
 							if (GetOpenFileName(&ofn)) {
 								response[1] = Convert::string(filename);
 								response[2] = false;
