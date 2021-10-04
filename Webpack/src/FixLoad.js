@@ -1,7 +1,6 @@
 'use strict';
 
-var Utils = require('./libs/Utils'),
-	utils = new Utils();
+var	{ utils } = require('./Consts');
 
 (async () => {
 	if(localStorage.kro_setngss_scaleUI == void[])

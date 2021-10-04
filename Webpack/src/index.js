@@ -26,12 +26,11 @@ var HTMLProxy = require('./libs/HTMLProxy'),
 	Category = require('./libs/MenuUI/Window/Category'),
 	Control = require('./libs/MenuUI/Control'),
 	IPC = require('./libs/IPC'),
-	Utils = require('./libs/Utils'),
 	Events = require('./libs/Events'),
 	Keybind = require('./libs/Keybind'),
-	utils = new Utils(),
 	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data))),
-	{ config: runtime_config, js } = require('./Runtime');
+	{ config: runtime_config, js } = require('./Runtime'),
+	{ utils, meta } = require('./Consts');
 
 class FilePicker extends Control.Types.TextBoxControl {
 	static id = 'filepicker';
@@ -52,7 +51,8 @@ class FilePicker extends Control.Types.TextBoxControl {
 						this.value = this.input.value = data;
 					});
 					
-					ipc.send('browse file', id, '.ico');
+					// send entries instead of an object, c++ json parser removes the order
+					ipc.send('browse file', id, this.data.title, Object.entries(this.data.filters));
 				},
 			},
 		});
@@ -84,14 +84,21 @@ class Menu extends Events {
 		Client.control('Github', {
 			type: 'linkfunction',
 			value(){
-				ipc.send('open', 'url', 'https://github.com/y9x/clientpp');
+				ipc.send('open', 'url', meta.github);
 			},
 		});
 		
 		Client.control('Discord', {
 			type: 'linkfunction',
 			value(){
-				ipc.send('open', 'url', 'https://y9x.github.io/discord/');
+				ipc.send('open', 'url', meta.discord);
+			},
+		});
+		
+		Client.control('Forum', {
+			type: 'linkfunction',
+			value(){
+				ipc.send('open', 'url', meta.forum);
 			},
 		});
 		
@@ -179,6 +186,11 @@ class Menu extends Events {
 		Window.control('New Icon', {
 			type: 'filepicker',
 			walk: 'window.meta.icon',
+			title: 'Select a new Icon',
+			filters: {
+				'Icon': '*.ico',
+				'All types': '*.*',
+			},
 		}).on('change', (value, init) => {
 			if(!init && this.config.window.meta.replace)
 				ipc.send('update meta');

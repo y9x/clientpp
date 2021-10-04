@@ -408,6 +408,8 @@ private:
 					wv_control->get_CoreWebView2(&wv_game);
 				}
 
+				LOG_INFO("Created WebView2 controller");
+
 				wil::com_ptr<ICoreWebView2Controller2> controller2;
 				controller2 = wv_control.query<ICoreWebView2Controller2>();
 				if (controller2) controller2->put_DefaultBackgroundColor(colorref2webview(RGB(255, 255, 255)));
@@ -508,7 +510,7 @@ private:
 						else if (event == "reload config") {
 							folder.load_config();
 						}
-						else if (event == "browse file") new std::thread([this](JSON id) {
+						else if (event == "browse file") new std::thread([this](JSON message) {
 							wchar_t filename[MAX_PATH];
 
 							OPENFILENAME ofn;
@@ -516,14 +518,45 @@ private:
 							ZeroMemory(&ofn, sizeof(ofn));
 							ofn.lStructSize = sizeof(ofn);
 							ofn.hwndOwner = NULL;  // If you have a window to center over, put its HANDLE here
-							ofn.lpstrFilter = L"Icon Files\0*.ico\0Any File\0*.*\0";
+							// std::wstring filters;
+							std::wstring title = Convert::wstring(message[2]);
+							// std::vector<wchar_t> filters;
+							std::wstring filters;
+							for (JSON value : message[3]) {
+								std::string label = value[0];
+								std::string filter = value[1];
+
+								std::cout << label << " : " << filter << std::endl;
+
+								label += " (" + filter + ")";
+								
+								/*
+								for (char c : label)filters.push_back((wchar_t)c);
+								filters.push_back(L'\0');
+								for (char c : filter)filters.push_back((wchar_t)c);
+								filters.push_back(L'\0');
+								*/
+
+								filters += Convert::wstring(label);
+								filters += L'\0';
+								filters += Convert::wstring(filter);
+								filters += L'\0';
+							}
+
+							// filters.push_back(L'\0');
+
+							// L"Icon Files\0*.ico\0Any File\0*.*\0"
+
+							// filters is terminated by 2 null characters
+							// each filter is terminated by 1 null character
+							ofn.lpstrFilter = filters.c_str();
 							ofn.lpstrFile = filename;
 							ofn.nMaxFile = MAX_PATH;
-							ofn.lpstrTitle = L"Select a new icon";
+							ofn.lpstrTitle = title.c_str();
 							ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
 
 							JSON response = JSON::array();
-							response[0] = id;
+							response[0] = message[1];
 							// message[1];
 
 							if (GetOpenFileName(&ofn)) {
@@ -537,7 +570,7 @@ private:
 							mtx.lock(); 
 							wv_game_post.push_back(response);
 							mtx.unlock();
-						}, message[1]);
+						}, message);
 					}
 					else LOG_ERROR("Recieved invalid message");
 

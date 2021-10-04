@@ -2,6 +2,26 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./src/Consts.js":
+/*!***********************!*\
+  !*** ./src/Consts.js ***!
+  \***********************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+
+var Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js");
+
+exports.utils = new Utils();
+
+exports.meta = {
+	github: 'https://github.com/y9x/',
+	discord: 'https://y9x.github.io/discord/',
+	forum: 'https://forum.sys32.dev/',
+};
+
+/***/ }),
+
 /***/ "./src/FastLoad.js":
 /*!*************************!*\
   !*** ./src/FastLoad.js ***!
@@ -11,6 +31,7 @@
 
 
 var { config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
+	{ meta } = __webpack_require__(/*! ./consts */ "./src/consts.js"),
 	Loader = __webpack_require__(/*! ./libs/Loader */ "./src/libs/Loader.js");
 
 if(config.game.fast_load && !js.length){
@@ -18,11 +39,7 @@ if(config.game.fast_load && !js.length){
 	
 	loader.observe();
 	
-	loader.license({
-		github: 'https://github.com/y9x/',
-		discord: 'https://y9x.github.io/discord/',
-		forum: 'https://forum.sys32.dev/',
-	});
+	loader.license(meta);
 	
 	loader.load({}, {});
 }
@@ -37,8 +54,7 @@ if(config.game.fast_load && !js.length){
 
 
 
-var Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
-	utils = new Utils();
+var	{ utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
 
 (async () => {
 	if(localStorage.kro_setngss_scaleUI == void[])
@@ -88,8 +104,7 @@ var Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 
 
 
-var Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
-	utils = new Utils();
+var { utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
 
 // wait for krunker css
 // utils.wait_for(() => document.querySelector(`link[href*='/css/main_custom.css']`))
@@ -134,6 +149,26 @@ for(let [ name, data ] of Object.entries(js)){
 
 
 module.exports = _RUNTIME_DATA_;
+
+/***/ }),
+
+/***/ "./src/consts.js":
+/*!***********************!*\
+  !*** ./src/consts.js ***!
+  \***********************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+
+var Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js");
+
+exports.utils = new Utils();
+
+exports.meta = {
+	github: 'https://github.com/y9x/',
+	discord: 'https://y9x.github.io/discord/',
+	forum: 'https://forum.sys32.dev/',
+};
 
 /***/ }),
 
@@ -1494,12 +1529,11 @@ var HTMLProxy = __webpack_require__(/*! ./libs/HTMLProxy */ "./src/libs/HTMLProx
 	Category = __webpack_require__(/*! ./libs/MenuUI/Window/Category */ "./src/libs/MenuUI/Window/Category.js"),
 	Control = __webpack_require__(/*! ./libs/MenuUI/Control */ "./src/libs/MenuUI/Control.js"),
 	IPC = __webpack_require__(/*! ./libs/IPC */ "./src/libs/IPC.js"),
-	Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
 	Keybind = __webpack_require__(/*! ./libs/Keybind */ "./src/libs/Keybind.js"),
-	utils = new Utils(),
 	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data))),
-	{ config: runtime_config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js");
+	{ config: runtime_config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
+	{ utils, meta } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
 
 class FilePicker extends Control.Types.TextBoxControl {
 	static id = 'filepicker';
@@ -1520,7 +1554,8 @@ class FilePicker extends Control.Types.TextBoxControl {
 						this.value = this.input.value = data;
 					});
 					
-					ipc.send('browse file', id, '.ico');
+					// send entries instead of an object, c++ json parser removes the order
+					ipc.send('browse file', id, this.data.title, Object.entries(this.data.filters));
 				},
 			},
 		});
@@ -1552,14 +1587,21 @@ class Menu extends Events {
 		Client.control('Github', {
 			type: 'linkfunction',
 			value(){
-				ipc.send('open', 'url', 'https://github.com/y9x/clientpp');
+				ipc.send('open', 'url', meta.github);
 			},
 		});
 		
 		Client.control('Discord', {
 			type: 'linkfunction',
 			value(){
-				ipc.send('open', 'url', 'https://y9x.github.io/discord/');
+				ipc.send('open', 'url', meta.discord);
+			},
+		});
+		
+		Client.control('Forum', {
+			type: 'linkfunction',
+			value(){
+				ipc.send('open', 'url', meta.forum);
 			},
 		});
 		
@@ -1647,6 +1689,11 @@ class Menu extends Events {
 		Window.control('New Icon', {
 			type: 'filepicker',
 			walk: 'window.meta.icon',
+			title: 'Select a new Icon',
+			filters: {
+				'Icon': '*.ico',
+				'All types': '*.*',
+			},
 		}).on('change', (value, init) => {
 			if(!init && this.config.window.meta.replace)
 				ipc.send('update meta');

@@ -1,7 +1,6 @@
 'use strict';
 
-var Utils = require('./libs/Utils'),
-	utils = new Utils();
+var { utils } = require('./Consts');
 
 // wait for krunker css
 // utils.wait_for(() => document.querySelector(`link[href*='/css/main_custom.css']`))
