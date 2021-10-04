@@ -92,7 +92,10 @@
     <ClCompile Include="..\Utils\IOUtil.cpp" />
     <ClCompile Include="..\Utils\StringUtil.cpp" />
     <ClCompile Include="..\Utils\Uri.cpp" />
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="ClientFolder.cpp" />
+    <ClCompile Include="Consts.cpp" />
+    <ClCompile Include="Log.cpp" />
+    <ClCompile Include="Client.cpp" />
     <ClCompile Include="Updater.cpp" />
     <ClCompile Include="Updater.h" />
   </ItemGroup>
@@ -102,6 +105,8 @@
     <ClInclude Include="..\Utils\JSON.h" />
     <ClInclude Include="..\Utils\StringUtil.h" />
     <ClInclude Include="..\Utils\Uri.h" />
+    <ClInclude Include="ClientFolder.h" />
+    <ClInclude Include="Consts.h" />
     <ClInclude Include="httplib.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="resource.h" />

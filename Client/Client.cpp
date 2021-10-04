@@ -1,6 +1,3 @@
-#define WILL_LOG 0
-#define VERSION 0.01
-
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <iostream>
@@ -27,6 +24,7 @@
 #include "./resource.h"
 #include "./Updater.h"
 #include "./Log.h"
+#include "./ClientFolder.h"
 
 using namespace StringUtil;
 using namespace Microsoft::WRL;
@@ -49,175 +47,6 @@ public:
 		return &rect;
 	}
 };
-
-bool load_resource(int resource, std::string& string) {
-	bool ret = false;
-	HRSRC src = FindResource(NULL, MAKEINTRESOURCE(resource), RT_RCDATA);
-
-	if (src != NULL) {
-		HGLOBAL header = LoadResource(NULL, src);
-		if (header != NULL) {
-			char* data = (char*)LockResource(header);
-			
-			if (data != NULL) {
-				string = data;
-				string.resize(SizeofResource(0, src));
-				ret = true;
-			}
-
-			UnlockResource(header);
-		}
-
-		FreeResource(header);
-	}
-
-	return ret;
-}
-
-class ClientFolder {
-public:
-	std::wstring directory;
-	std::wstring p_profile = L"\\Profile";
-	std::wstring p_scripts = L"\\Scripts";
-	std::wstring p_styles = L"\\Styles";
-	std::wstring p_swapper = L"\\Swapper";
-	std::wstring p_config = L"\\Config.json";
-	std::wstring p_icon = L"\\Guru.ico";
-	std::wstring p_log = L"\\Log.txt";
-	JSON default_config = JSON::object();
-	JSON config = JSON::object();
-	ClientFolder(std::wstring n) : name(n) {
-		directory = _wgetenv(L"USERPROFILE");
-		directory += L"\\Documents\\" + name;
-
-		if (OVR(CreateDirectory(directory.c_str(), NULL))) {
-			LOG_INFO("Created " << Convert::string(directory));
-			
-			HRSRC src = FindResource(NULL, MAKEINTRESOURCE(ICON_GURU), RT_RCDATA);
-
-			if (src != NULL) {
-				HGLOBAL header = LoadResource(NULL, src);
-				if (header != NULL) {
-					void* data = (char*)LockResource(header);
-
-					if (data != NULL) {
-						HANDLE file = CreateFile((directory + p_icon).c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
-
-						if (file != INVALID_HANDLE_VALUE) {
-							DWORD size = SizeofResource(0, src);
-
-							DWORD bytesWritten;
-							WriteFile(
-								file, // Handle to the file
-								data, // Buffer to write
-								size, // Buffer size
-								&bytesWritten,    // Bytes written
-								nullptr);         // Overlapped
-
-							CloseHandle(file);
-							LOG_INFO("Created " << Convert::string(directory + p_icon));
-						}
-					}
-					UnlockResource(header);
-				}
-				
-				FreeResource(header);
-			}
-
-			for (std::wstring sdir : directories) {
-				if (OVR(CreateDirectory((directory + sdir).c_str(), NULL))) LOG_INFO("Created " << Convert::string(directory + sdir));
-				else error_creating = true;
-			}
-
-#if WILL_LOG != 1
-			fc.path = directory + p_log;
-#endif
-		}
-		else LOG_ERROR("Creation"), error_creating = true;
-
-		std::string config_buffer;
-		if (load_resource(JSON_CONFIG, config_buffer)) {
-			default_config = JSON::parse(config_buffer);
-			default_config["window"]["meta"]["icon"] = Convert::string(directory + p_icon);
-		}
-
-		if (error_creating)LOG_ERROR("Had an error creating directories");
-		else load_config();
-	}
-	bool load_config() {
-		std::string config_buffer;
-
-		IOUtil::read_file(directory + p_config, config_buffer);
-
-		JSON new_config = JSON::object();
-		bool save = false;
-		
-		try {
-			new_config = JSON::parse(config_buffer);
-		}
-		catch (JSON::exception err) {
-			new_config = default_config;
-			// JSON::parse(config_buffer);
-			// non-unicode, might lose data
-			save = true;
-		}
-
-		config = traverse_copy(new_config, default_config, save, default_config);
-
-		if (save) save_config();
-		
-		return true;
-	}
-	JSON traverse_copy(JSON value, JSON match, bool& bad_key, JSON result = JSON::object()) {
-		if (value.is_object()) {
-			// result = preset_result; // JSON::object();
-			for (auto [skey, svalue] : value.items()) {
-				if (match.contains(skey)) {
-					result[skey] = traverse_copy(svalue, match[skey], bad_key);
-				}
-				else {
-					bad_key = true;
-					LOG_WARN(skey << " from " << value << " does not match " << match);
-				}
-			}
-		}
-		else {
-			result = value;
-		}
-
-		return result;
-	}
-	bool save_config() {
-		LOG_INFO("Wrote config");
-		return IOUtil::write_file(directory + p_config, config.dump(1, '\t'));
-	}
-private:
-	std::wstring name;
-	std::vector<std::wstring> directories{ p_scripts, p_styles, p_swapper, p_profile };
-	int last_error = 0;
-	// true if the result of CreateDirectory is nonzero or if GetLastError equals ERROR_ALREADY_EXISTS, otherwise false
-	bool OVR(int result) {
-		if (result != 0)return true;
-		else if (GetLastError() == ERROR_ALREADY_EXISTS)return true;
-		else return false;
-	}
-	bool error_creating = false;
-};
-
-/*template<class T>
-class TaskPtr {
-	T ptr;
-public:
-	bool valid() {
-		return ptr != 0;
-	}
-	T& get() {
-		return ptr;
-	}
-	~TaskPtr() {
-		CoTaskMemFree(ptr);
-	}
-};*/
 
 struct Vector2 {
 	long x;
@@ -296,7 +125,7 @@ private:
 	std::wstring cmdline() {
 		std::vector<std::wstring> cmds = {
 			L"--enable-force-dark",
-			// disable-background-timer-throttling
+			// L"disable-background-timer-throttling"
 		};
 
 		if (folder.config["client"]["uncap_fps"].get<bool>()) cmds.push_back(L"--disable-frame-rate-limit");
@@ -623,7 +452,7 @@ private:
 		return true;
 	}
 public:
-	Window(HINSTANCE h, int c) : hinst(h), cmdshow(c), folder(L"GC++"), updater(VERSION) {
+	Window(HINSTANCE h, int c) : hinst(h), cmdshow(c), folder(L"GC++"), updater(CLIENT_VERSION) {
 		std::string url;
 		
 		if (updater.UpdatesAvailable(url) && ::MessageBox(NULL, L"A new client update is available. Download?", title.c_str(), MB_YESNO) == IDYES) {
