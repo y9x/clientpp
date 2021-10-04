@@ -1,5 +1,5 @@
-#define WILL_LOG 1
-#define VERSION 1
+#define WILL_LOG 0
+#define VERSION 0.01
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
