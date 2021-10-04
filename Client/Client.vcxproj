@@ -86,12 +86,12 @@
     <None Include="Bootstrap.js" />
     <None Include="Config.json" />
     <None Include="packages.config" />
-    <None Include="Styles\Client.css" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Utils\Base64.cpp" />
     <ClCompile Include="..\Utils\IOUtil.cpp" />
     <ClCompile Include="..\Utils\StringUtil.cpp" />
+    <ClCompile Include="..\Utils\Uri.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Updater.cpp" />
     <ClCompile Include="Updater.h" />
@@ -101,6 +101,7 @@
     <ClInclude Include="..\Utils\IOUtil.h" />
     <ClInclude Include="..\Utils\JSON.h" />
     <ClInclude Include="..\Utils\StringUtil.h" />
+    <ClInclude Include="..\Utils\Uri.h" />
     <ClInclude Include="httplib.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="resource.h" />

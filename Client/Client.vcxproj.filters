@@ -16,7 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Config.json" />
-    <None Include="Styles\Client.css" />
     <None Include="Bootstrap.js" />
     <None Include="..\Webpack\dist\Webpack.js" />
     <None Include="..\Webpack\dist\Webpack.js.map" />
@@ -41,6 +40,9 @@
     <ClCompile Include="Updater.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Utils\Uri.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Utils\StringUtil.h">
@@ -62,6 +64,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\Uri.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

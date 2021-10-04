@@ -1,4 +1,4 @@
-#define WILL_LOG 0
+#define WILL_LOG 1
 #define VERSION 0.01
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -23,6 +23,7 @@
 #include "../Utils/IOUtil.h"
 #include "../Utils/JSON.h"
 #include "../Utils/Base64.h"
+#include "../Utils/Uri.h"
 #include "./resource.h"
 #include "./Updater.h"
 #include "./Log.h"
@@ -100,14 +101,7 @@ public:
 					void* data = (char*)LockResource(header);
 
 					if (data != NULL) {
-						HANDLE file = CreateFile(
-							(directory + p_icon).c_str(),     // Filename
-							GENERIC_WRITE,          // Desired access
-							FILE_SHARE_READ,        // Share mode
-							NULL,                   // Security attributes
-							CREATE_NEW,             // Creates a new file, only if it doesn't already exist
-							FILE_ATTRIBUTE_NORMAL,  // Flags and attributes
-							NULL);                  // Template file handle
+						HANDLE file = CreateFile((directory + p_icon).c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
 						if (file != INVALID_HANDLE_VALUE) {
 							DWORD size = SizeofResource(0, src);
@@ -259,29 +253,6 @@ private:
 	};
 	ClientFolder folder;
 	Updater updater;
-	std::wstring uri_host(std::wstring host) {
-		if (host.starts_with(L"https://")) host = host.substr(8);
-		else if (host.starts_with(L"http://")) host = host.substr(7);
-
-		if (host.starts_with(L"www.")) host = host.substr(4);
-
-		if (size_t first_slash = host.find_first_of(L'/')) host = host.substr(0, first_slash);
-
-		return host;
-	}
-	std::wstring uri_path(std::wstring uri) {
-		if (uri.starts_with(L"https://")) uri = uri.substr(8);
-		else if (uri.starts_with(L"http://")) uri = uri.substr(7);
-		uri = uri.substr(uri.find_first_of(L'/'));
-
-		int query = uri.find_first_of(L'?');
-		if(query != -1)uri = uri.substr(0, query);
-
-		return uri;
-	}
-	bool is_host(std::wstring host, std::wstring match) {
-		return host == match || host.ends_with(L"." + match);
-	}
 	wil::com_ptr<ICoreWebView2Controller> wv_control;
 	wil::com_ptr<ICoreWebView2> wv_game;
 	std::vector<JSON> wv_game_post;
@@ -586,15 +557,13 @@ private:
 					args->get_Request(&request);
 					LPWSTR uriptr;
 					request->get_Uri(&uriptr);
-					std::wstring uri = uriptr;
-					std::wstring host = uri_host(uri);
-					std::wstring path = uri_path(uri);
+					Uri uri(uriptr);
 
-					if (is_host(host, L"krunker.io")) {
-						std::wstring swap = folder.directory + folder.p_swapper + path;
+					if (uri.HostEquals(L"krunker.io")) {
+						std::wstring swap = folder.directory + folder.p_swapper + uri.pathname();
 						
 						if (IOUtil::file_exists(swap)) {
-							LOG_INFO("Swapping " << Convert::string(path));
+							LOG_INFO("Swapping " << Convert::string(uri.pathname()));
 							// Create an empty IStream:
 							IStream* stream;
 							
@@ -605,7 +574,7 @@ private:
 							}
 							else LOG_ERROR("Error creating IStream on swap: " << Convert::string(swap));
 						}
-					}else for (std::wstring test : blocked_script_hosts) if (is_host(host, test)) {
+					}else for (std::wstring test : blocked_script_hosts) if (uri.HostEquals(test)) {
 						wil::com_ptr<ICoreWebView2WebResourceResponse> response;
 						env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"Content-Type: text/plain", &response);
 						args->put_Response(response.get());
