@@ -10,6 +10,8 @@ class Category {
 		this.controls = new Set();
 		
 		if(label){
+			this.label = label;
+			
 			this.header = utils.add_ele('div', this.tab.content, {
 				className: 'setHed',
 			});

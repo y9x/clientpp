@@ -667,21 +667,38 @@ class LinkControl extends Control {
 	static id = 'link';
 	create(){
 		this.link = utils.add_ele('a', this.content, {
-			className: 'settingsBtn',
-			textContent: 'Run',
+			href: this.value,
 		});
+		this.link.append(this.label);
 	}
-	update(init){
-		this.link.textContent = this.value;
+	interact(){
+		this.link.click();
 	}
 };
+
+class LinkFunctionControl extends Control {
+	static id = 'linkfunction';
+	create(){
+		this.link = utils.add_ele('a', this.content, {
+			href: '#',
+			events: {
+				click: () => this.interact(),
+			},
+		});
+		this.link.append(this.label);
+	}
+	interact(){
+		this.value();
+	}
+};
+
 
 class FunctionControl extends Control {
 	static id = 'function';
 	create(){
 		utils.add_ele('div', this.content, {
 			className: 'settingsBtn',
-			textContent: this.data.button || 'Run',
+			textContent: this.data.text || 'Run',
 			events: {
 				click: () => this.interact(),
 			},
@@ -823,6 +840,7 @@ Control.Types = {
 	SliderControl,
 	ColorControl,
 	LinkControl,
+	LinkFunctionControl,
 };
 
 module.exports = Control;
@@ -847,6 +865,8 @@ class Category {
 		this.controls = new Set();
 		
 		if(label){
+			this.label = label;
+			
 			this.header = utils.add_ele('div', this.tab.content, {
 				className: 'setHed',
 			});
@@ -1409,7 +1429,7 @@ module.exports = Utils;
   \*****************************/
 /***/ ((module) => {
 
-module.exports = JSON.parse('{"game":{"fast_load":false,"f4_seek":true},"client":{"uncap_fps":false,"fullscreen":false},"window":{"meta":{"replace":false,"title":"Client++","icon":""}}}');
+module.exports = JSON.parse('{"game":{"fast_load":true,"f4_seek":true},"client":{"uncap_fps":false,"fullscreen":false},"window":{"meta":{"replace":false,"title":"Client++","icon":""}}}');
 
 /***/ })
 
@@ -1526,29 +1546,46 @@ class Menu extends Events {
 		
 		this.main();
 		
+		
+		var Client = this.category('Client');
+		
+		Client.control('Github', {
+			type: 'linkfunction',
+			value(){
+				ipc.send('open', 'url', 'https://github.com/y9x/clientpp');
+			},
+		});
+		
+		Client.control('Discord', {
+			type: 'linkfunction',
+			value(){
+				ipc.send('open', 'url', 'https://y9x.github.io/discord/');
+			},
+		});
+		
 		var Folder = this.category('Folders');
 		
 		/*Folder.control('Root', {
 			type: 'function',
-			button: 'Open',
+			text: 'Open',
 			value: () => ipc.send('open', 'root'),
 		});*/
 		
 		Folder.control('Scripts', {
 			type: 'function',
-			button: 'Open',
+			text: 'Open',
 			value: () => ipc.send('open', 'scripts'),
 		});
 		
 		Folder.control('Styles', {
 			type: 'function',
-			button: 'Open',
+			text: 'Open',
 			value: () => ipc.send('open', 'styles'),
 		});
 		
 		Folder.control('Resource Swapper', {
 			type: 'function',
-			button: 'Open',
+			text: 'Open',
 			value: () => ipc.send('open', 'swapper'),
 		});
 		
@@ -1637,7 +1674,10 @@ class Menu extends Events {
 			index = settings.tabs.length,
 			get = settings.getSettings;
 	
-		settings.tabs.push({ name: 'Client', categories: [] });
+		settings.tabs.push({
+			name: 'Client',
+			categories: [],
+		});
 		
 		settings.getSettings = () => settings.tabIndex == index ? this.html.get() : get.call(settings);
 	}

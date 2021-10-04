@@ -2,8 +2,6 @@
 #define VERSION 1
 
 #define _CRT_SECURE_NO_WARNINGS
-#define CPPHTTPLIB_OPENSSL_SUPPORT
-#include "./httplib.h"
 #include <windows.h>
 #include <iostream>
 #include <vector>
@@ -26,62 +24,11 @@
 #include "../Utils/JSON.h"
 #include "../Utils/Base64.h"
 #include "./resource.h"
-
+#include "./Updater.h"
+#include "./Log.h"
 
 using namespace StringUtil;
 using namespace Microsoft::WRL;
-
-#if WILL_LOG == 1
-#define LOG_COUT std::cout
-#else
-class FileCout : private std::streambuf, public std::ostream {
-private:
-	std::string buffer;
-	int overflow(int c) override {
-		if (c == EOF) return 0;
-		
-		buffer += c;
-		
-		if (c == '\n') {
-			FILE* handle = _wfopen(path.c_str(), L"a");
-			if (handle) {
-				fwrite(buffer.data(), sizeof(char), buffer.size(), handle);
-				fclose(handle);
-			}
-			buffer.erase();
-		}
-
-		return 0;
-	}
-public:
-	std::wstring path;
-	FileCout(std::wstring p) : std::ostream(this), path(p) {}
-};
-
-FileCout fc(L"./TmpLogs.txt");
-#define LOG_COUT fc
-#endif
-
-std::string create_log_badge(std::string type) {
-	std::string result = "[" + type + "]";
-
-#if WILL_LOG == 0
-	std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	std::string ts = std::ctime(&now);
-	ts.pop_back();
-	result += " [" + ts + "]";
-#endif
-
-	result += ": ";
-
-	return result;
-}
-
-#define LOG_INFO(data) LOG_COUT << create_log_badge("Info") << data << '\n'
-#define LOG_WARN(data) LOG_COUT << create_log_badge("Warning") << data << '\n'
-#define LOG_ERROR(data) LOG_COUT << create_log_badge("Error") << data << '\n'
-
-#define RECT_ARGS(r) r.left, r.top, r.right - r.left, r.bottom - r.top
 
 // manage RECT and retrieve unique pointer on stack
 class Rect2D {
@@ -294,6 +241,8 @@ struct Vector2 {
 	}
 };
 
+#define RECT_ARGS(r) r.left, r.top, r.right - r.left, r.bottom - r.top
+
 class Window : public CWindowImpl<Window> {
 private:
 	std::wstring title = L"Guru Client++";
@@ -309,6 +258,7 @@ private:
 		L"syndication.twitter.com"
 	};
 	ClientFolder folder;
+	Updater updater;
 	std::wstring uri_host(std::wstring host) {
 		if (host.starts_with(L"https://")) host = host.substr(8);
 		else if (host.starts_with(L"http://")) host = host.substr(7);
@@ -430,27 +380,7 @@ private:
 
 		return true;
 	}
-	bool check_for_updates() {
-		httplib::Client cli("https://y9x.github.io");
-		auto res = cli.Get("/userscripts/serve.json");
-
-		LOG_INFO(res->body);
-
-		JSON serve = JSON::parse(res->body);
-		
-		if (
-			VERSION >= serve["client"]["version"].get<double>() ||
-			::MessageBox(NULL, L"A new client update is available. Download?", title.c_str(), MB_YESNO) != IDYES
-		) return false;
-
-		ShellExecute(NULL, L"open", Convert::wstring(serve["client"]["url"].get<std::string>()).c_str(), L"", L"", SW_SHOW);
-		PostQuitMessage(EXIT_SUCCESS);
-
-		return true;
-	}
 	void init() {
-		if (check_for_updates()) return;
-
 		if (folder.config["window"]["meta"]["replace"].get<bool>())
 			title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
 		
@@ -545,11 +475,13 @@ private:
 						else if (event == "open") {
 							std::wstring open;
 
-							if (message[1] == "scripts") open = folder.p_scripts;
-							else if (message[1] == "styles") open = folder.p_styles;
-							else if (message[1] == "swapper") open = folder.p_swapper;
+							if (message[1] == "root")open = folder.directory;
+							else if (message[1] == "scripts") open = folder.directory + folder.p_scripts;
+							else if (message[1] == "styles") open = folder.directory + folder.p_styles;
+							else if (message[1] == "swapper") open = folder.directory + folder.p_swapper;
+							else if (message[1] == "url") open = Convert::wstring(message[2].get<std::string>());
 
-							ShellExecute(NULL, L"open", (folder.directory + open).c_str(), L"", L"", SW_SHOW);
+							ShellExecute(NULL, L"open", open.c_str(), L"", L"", SW_SHOW);
 						}
 						else if (event == "relaunch") {
 							if (::IsWindow(m_hWnd)) DestroyWindow();
@@ -689,7 +621,15 @@ private:
 		return true;
 	}
 public:
-	Window(HINSTANCE h, int c) : hinst(h), cmdshow(c), folder(L"GC++") {
+	Window(HINSTANCE h, int c) : hinst(h), cmdshow(c), folder(L"GC++"), updater(VERSION) {
+		std::string url;
+		
+		if (updater.UpdatesAvailable(url) && ::MessageBox(NULL, L"A new client update is available. Download?", title.c_str(), MB_YESNO) == IDYES) {
+			ShellExecute(NULL, L"open", Convert::wstring(url).c_str(), L"", L"", SW_SHOW);
+			PostQuitMessage(EXIT_SUCCESS);
+			return;
+		}
+		
 		init();
 	}
 	~Window() {

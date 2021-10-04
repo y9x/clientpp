@@ -116,21 +116,38 @@ class LinkControl extends Control {
 	static id = 'link';
 	create(){
 		this.link = utils.add_ele('a', this.content, {
-			className: 'settingsBtn',
-			textContent: 'Run',
+			href: this.value,
 		});
+		this.link.append(this.label);
 	}
-	update(init){
-		this.link.textContent = this.value;
+	interact(){
+		this.link.click();
 	}
 };
+
+class LinkFunctionControl extends Control {
+	static id = 'linkfunction';
+	create(){
+		this.link = utils.add_ele('a', this.content, {
+			href: '#',
+			events: {
+				click: () => this.interact(),
+			},
+		});
+		this.link.append(this.label);
+	}
+	interact(){
+		this.value();
+	}
+};
+
 
 class FunctionControl extends Control {
 	static id = 'function';
 	create(){
 		utils.add_ele('div', this.content, {
 			className: 'settingsBtn',
-			textContent: this.data.button || 'Run',
+			textContent: this.data.text || 'Run',
 			events: {
 				click: () => this.interact(),
 			},
@@ -272,6 +289,7 @@ Control.Types = {
 	SliderControl,
 	ColorControl,
 	LinkControl,
+	LinkFunctionControl,
 };
 
 module.exports = Control;

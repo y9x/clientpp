@@ -78,29 +78,46 @@ class Menu extends Events {
 		
 		this.main();
 		
+		
+		var Client = this.category('Client');
+		
+		Client.control('Github', {
+			type: 'linkfunction',
+			value(){
+				ipc.send('open', 'url', 'https://github.com/y9x/clientpp');
+			},
+		});
+		
+		Client.control('Discord', {
+			type: 'linkfunction',
+			value(){
+				ipc.send('open', 'url', 'https://y9x.github.io/discord/');
+			},
+		});
+		
 		var Folder = this.category('Folders');
 		
 		/*Folder.control('Root', {
 			type: 'function',
-			button: 'Open',
+			text: 'Open',
 			value: () => ipc.send('open', 'root'),
 		});*/
 		
 		Folder.control('Scripts', {
 			type: 'function',
-			button: 'Open',
+			text: 'Open',
 			value: () => ipc.send('open', 'scripts'),
 		});
 		
 		Folder.control('Styles', {
 			type: 'function',
-			button: 'Open',
+			text: 'Open',
 			value: () => ipc.send('open', 'styles'),
 		});
 		
 		Folder.control('Resource Swapper', {
 			type: 'function',
-			button: 'Open',
+			text: 'Open',
 			value: () => ipc.send('open', 'swapper'),
 		});
 		
@@ -189,7 +206,10 @@ class Menu extends Events {
 			index = settings.tabs.length,
 			get = settings.getSettings;
 	
-		settings.tabs.push({ name: 'Client', categories: [] });
+		settings.tabs.push({
+			name: 'Client',
+			categories: [],
+		});
 		
 		settings.getSettings = () => settings.tabIndex == index ? this.html.get() : get.call(settings);
 	}
