@@ -1,4 +1,4 @@
-# Guru Client++
+# <img src="./Client/Icon.ico" style="height:1em"> Guru Client++
 
 Krunker Client written in C++ WebView2
 
