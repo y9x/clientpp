@@ -2,6 +2,8 @@
 
 Krunker Client written in C++ WebView2
 
+DISCLAIMER: This client does not contain cheats unless installed by the user.
+
 [License](./LICENSE)
 
 [Discord](https://y9x.github.io/discord)
