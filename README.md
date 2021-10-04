@@ -2,6 +2,8 @@
 
 Krunker Client written in C++ WebView2
 
+## [License](./LICENSE)
+
 ## [Discord](https://y9x.github.io/discord)
 
 ## [Releases](https://github.com/y9x/clientpp/releases)
