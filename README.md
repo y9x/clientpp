@@ -2,28 +2,26 @@
 
 Krunker Client written in C++ WebView2
 
-## [License](./LICENSE)
+### [License](./LICENSE)
 
-## [Discord](https://y9x.github.io/discord)
-
-## [Releases](https://github.com/y9x/clientpp/releases)
+### [Discord](https://y9x.github.io/discord)
 
 ## Features:
 
 - No NodeJS and Electron overhead (Higher FPS potential)
-- Resource swapper
+- Resource Swapper
 - User Styles
 - User Scripts
+
+## Installation:
+
+1. [Download the Latest Release](https://github.com/y9x/clientpp/releases)
+2. Run Client.exe
 
 ## Requirements:
 
 - Windows 7-10
 - Microsoft Edge
-
-## Usage:
-
-1. [Download the latest release from](https://github.com/y9x/clientpp/releases)
-2. Run Client.exe
 
 ## Finding the Client Folder
 
