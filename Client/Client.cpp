@@ -380,11 +380,11 @@ private:
 		Vector2 scr_size;
 
 		if (monitor_data(scr_pos, scr_size)) {
-			r.width = scr_size.x * game_size.x;
-			r.height = scr_size.y * game_size.y;
+			r.width = long(scr_size.x * game_size.x);
+			r.height = long(scr_size.y * game_size.y);
 			
-			r.x = scr_pos.x + ((scr_size.x - r.width) / 2);
-			r.y = scr_pos.y + ((scr_size.y - r.height) / 2);
+			r.x = long(scr_pos.x + ((scr_size.x - r.width) / 2));
+			r.y = long(scr_pos.y + ((scr_size.y - r.height) / 2));
 
 			SetWindowPos(NULL, r.get(), 0);
 		}
