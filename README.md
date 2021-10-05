@@ -25,9 +25,9 @@ DISCLAIMER: This client does not contain cheats unless installed by the user.
 
 ## Requirements:
 
-- [Visual C++ Runtime](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-160#visual-studio-2015-2017-2019-and-2022)
 - Windows 7-10
 - [Microsoft Edge](https://www.microsoft.com/en-us/edge#platform)
+- [Visual C++ Runtime](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-160#visual-studio-2015-2017-2019-and-2022)
 
 ## Finding the Client Folder
 
