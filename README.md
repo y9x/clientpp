@@ -53,9 +53,7 @@ DISCLAIMER: This client does not contain cheats unless installed by the user.
 
 ## Installing the Krunker Cheat Loader
 
-Use at your own risk
-
-This client does not explicitly condone the use of cheats
+DISCLAIMER: This client does not explicitly condone the use of cheats.
 
 1. Download the [Krunker Cheat Loader](https://api.sys32.dev/v2/cheat-loader)
 2. Follow the [Userscript installation steps](#installing-a-user-script)
