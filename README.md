@@ -12,6 +12,7 @@ DISCLAIMER: This client does not contain cheats unless installed by the user.
 
 - Higher FPS potential: No NodeJS and Electron overhead unlike IDKR and Official Client
 - Lightweight
+- Fast Loading
 - Resource Swapper
 - User Styles
 - User Scripts
