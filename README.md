@@ -64,3 +64,18 @@ DISCLAIMER: This client does not explicitly condone the use of cheats.
 - [Visual Studio](https://visualstudio.microsoft.com/downloads/)
 - Desktop Development with C++
 - C++ ATL for latest v142 build tools
+- NodeJS
+
+### Build for Webpack
+
+1. Extract and open the Client repo
+2. CD into the Webpack folder
+3. Install modules: `npm install`
+4. Build: `npm run build-once`
+
+### Build for VS
+
+1. Open `Guru Client++.sln`
+2. Press Build in the toolbar
+3. Select Build Solution
+4. Find output in `Client/Debug` or `Client/Release`
