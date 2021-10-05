@@ -47,3 +47,11 @@ DISCLAIMER: This client does not contain cheats unless installed by the user.
 3. Find the Styles label, select Open
 4. Drag your User Style into the folder
 5. Press <kbd>F4</kbd> to seek a new game or <kbd>F5</kbd> to refresh
+
+## Building
+
+### Requirements
+
+- [Visual Studio](https://visualstudio.microsoft.com/downloads/)
+- Desktop Development with C++
+- C++ ATL for latest v142 build tools
