@@ -1,6 +1,6 @@
 # <img src="./Client/Icon.ico" style="height:1em"> Guru Client++
 
-Krunker Client written in C++ WebView2
+Modern Krunker Client written in C++ and Powered by WebView2
 
 DISCLAIMER: This client does not contain cheats unless installed by the user.
 
