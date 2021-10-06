@@ -456,9 +456,14 @@ public:
 			installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 		{
 
-		if (!installer.Installed()) {
-			::MessageBox(NULL, L"The WebView2 Runtime will now install. Relaunch the client once the installation is complete.", title.c_str(), MB_OK);
-			installer.Install();
+		if (!installer.Installed()){
+			if(::MessageBox(NULL, L"You are missing runtimes. Do you wish to install WebView2 Runtime?", title.c_str(), MB_YESNO) == IDYES) {
+				::MessageBox(NULL, L"Relaunch the client after installation is complete.", title.c_str(), MB_OK);
+				installer.Install();
+			}
+			else ::MessageBox(NULL, L"Cannot continue without runtimes, quitting...", title.c_str(), MB_OK);
+
+
 			PostQuitMessage(EXIT_SUCCESS);
 			return;
 		}
