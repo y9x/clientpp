@@ -37,7 +37,7 @@ class Window : public CWindowImpl<Window> {
 private:
 	std::wstring title = L"Guru Client++";
 	std::wstring og_title = title;
-	std::vector<std::wstring> blocked_script_hosts {
+	std::vector<std::wstring> blocked_hosts {
 		L"cookie-cdn.cookiepro.com",
 		L"googletagmanager.com",
 		L"googlesyndication.com",
@@ -347,7 +347,7 @@ private:
 							else LOG_ERROR("Error creating IStream on swap: " << Convert::string(swap));
 						}
 					}
-					else for (std::wstring test : blocked_script_hosts) if (uri.HostEquals(test)) {
+					else for (std::wstring test : blocked_hosts) if (uri.HostEquals(test)) {
 						wil::com_ptr<ICoreWebView2WebResourceResponse> response;
 						env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"Content-Type: text/plain", &response);
 						args->put_Response(response.get());
