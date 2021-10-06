@@ -3,5 +3,8 @@
 	"dependencies": {
 		"event-lite": "^0.1.2",
 		"webpack": "^5.54.0"
-	}
+	},
+	"scripts": {
+		"build-once": "node ./index.js"
+	},
 }
