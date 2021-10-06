@@ -88,7 +88,6 @@ private:
 		wv.G = GetGValue(color);
 		wv.B = GetBValue(color);
 		wv.A = 255;
-
 		return wv;
 	}
 	std::wstring cmdline() {
@@ -154,8 +153,9 @@ private:
 		auto options = Make<CoreWebView2EnvironmentOptions>();
 
 		std::wstring cm = cmdline();
-		options->put_AdditionalBrowserArguments(cm.c_str());
 
+		options->put_AdditionalBrowserArguments(cm.c_str());
+		
 		CreateCoreWebView2EnvironmentWithOptions(nullptr, (folder.directory + folder.p_profile).c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 			env->CreateCoreWebView2Controller(m_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>([env, this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
 				if (controller == nullptr) {
@@ -365,55 +365,6 @@ private:
 			return S_OK;
 		}).Get());
 	}
-	void init() {
-		if (folder.config["window"]["meta"]["replace"].get<bool>())
-			title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
-		
-		Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
-		
-		if (folder.config["window"]["meta"]["replace"].get<bool>())
-			SetIcon((HICON)LoadImage(hinst, Convert::wstring(folder.config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
-		else SetIcon(LoadIcon(hinst, MAKEINTRESOURCE(MAINICON)));
-		
-		CoInitialize(NULL);
-
-		Rect2D r;
-		Vector2 scr_pos;
-		Vector2 scr_size;
-
-		if (monitor_data(scr_pos, scr_size)) {
-			r.width = long(scr_size.x * game_size.x);
-			r.height = long(scr_size.y * game_size.y);
-			
-			r.x = long(scr_pos.x + ((scr_size.x - r.width) / 2));
-			r.y = long(scr_pos.y + ((scr_size.y - r.height) / 2));
-
-			SetWindowPos(NULL, r.get(), 0);
-		}
-		else ResizeClient(700, 500);
-
-		init_webview2();
-
-		ShowWindow(cmdshow);
-		UpdateWindow();
-
-		MSG msg;
-		BOOL ret;
-		
-		LOG_INFO("Client Initialized");
-		
-		while (ret = GetMessage(&msg, 0, 0, 0)) {
-			mtx.lock();
-			for (JSON message : game_post) {
-				game->PostWebMessageAsJson(Convert::wstring(message.dump()).c_str());
-			}
-			game_post.clear();
-			mtx.unlock();
-
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-	}
 	bool resize_wv() {
 		if (game_control == nullptr) return false;
 
@@ -448,14 +399,13 @@ private:
 		return true;
 	}
 public:
-	Window(HINSTANCE h, int c) :
-			hinst(h),
-			cmdshow(c),
-			folder(L"GC++"),
-			updater(CLIENT_VERSION, "https://y9x.github.io", "/userscripts/serve.json"),
-			installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
-		{
-
+	Window(HINSTANCE h, int c)
+		: hinst(h)
+		, cmdshow(c)
+		, folder(L"GC++")
+		, updater(CLIENT_VERSION, "https://y9x.github.io", "/userscripts/serve.json")
+		, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
+	{
 		if (!installer.Installed()){
 			if(::MessageBox(NULL, L"You are missing runtimes. Do you wish to install WebView2 Runtime?", title.c_str(), MB_YESNO) == IDYES) {
 				::MessageBox(NULL, L"Relaunch the client after installation is complete.", title.c_str(), MB_OK);
@@ -463,20 +413,66 @@ public:
 			}
 			else ::MessageBox(NULL, L"Cannot continue without runtimes, quitting...", title.c_str(), MB_OK);
 
-
 			PostQuitMessage(EXIT_SUCCESS);
 			return;
 		}
 
-		std::string url;
-		
-		if (updater.UpdatesAvailable(url) && ::MessageBox(NULL, L"A new client update is available. Download?", title.c_str(), MB_YESNO) == IDYES) {
-			ShellExecute(NULL, L"open", Convert::wstring(url).c_str(), L"", L"", SW_SHOW);
+		std::string update_url;
+		if (updater.UpdatesAvailable(update_url) && ::MessageBox(NULL, L"A new client update is available. Download?", title.c_str(), MB_YESNO) == IDYES) {
+			ShellExecute(NULL, L"open", Convert::wstring(update_url).c_str(), L"", L"", SW_SHOW);
 			PostQuitMessage(EXIT_SUCCESS);
 			return;
 		}
 		
-		init();
+		if (folder.config["window"]["meta"]["replace"].get<bool>())
+			title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
+
+		Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
+
+		SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(RGB(0, 0, 0)));
+
+		if (folder.config["window"]["meta"]["replace"].get<bool>())
+			SetIcon((HICON)LoadImage(hinst, Convert::wstring(folder.config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
+		else SetIcon(LoadIcon(hinst, MAKEINTRESOURCE(MAINICON)));
+
+		Vector2 scr_pos;
+		Vector2 scr_size;
+
+		if (monitor_data(scr_pos, scr_size)) {
+			Rect2D r;
+			
+			r.width = long(scr_size.x * game_size.x);
+			r.height = long(scr_size.y * game_size.y);
+
+			r.x = long(scr_pos.x + ((scr_size.x - r.width) / 2));
+			r.y = long(scr_pos.y + ((scr_size.y - r.height) / 2));
+
+			SetWindowPos(NULL, r.get(), 0);
+		}
+		else ResizeClient(700, 500);
+
+		CoInitialize(NULL);
+		init_webview2();
+
+		ShowWindow(cmdshow);
+		UpdateWindow();
+
+		MSG msg;
+		BOOL ret;
+
+		LOG_INFO("Client Initialized");
+
+		while (ret = GetMessage(&msg, 0, 0, 0)) {
+			mtx.lock();
+			for (JSON message : game_post) 
+				game->PostWebMessageAsJson(Convert::wstring(message.dump()).c_str());
+
+			game_post.clear();
+			mtx.unlock();
+
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
 	}
 	~Window() {
 		// app shutdown
@@ -496,7 +492,7 @@ public:
 	END_MSG_MAP()
 };
 
-class LApp : public CAtlExeModuleT<LApp> {
+/*class LApp : public CAtlExeModuleT<LApp> {
 public:
 	static HRESULT InitializeCom() {
 		CoInitialize(NULL);
@@ -504,7 +500,7 @@ public:
 	}
 };
 
-LApp app;
+LApp app;*/
 
 int APIENTRY WinMain(HINSTANCE _In_ hInstance, HINSTANCE _In_opt_ hPrevInstance, _In_ LPSTR cmdline, _In_ int nCmdShow) {
 #if WILL_LOG == 1
