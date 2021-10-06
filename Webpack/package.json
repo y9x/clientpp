@@ -6,5 +6,5 @@
 	},
 	"scripts": {
 		"build-once": "node ./index.js"
-	},
+	}
 }
