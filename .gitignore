@@ -9,3 +9,4 @@ package-lock.json
 .initial .git file
 enc_temp_folder
 Client/TmpLogs.txt
+Client/MicrosoftEdgeWebview2Setup.exe

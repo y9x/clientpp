@@ -99,6 +99,7 @@
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="Updater.cpp" />
     <ClCompile Include="Updater.h" />
+    <ClCompile Include="WebView2Installer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Utils\Base64.h" />
@@ -112,6 +113,7 @@
     <ClInclude Include="httplib.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="WebView2Installer.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />

@@ -56,13 +56,8 @@ ClientFolder::ClientFolder(std::wstring n) : name(n) {
 					if (file != INVALID_HANDLE_VALUE) {
 						DWORD size = SizeofResource(0, src);
 
-						DWORD bytesWritten;
-						WriteFile(
-							file, // Handle to the file
-							data, // Buffer to write
-							size, // Buffer size
-							&bytesWritten,    // Bytes written
-							nullptr);         // Overlapped
+						DWORD bytes;
+						WriteFile(file, data, size, &bytes, nullptr);
 
 						CloseHandle(file);
 						LOG_INFO("Created " << Convert::string(directory + p_icon));

@@ -2,11 +2,9 @@
 #include "./httplib.h"
 #include "./Updater.h"
 
-Updater::Updater(long double d) : version(d) {}
-
 JSON Updater::GetServing() {
-	httplib::Client cli("https://y9x.github.io");
-	auto res = cli.Get("/userscripts/serve.json");
+	httplib::Client cli(host);
+	auto res = cli.Get(path.c_str());
 	return JSON::parse(res->body);
 }
 
@@ -17,3 +15,5 @@ bool Updater::UpdatesAvailable(std::string& url) {
 
 	return version < serve["client"]["version"].get<double>();
 }
+
+Updater::Updater(long double d, std::string h, std::string p) : version(d), host(h), path(p) {}

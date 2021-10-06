@@ -3,10 +3,9 @@
 
 class Updater {
 public:
-	std::string host = "https://y9x.github.io";
-	std::string path = "/userscripts/serve.json";
+	std::string host, path;
+	Updater(long double version, std::string host, std::string path);
 	long double version;
 	JSON GetServing();
 	bool UpdatesAvailable(std::string& url);
-	Updater(long double version);
 };

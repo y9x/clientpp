@@ -28,6 +28,7 @@
 #include "./Points.h"
 #include "./LoadRes.h"
 #include "./ClientFolder.h"
+#include "./WebView2Installer.h"
 
 using namespace StringUtil;
 using namespace Microsoft::WRL;
@@ -49,6 +50,7 @@ private:
 	std::mutex mtx;
 	ClientFolder folder;
 	Updater updater;
+	WebView2Installer installer;
 	wil::com_ptr<ICoreWebView2Controller> game_control;
 	wil::com_ptr<ICoreWebView2> game;
 	std::vector<JSON> game_post;
@@ -446,7 +448,21 @@ private:
 		return true;
 	}
 public:
-	Window(HINSTANCE h, int c) : hinst(h), cmdshow(c), folder(L"GC++"), updater(CLIENT_VERSION) {
+	Window(HINSTANCE h, int c) :
+			hinst(h),
+			cmdshow(c),
+			folder(L"GC++"),
+			updater(CLIENT_VERSION, "https://y9x.github.io", "/userscripts/serve.json"),
+			installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
+		{
+
+		if (!installer.Installed()) {
+			::MessageBox(NULL, L"The WebView2 Runtime will now install. Relaunch the client once the installation is complete.", title.c_str(), MB_OK);
+			installer.Install();
+			PostQuitMessage(EXIT_SUCCESS);
+			return;
+		}
+
 		std::string url;
 		
 		if (updater.UpdatesAvailable(url) && ::MessageBox(NULL, L"A new client update is available. Download?", title.c_str(), MB_YESNO) == IDYES) {
