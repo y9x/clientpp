@@ -21,7 +21,9 @@ std::wstring WebView2Installer::BinPath() {
 	return path;
 }
 
-bool WebView2Installer::Install() {
+bool WebView2Installer::Install(Error& error) {
+	error = Error::OK;
+	
 	std::wstring bin_path = BinPath();
 	HANDLE file = CreateFile(bin_path.c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
@@ -49,7 +51,10 @@ bool WebView2Installer::Install() {
 
 		return true;
 	}
-	else return false;
+	else {
+		error = Error::CantOpenProcess;
+		return false;
+	}
 }
 
 

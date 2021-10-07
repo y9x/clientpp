@@ -149,6 +149,7 @@ private:
 
 		return true;
 	}
+	// todo: open non-krunker urls in shell, create windows for social and editor
 	void init_webview2() {
 		auto options = Make<CoreWebView2EnvironmentOptions>();
 
@@ -408,8 +409,18 @@ public:
 	{
 		if (!installer.Installed()){
 			if(::MessageBox(NULL, L"You are missing runtimes. Do you wish to install WebView2 Runtime?", title.c_str(), MB_YESNO) == IDYES) {
-				::MessageBox(NULL, L"Relaunch the client after installation is complete.", title.c_str(), MB_OK);
-				installer.Install();
+				WebView2Installer::Error error;
+				if (installer.Install(error))
+					::MessageBox(NULL, L"Relaunch the client after installation is complete.", title.c_str(), MB_OK);
+				else {
+					switch (error) {
+					case WebView2Installer::Error::CantOpenProcess:
+					
+						::MessageBox(NULL, (L"Couldn't open " + installer.bin + L". You will need to run the exe manually.").c_str(), title.c_str(), MB_OK);
+						
+						break;
+					}
+				}
 			}
 			else ::MessageBox(NULL, L"Cannot continue without runtimes, quitting...", title.c_str(), MB_OK);
 

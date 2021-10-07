@@ -1699,8 +1699,6 @@ class Menu extends Events {
 				ipc.send('update meta');
 		});
 		
-		// .on('change', (value, init) => !init && setTimeout(() => ipc.send('reload config')));
-		
 		for(let category of this.categories)category.update(true);
 	}
 	relaunch(){
