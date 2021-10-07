@@ -34,7 +34,7 @@ var { config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
 	{ meta } = __webpack_require__(/*! ./consts */ "./src/consts.js"),
 	Loader = __webpack_require__(/*! ./libs/Loader */ "./src/libs/Loader.js");
 
-if(config.game.fast_load && !js.length){
+if(config.game.fast_load && !Object.keys(js).length){
 	let loader = new Loader();
 	
 	loader.observe();
@@ -1646,7 +1646,7 @@ class Menu extends Events {
 		var Game = this.category('Game');
 		
 		// loads krunker from api.sys32.dev
-		if(!js.length)Game.control('Fast Loading', {
+		if(!Object.keys(js).length)Game.control('Fast Loading', {
 			type: 'boolean',
 			walk: 'game.fast_load',
 		});

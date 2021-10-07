@@ -4,7 +4,7 @@ var { config, js } = require('./Runtime'),
 	{ meta } = require('./consts'),
 	Loader = require('./libs/Loader');
 
-if(config.game.fast_load && !js.length){
+if(config.game.fast_load && !Object.keys(js).length){
 	let loader = new Loader();
 	
 	loader.observe();
