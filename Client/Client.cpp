@@ -94,10 +94,14 @@ private:
 		std::vector<std::wstring> cmds = {
 			// L"--profile-directory=Profile",
 			L"--force-dark-mode",
+			L"--autoplay-policy=no-user-gesture-required",
 			// L"disable-background-timer-throttling"
 		};
 
-		if (folder.config["client"]["uncap_fps"].get<bool>()) cmds.push_back(L"--disable-frame-rate-limit");
+		if (folder.config["client"]["uncap_fps"].get<bool>()) {
+			cmds.push_back(L"--disable-frame-rate-limit");
+			cmds.push_back(L"--disable-gpu-vsync");
+		}
 
 		std::wstring cmdline;
 		bool first = false;
