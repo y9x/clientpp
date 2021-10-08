@@ -81,10 +81,8 @@ ClientFolder::ClientFolder(std::wstring n) : name(n) {
 			if (OVR(CreateDirectory((directory + sdir).c_str(), NULL))) LOG_INFO("Created " << Convert::string(directory + sdir));
 			else error_creating = true;
 		}
-
-#if WILL_LOG != 1
+		
 		fc.path = directory + p_log;
-#endif
 	}
 	else LOG_ERROR("Creation"), error_creating = true;
 

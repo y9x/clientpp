@@ -109,7 +109,6 @@
     <ClInclude Include="..\Utils\StringUtil.h" />
     <ClInclude Include="..\Utils\Uri.h" />
     <ClInclude Include="ClientFolder.h" />
-    <ClInclude Include="Consts.h" />
     <ClInclude Include="LoadRes.h" />
     <ClInclude Include="httplib.h" />
     <ClInclude Include="Log.h" />

@@ -26,13 +26,13 @@
 #include "../Utils/Uri.h"
 #include "./resource.h"
 #include "./Log.h"
-#include "./Consts.h"
 #include "./Updater.h"
 #include "./Points.h"
 #include "./LoadRes.h"
 #include "./ClientFolder.h"
 #include "./WebView2Installer.h"
 
+constexpr const long double client_version = 0.02;
 constexpr const wchar_t* client_title = L"Guru Client++";
 constexpr const wchar_t* krunker_game = L"/";
 constexpr const wchar_t* krunker_editor = L"/editor.html";
@@ -578,7 +578,7 @@ public:
 		: inst(h)
 		, cmdshow(c)
 		, folder(L"GC++")
-		, updater(CLIENT_VERSION, "https://y9x.github.io", "/userscripts/serve.json")
+		, updater(client_version, "https://y9x.github.io", "/userscripts/serve.json")
 		, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 		, game(folder)
 		, social(folder)
@@ -623,19 +623,6 @@ public:
 };
 
 int APIENTRY WinMain(HINSTANCE _In_ hInstance, HINSTANCE _In_opt_ hPrevInstance, _In_ LPSTR cmdline, _In_ int nCmdShow) {
-#if WILL_LOG == 1
-	SetConsoleCtrlHandler(0, true);
-	if (AllocConsole()) {
-		freopen("CONOUT$", "w", stdout);
-		freopen("CONOUT$", "w", stderr);
-		freopen("CONIN$", "r", stdin);
-
-		std::cout.clear();
-		std::cin.clear();
-	}
-	else MessageBox(NULL, L"Failure attatching console", L"Debugger", MB_OK);
-#endif
-
 	Main m(hInstance, nCmdShow);
 	return EXIT_SUCCESS;
 }

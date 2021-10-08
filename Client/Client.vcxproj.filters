@@ -91,9 +91,6 @@
     <ClInclude Include="LoadRes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Consts.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="WebView2Installer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
