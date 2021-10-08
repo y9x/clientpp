@@ -1,9 +1,10 @@
 #define _CRT_SECURE_NO_WARNINGS
-#define WILL_LOG 0
+#define WILL_LOG 1
 #include "./Log.h"
 #include <Windows.h>
 
 FileCout::FileCout(std::wstring p) : std::ostream(this), path(p) {
+#if WILL_LOG == 1
 	SetConsoleCtrlHandler(0, true);
 	if (AllocConsole()) {
 		freopen("CONOUT$", "w", stdout);
@@ -14,6 +15,7 @@ FileCout::FileCout(std::wstring p) : std::ostream(this), path(p) {
 		std::cin.clear();
 	}
 	else MessageBox(NULL, L"Failure attatching console", L"Debugger", MB_OK);
+#endif
 }
 
 int FileCout::overflow(int c) {

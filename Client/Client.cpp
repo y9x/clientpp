@@ -47,22 +47,14 @@ public:
 	wil::com_ptr<ICoreWebView2> webview;
 	wil::com_ptr<ICoreWebView2Environment> env;
 	std::wstring title;
-	ClientFolder folder;
 	Vector2 scale;
 	HINSTANCE get_hinstance() {
 		return (HINSTANCE)GetWindowLong(GWL_HINSTANCE);
 	}
 	bool create_window(HINSTANCE inst, int cmdshow) {
-		if (folder.config["window"]["meta"]["replace"].get<bool>())
-			title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
-
 		Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
 
 		SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(RGB(0, 0, 0)));
-
-		if (folder.config["window"]["meta"]["replace"].get<bool>())
-			SetIcon((HICON)LoadImage(inst, Convert::wstring(folder.config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
-		else SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));
 
 		Vector2 scr_pos;
 		Vector2 scr_size;
@@ -87,12 +79,12 @@ public:
 		
 		return true;
 	}
-	void create_webview(std::wstring cmdline, std::function<void()> callback) {
+	void create_webview(std::wstring cmdline, std::wstring directory, std::function<void()> callback) {
 		auto options = Make<CoreWebView2EnvironmentOptions>();
 
 		options->put_AdditionalBrowserArguments(cmdline.c_str());
 		
-		CreateCoreWebView2EnvironmentWithOptions(nullptr, (folder.directory + folder.p_profile).c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
+		CreateCoreWebView2EnvironmentWithOptions(nullptr, directory.c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[this, callback](HRESULT result, ICoreWebView2Environment* envp) -> HRESULT {
 				if (envp == nullptr) {
 					LOG_ERROR("Env was nullptr");
@@ -193,38 +185,11 @@ public:
 		return true;
 	}
 	bool open = false;
-	WebViewWindow(ClientFolder& f, Vector2 s, std::wstring t) : title(t), folder(f), scale(s) {}
+	WebViewWindow(Vector2 s, std::wstring t) : title(t), scale(s) {}
 	~WebViewWindow() {
 		// app shutdown
 		// assertion error
 		if (::IsWindow(m_hWnd)) DestroyWindow();
-	}
-	JSON runtime_data() {
-		JSON data = JSON::object();
-
-		struct Search {
-			std::wstring dir;
-			std::wstring filter;
-			JSON& obj;
-		};
-
-		for (Search search : std::vector<Search>{
-			{folder.p_styles, L"*.css", data["css"] = JSON::object()},
-			{folder.p_scripts, L"*.js", data["js"] = JSON::object()},
-			})
-			for (IOUtil::WDirectoryIterator it(folder.directory + search.dir, search.filter); ++it;) {
-				std::string buffer;
-
-				if (IOUtil::read_file(it.path().c_str(), buffer))
-					search.obj[Convert::string(it.file()).c_str()] = buffer;
-			}
-
-		std::string css_client;
-		if (load_resource(CSS_CLIENT, css_client)) data["css"]["Client/Client.css"] = css_client;
-
-		data["config"] = folder.config;
-
-		return data;
 	}
 	LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
 		return resize_wv();
@@ -244,6 +209,7 @@ public:
 
 class KrunkerWindow : public WebViewWindow {
 public:
+	ClientFolder* folder;
 	std::vector<std::wstring> blocked_hosts {
 		L"cookie-cdn.cookiepro.com",
 		L"googletagmanager.com",
@@ -254,6 +220,33 @@ public:
 		L"adinplay.com",
 		L"syndication.twitter.com"
 	};
+	JSON runtime_data() {
+		JSON data = JSON::object();
+
+		struct Search {
+			std::wstring dir;
+			std::wstring filter;
+			JSON& obj;
+		};
+
+		for (Search search : std::vector<Search>{
+			{folder->p_styles, L"*.css", data["css"] = JSON::object()},
+			{folder->p_scripts, L"*.js", data["js"] = JSON::object()},
+		})
+			for (IOUtil::WDirectoryIterator it(folder->directory + search.dir, search.filter); ++it;) {
+				std::string buffer;
+
+				if (IOUtil::read_file(it.path().c_str(), buffer))
+					search.obj[Convert::string(it.file()).c_str()] = buffer;
+			}
+
+		std::string css_client;
+		if (load_resource(CSS_CLIENT, css_client)) data["css"]["Client/Client.css"] = css_client;
+
+		data["config"] = folder->config;
+
+		return data;
+	}
 	std::vector<JSON> post;
 	std::mutex mtx;
 	std::wstring og_title;
@@ -267,7 +260,7 @@ public:
 			// L"disable-background-timer-throttling"
 		};
 
-		if (folder.config["client"]["uncap_fps"].get<bool>()) {
+		if (folder->config["client"]["uncap_fps"].get<bool>()) {
 			cmds.push_back(L"--disable-frame-rate-limit");
 			cmds.push_back(L"--disable-gpu-vsync");
 		}
@@ -330,34 +323,33 @@ public:
 					sender->PostWebMessageAsJson(Convert::wstring(response.dump()).c_str());
 				}
 				else if (event == "save config") {
-					folder.config = message[1];
-					folder.save_config();
+					folder->config = message[1];
+					folder->save_config();
 				}
 				else if (event == "open") {
 					std::wstring open;
 
-					if (message[1] == "root")open = folder.directory;
-					else if (message[1] == "scripts") open = folder.directory + folder.p_scripts;
-					else if (message[1] == "styles") open = folder.directory + folder.p_styles;
-					else if (message[1] == "swapper") open = folder.directory + folder.p_swapper;
+					if (message[1] == "root")open = folder->directory;
+					else if (message[1] == "scripts") open = folder->directory + folder->p_scripts;
+					else if (message[1] == "styles") open = folder->directory + folder->p_styles;
+					else if (message[1] == "swapper") open = folder->directory + folder->p_swapper;
 					else if (message[1] == "url") open = Convert::wstring(message[2].get<std::string>());
 
 					ShellExecute(NULL, L"open", open.c_str(), L"", L"", SW_SHOW);
 				}
 				else if (event == "relaunch") {
-					// if (::IsWindow(m_hWnd)) DestroyWindow();
 					// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
 					control->Close();
 
 					call_create_webview([]() {});
 				}
 				else if (event == "fullscreen") {
-					if (folder.config["client"]["fullscreen"].get<bool>()) enter_fullscreen();
+					if (folder->config["client"]["fullscreen"].get<bool>()) enter_fullscreen();
 					else exit_fullscreen();
 				}
 				else if (event == "update meta") {
-					title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
-					SetIcon((HICON)LoadImage(get_hinstance(), Convert::wstring(folder.config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
+					title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
+					SetIcon((HICON)LoadImage(get_hinstance(), Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
 					SetWindowText(title.c_str());
 				}
 				else if (event == "revert meta") {
@@ -366,7 +358,7 @@ public:
 					SetWindowText(title.c_str());
 				}
 				else if (event == "reload config") {
-					folder.load_config();
+					folder->load_config();
 				}
 				else if (event == "browse file") new std::thread([this](JSON message) {
 					wchar_t filename[MAX_PATH];
@@ -433,7 +425,7 @@ public:
 			Uri uri(uriptr);
 
 			if (uri.host_owns(L"krunker.io")) {
-				std::wstring swap = folder.directory + folder.p_swapper + uri.pathname();
+				std::wstring swap = folder->directory + folder->p_swapper + uri.pathname();
 
 				if (IOUtil::file_exists(swap)) {
 					LOG_INFO("Swapping " << Convert::string(uri.pathname()));
@@ -459,11 +451,19 @@ public:
 			}).Get(), &token);
 	}
 	void create(HINSTANCE inst, int cmdshow, std::function<void()> callback) override {
+		if (folder->config["window"]["meta"]["replace"].get<bool>())
+			title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
+		
 		create_window(inst, cmdshow);
+
+		if (folder->config["window"]["meta"]["replace"].get<bool>())
+			SetIcon((HICON)LoadImage(inst, Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
+		else SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));
+		
 		call_create_webview(callback);
 	}
 	void call_create_webview(std::function<void()> callback) {
-		create_webview(cmdline(), [this, callback]() {
+		create_webview(cmdline(), folder->directory + folder->p_profile, [this, callback]() {
 			ICoreWebView2Settings* settings;
 			webview->get_Settings(&settings);
 
@@ -493,22 +493,22 @@ public:
 		post.clear();
 		mtx.unlock();
 	}
-	KrunkerWindow(ClientFolder& folder , Vector2 scale, std::wstring title, std::wstring p) : WebViewWindow(folder, scale, title), og_title(title), pathname(p) {}
+	KrunkerWindow(ClientFolder* f , Vector2 scale, std::wstring title, std::wstring p) : WebViewWindow(scale, title), folder(f), og_title(title), pathname(p) {}
 };
 
 class SocialWindow : public KrunkerWindow {
 public:
-	SocialWindow(ClientFolder& f) : KrunkerWindow(f, { 0.4, 0.6 }, L"Guru Client++", krunker_social) {}
+	SocialWindow(ClientFolder* f) : KrunkerWindow(f, { 0.4, 0.6 }, L"Guru Client++", krunker_social) {}
 };
 
 class EditorWindow : public KrunkerWindow {
 public:
-	EditorWindow(ClientFolder& f) : KrunkerWindow(f, { 0.4, 0.6 }, L"Social", krunker_editor) {}
+	EditorWindow(ClientFolder* f) : KrunkerWindow(f, { 0.4, 0.6 }, L"Social", krunker_editor) {}
 };
 
 class GameWindow : public KrunkerWindow {
 public:
-	GameWindow(ClientFolder& f) : KrunkerWindow(f, { 0.8, 0.8 }, L"Guru Client++", krunker_game) {}
+	GameWindow(ClientFolder* f) : KrunkerWindow(f, { 0.8, 0.8 }, L"Guru Client++", krunker_game) {}
 };
 
 class Main {
@@ -577,12 +577,12 @@ public:
 	Main(HINSTANCE h, int c)
 		: inst(h)
 		, cmdshow(c)
-		, folder(L"GC++")
 		, updater(client_version, "https://y9x.github.io", "/userscripts/serve.json")
 		, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
-		, game(folder)
-		, social(folder)
-		, editor(folder)
+		, folder(L"GC++")
+		, game(&folder)
+		, social(&folder)
+		, editor(&folder)
 	{
 		CoInitialize(NULL);
 
