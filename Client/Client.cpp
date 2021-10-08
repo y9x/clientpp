@@ -279,6 +279,18 @@ public:
 
 		return cmdline;
 	}
+	void KrunkerSettings(ICoreWebView2Settings* settings) {
+		settings->put_IsScriptEnabled(true);
+		settings->put_AreDefaultScriptDialogsEnabled(true);
+		settings->put_IsWebMessageEnabled(true);
+		settings->put_IsZoomControlEnabled(false);
+		settings->put_AreDefaultContextMenusEnabled(false);
+#if _DEBUG != 1
+		settings->put_AreDevToolsEnabled(false);
+#else
+		webview->OpenDevToolsWindow();
+#endif
+	}
 	void KrunkerEvents() {
 		EventRegistrationToken token;
 
@@ -469,20 +481,12 @@ public:
 		create_webview(cmdline(), [this, callback]() {
 			ICoreWebView2Settings* settings;
 			webview->get_Settings(&settings);
-			settings->put_IsScriptEnabled(TRUE);
-			settings->put_AreDefaultScriptDialogsEnabled(TRUE);
-			settings->put_IsWebMessageEnabled(TRUE);
-#if _DEBUG != 1
-			settings->put_AreDevToolsEnabled(FALSE);
-#else
-			webview->OpenDevToolsWindow();
-#endif
-			settings->put_IsZoomControlEnabled(FALSE);
-
+			
 			resize_wv();
 
+			KrunkerSettings(settings);
 			KrunkerEvents();
-
+			
 			webview->Navigate(L"https://krunker.io/social.html");
 
 			LOG_INFO("Social window created");
@@ -499,18 +503,10 @@ public:
 		create_webview(cmdline(), [this, callback]() {
 			ICoreWebView2Settings* settings;
 			webview->get_Settings(&settings);
-			settings->put_IsScriptEnabled(TRUE);
-			settings->put_AreDefaultScriptDialogsEnabled(TRUE);
-			settings->put_IsWebMessageEnabled(TRUE);
-#if _DEBUG != 1
-			settings->put_AreDevToolsEnabled(FALSE);
-#else
-			webview->OpenDevToolsWindow();
-#endif
-			settings->put_IsZoomControlEnabled(FALSE);
 
 			resize_wv();
 
+			KrunkerSettings(settings);
 			KrunkerEvents();
 
 			webview->Navigate(L"https://krunker.io/editor.html");
@@ -528,18 +524,10 @@ public:
 		create_webview(cmdline(), [this, callback]() {
 			ICoreWebView2Settings* settings;
 			webview->get_Settings(&settings);
-			settings->put_IsScriptEnabled(TRUE);
-			settings->put_AreDefaultScriptDialogsEnabled(TRUE);
-			settings->put_IsWebMessageEnabled(TRUE);
-#if _DEBUG != 1
-			settings->put_AreDevToolsEnabled(FALSE);
-#else
-			webview->OpenDevToolsWindow();
-#endif
-			settings->put_IsZoomControlEnabled(FALSE);
 
 			resize_wv();
-			
+
+			KrunkerSettings(settings);
 			KrunkerEvents();
 
 			webview->Navigate(L"https://krunker.io/");
