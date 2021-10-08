@@ -198,13 +198,6 @@ public:
 
 		return true;
 	}
-	LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
-		return resize_wv();
-	}
-	LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
-		open = false;
-		return true;
-	}
 	bool open = false;
 	WebViewWindow(ClientFolder& f, Vector2 s, std::wstring t) : title(t), folder(f), scale(s) {}
 	~WebViewWindow() {
@@ -239,6 +232,17 @@ public:
 
 		return data;
 	}
+	LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
+		return resize_wv();
+	}
+	LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
+		open = false;
+		return true;
+	}
+	BEGIN_MSG_MAP(KrunkerWindow)
+		MESSAGE_HANDLER(WM_SIZE, on_resize)
+		MESSAGE_HANDLER(WM_DESTROY, on_destroy)
+	END_MSG_MAP()
 	virtual void get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) {}
 	virtual void create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {}
 	virtual void on_dispatch() {}
@@ -457,16 +461,12 @@ public:
 		post.clear();
 		mtx.unlock();
 	}
-	KrunkerWindow(ClientFolder& f, Vector2 scale) : WebViewWindow(f, scale, L"Guru Client++"), og_title(title) {}
-	BEGIN_MSG_MAP(KrunkerWindow)
-		MESSAGE_HANDLER(WM_SIZE, on_resize)
-		MESSAGE_HANDLER(WM_DESTROY, on_destroy)
-	END_MSG_MAP()
+	KrunkerWindow(ClientFolder& folder , Vector2 scale, std::wstring title) : WebViewWindow(folder, scale, title), og_title(title) {}
 };
 
 class SocialWindow : public KrunkerWindow<SocialWindow> {
 public:
-	SocialWindow(ClientFolder& f) : KrunkerWindow(f, { 0.4, 0.6 }) {}
+	SocialWindow(ClientFolder& f) : KrunkerWindow(f, { 0.4, 0.6 }, L"Guru Client++") {}
 	void call_create_webview(std::function<void()> callback) {
 		create_webview(cmdline(), [this, callback]() {
 			ICoreWebView2Settings* settings;
@@ -494,7 +494,7 @@ public:
 
 class EditorWindow : public KrunkerWindow<EditorWindow> {
 public:
-	EditorWindow(ClientFolder& f) : KrunkerWindow(f, { 0.4, 0.6 }) {}
+	EditorWindow(ClientFolder& f) : KrunkerWindow(f, { 0.4, 0.6 }, L"Social") {}
 	void call_create_webview(std::function<void()> callback) {
 		create_webview(cmdline(), [this, callback]() {
 			ICoreWebView2Settings* settings;
@@ -545,7 +545,7 @@ public:
 			callback();
 		});
 	}
-	GameWindow(ClientFolder& f) : KrunkerWindow(f, { 0.8, 0.8 }) {}
+	GameWindow(ClientFolder& f) : KrunkerWindow(f, { 0.8, 0.8 }, L"Guru Client++") {}
 };
 
 class Main {
