@@ -36,6 +36,37 @@ JSON traverse_copy(JSON value, JSON match, bool& bad_key, JSON result = JSON::ob
 	return result;
 }
 
+bool write_resource(std::wstring path, int resource) {
+	HRSRC src = FindResource(NULL, MAKEINTRESOURCE(resource), RT_RCDATA);
+	bool ret = false;
+
+	if (src != NULL) {
+		HGLOBAL header = LoadResource(NULL, src);
+		if (header != NULL) {
+			void* data = (char*)LockResource(header);
+
+			if (data != NULL) {
+				HANDLE file = CreateFile(path.c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+
+				if (file != INVALID_HANDLE_VALUE) {
+					DWORD size = SizeofResource(0, src);
+					DWORD bytes;
+					
+					WriteFile(file, data, size, &bytes, nullptr);
+					CloseHandle(file);
+
+					ret = true;
+				}
+			}
+			UnlockResource(header);
+		}
+
+		FreeResource(header);
+	}
+
+	return ret;
+}
+
 ClientFolder::ClientFolder(std::wstring n) : name(n) {
 	directory = _wgetenv(L"USERPROFILE");
 	directory += L"\\Documents\\" + name;
@@ -43,31 +74,8 @@ ClientFolder::ClientFolder(std::wstring n) : name(n) {
 	if (OVR(CreateDirectory(directory.c_str(), NULL))) {
 		LOG_INFO("Created " << Convert::string(directory));
 
-		HRSRC src = FindResource(NULL, MAKEINTRESOURCE(ICON_GURU), RT_RCDATA);
-
-		if (src != NULL) {
-			HGLOBAL header = LoadResource(NULL, src);
-			if (header != NULL) {
-				void* data = (char*)LockResource(header);
-
-				if (data != NULL) {
-					HANDLE file = CreateFile((directory + p_icon).c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
-
-					if (file != INVALID_HANDLE_VALUE) {
-						DWORD size = SizeofResource(0, src);
-
-						DWORD bytes;
-						WriteFile(file, data, size, &bytes, nullptr);
-
-						CloseHandle(file);
-						LOG_INFO("Created " << Convert::string(directory + p_icon));
-					}
-				}
-				UnlockResource(header);
-			}
-
-			FreeResource(header);
-		}
+		if (write_resource(directory + p_guru, ICON_GURU)) LOG_INFO("Created " << Convert::string(directory + p_guru));
+		if (write_resource(directory + p_clientpp, ICON_CLIENTPP)) LOG_INFO("Created " << Convert::string(directory + p_clientpp));
 
 		for (std::wstring sdir : directories) {
 			if (OVR(CreateDirectory((directory + sdir).c_str(), NULL))) LOG_INFO("Created " << Convert::string(directory + sdir));
@@ -83,7 +91,7 @@ ClientFolder::ClientFolder(std::wstring n) : name(n) {
 	std::string config_buffer;
 	if (load_resource(JSON_CONFIG, config_buffer)) {
 		default_config = JSON::parse(config_buffer);
-		default_config["window"]["meta"]["icon"] = Convert::string(directory + p_icon);
+		default_config["window"]["meta"]["icon"] = Convert::string(directory + p_clientpp);
 	}
 
 	if (error_creating)LOG_ERROR("Had an error creating directories");

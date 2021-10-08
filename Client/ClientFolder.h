@@ -10,7 +10,8 @@ public:
 	std::wstring p_styles = L"\\Styles";
 	std::wstring p_swapper = L"\\Swapper";
 	std::wstring p_config = L"\\Config.json";
-	std::wstring p_icon = L"\\Guru.ico";
+	std::wstring p_guru = L"\\Guru.ico";
+	std::wstring p_clientpp = L"\\Client++.ico";
 	std::wstring p_log = L"\\Log.txt";
 	JSON default_config = JSON::object();
 	JSON config = JSON::object();

@@ -23,6 +23,7 @@
     <None Include="Points.h">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="Client.css" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -104,6 +105,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Icon.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Client++.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

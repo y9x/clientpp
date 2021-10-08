@@ -72,6 +72,8 @@ JS_WEBPACK_MAP          RCDATA                  "..\\Webpack\\dist\\Webpack.js.m
 
 ICON_GURU               RCDATA                  "Icon.ico"
 
+ICON_CLIENTPP           RCDATA                  "Client++.ico"
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
