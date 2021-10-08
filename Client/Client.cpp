@@ -513,7 +513,7 @@ public:
 
 			KrunkerEvents();
 
-			webview->Navigate(L"https://krunker.io/editor\.html");
+			webview->Navigate(L"https://krunker.io/editor.html");
 
 			callback();
 		});
