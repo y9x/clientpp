@@ -1,15 +1,18 @@
 #include "./Uri.h"
 
-Uri::Uri(std::wstring u) : uri(u) {}
+
+Uri::Uri(const wchar_t* u) : href(u) {}
+
+Uri::Uri(std::wstring u) : href(u) {}
 
 std::wstring Uri::protocol() {
-	size_t first = uri.find_first_of(L':');
-	if (first != std::wstring::npos)return uri.substr(0, first + 1);
+	size_t first = href.find_first_of(L':');
+	if (first != std::wstring::npos)return href.substr(0, first + 1);
 	else return L"";
 }
 
 std::wstring Uri::host(bool remove_www) {
-	std::wstring host = uri.substr(protocol().length());
+	std::wstring host = href.substr(protocol().length());
 
 	if (host.starts_with(L"//")) host = host.substr(2);
 
@@ -26,7 +29,7 @@ std::wstring Uri::origin() {
 }
 
 std::wstring Uri::path() {
-	return uri.substr(origin().length());
+	return href.substr(origin().length());
 }
 
 std::wstring Uri::search() {

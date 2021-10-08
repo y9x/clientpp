@@ -90,6 +90,8 @@ private:
 		wv.A = 255;
 		return wv;
 	}
+	// https://peter.sh/experiments/chromium-command-line-switches/
+	// 
 	std::wstring cmdline() {
 		std::vector<std::wstring> cmds = {
 			// L"--profile-directory=Profile",
@@ -153,6 +155,26 @@ private:
 
 		return true;
 	}
+	bool cancel_navigation(ICoreWebView2* sender, Uri uri) {
+		bool cancel = false;
+		std::wstring uhost = uri.host();
+		ICoreWebView2* send_to = 0;
+
+		if (uhost == L"krunker.io") {
+			send_to = game.get();
+		}
+		else {
+			cancel = true;
+			ShellExecute(NULL, L"open", uri.href.c_str(), L"", L"", SW_SHOW);
+		}
+
+		if (send_to && send_to != sender) {
+			cancel = true;
+			send_to->Navigate(uri.href.c_str());
+		}
+
+		return cancel;
+	}
 	// todo: open non-krunker urls in shell, create windows for social and editor
 	void init_webview2() {
 		auto options = Make<CoreWebView2EnvironmentOptions>();
@@ -198,6 +220,31 @@ private:
 				std::string bootstrap;
 				if (load_resource(JS_BOOTSTRAP, bootstrap)) game->AddScriptToExecuteOnDocumentCreated(Convert::wstring(bootstrap).c_str(), nullptr);
 				else LOG_ERROR("Error loading bootstrapper");
+				
+				game->add_NavigationStarting(Callback<ICoreWebView2NavigationStartingEventHandler>([env, this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+					LPWSTR urip;
+					args->get_Uri(&urip);
+					if (cancel_navigation(sender, urip)) {
+						args->put_Cancel(true);
+					}
+					
+					return S_OK;
+				}).Get(), &token);
+
+				game->add_NewWindowRequested(Callback<ICoreWebView2NewWindowRequestedEventHandler>([env, this](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {
+					LPWSTR urip;
+					args->get_Uri(&urip);
+					if (cancel_navigation(sender, urip)) {
+						args->put_Handled(true);
+					} else args->put_NewWindow(sender);
+					
+					/*Uri uri(urip);
+					LOG_INFO("NEW WINDOW: " << Convert::string(uri.href));
+					// args->put_NewWindow(sender);
+					game->Navigate(uri.href.c_str());
+					*/
+					return S_OK;
+				}).Get(), &token);
 
 				// COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT
 				// recieve all requests for resource swapper
