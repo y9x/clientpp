@@ -492,6 +492,34 @@ public:
 	}
 };
 
+class EditorWindow : public KrunkerWindow<EditorWindow> {
+public:
+	EditorWindow(ClientFolder& f) : KrunkerWindow(f, { 0.4, 0.6 }) {}
+	void call_create_webview(std::function<void()> callback) {
+		create_webview(cmdline(), [this, callback]() {
+			ICoreWebView2Settings* settings;
+			webview->get_Settings(&settings);
+			settings->put_IsScriptEnabled(TRUE);
+			settings->put_AreDefaultScriptDialogsEnabled(TRUE);
+			settings->put_IsWebMessageEnabled(TRUE);
+#if _DEBUG != 1
+			settings->put_AreDevToolsEnabled(FALSE);
+#else
+			webview->OpenDevToolsWindow();
+#endif
+			settings->put_IsZoomControlEnabled(FALSE);
+
+			resize_wv();
+
+			KrunkerEvents();
+
+			webview->Navigate(L"https://krunker.io/editor\.html");
+
+			callback();
+		});
+	}
+};
+
 class GameWindow : public KrunkerWindow<GameWindow> {
 public:
 	void call_create_webview(std::function<void()> callback) {
@@ -528,6 +556,7 @@ private:
 	WebView2Installer installer;
 	GameWindow game;
 	SocialWindow social;
+	EditorWindow editor;
 	HINSTANCE inst;
 	int cmdshow;
 	bool navigation_cancelled(ICoreWebView2* sender, Uri uri) {
@@ -541,6 +570,9 @@ private:
 			}
 			else if (uri.pathname() == L"/social.html") {
 				send = &social;
+			}
+			else if (uri.pathname() == L"/editor.html") {
+				send = &editor;
 			}
 		}
 		else {
@@ -588,6 +620,7 @@ public:
 		, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 		, game(folder)
 		, social(folder)
+		, editor(folder)
 	{
 		CoInitialize(NULL);
 
