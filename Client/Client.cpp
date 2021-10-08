@@ -586,11 +586,14 @@ public:
 	{
 		CoInitialize(NULL);
 
-		std::string update_url;
-		if (updater.UpdatesAvailable(update_url) && ::MessageBox(NULL, L"A new client update is available. Download?", client_title, MB_YESNO) == IDYES) {
-			ShellExecute(NULL, L"open", Convert::wstring(update_url).c_str(), L"", L"", SW_SHOW);
-			return;
-		}
+		// checking updates causes delay
+		new std::thread([this]() {
+			std::string update_url;
+			if (updater.UpdatesAvailable(update_url) && ::MessageBox(NULL, L"A new client update is available. Download?", client_title, MB_YESNO) == IDYES) {
+				ShellExecute(NULL, L"open", Convert::wstring(update_url).c_str(), L"", L"", SW_SHOW);
+				return;
+			}
+		});
 
 		if (!installer.Installed()) {
 			if (::MessageBox(NULL, L"You are missing runtimes. Do you wish to install WebView2 Runtime?", client_title, MB_YESNO) == IDYES) {
