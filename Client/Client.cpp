@@ -487,6 +487,8 @@ public:
 
 			webview->Navigate(L"https://krunker.io/social.html");
 
+			LOG_INFO("Social window created");
+
 			callback();
 		});
 	}
@@ -514,6 +516,8 @@ public:
 			KrunkerEvents();
 
 			webview->Navigate(L"https://krunker.io/editor.html");
+
+			LOG_INFO("Game window created");
 
 			callback();
 		});
@@ -627,7 +631,6 @@ public:
 		std::string update_url;
 		if (updater.UpdatesAvailable(update_url) && ::MessageBox(NULL, L"A new client update is available. Download?", title.c_str(), MB_YESNO) == IDYES) {
 			ShellExecute(NULL, L"open", Convert::wstring(update_url).c_str(), L"", L"", SW_SHOW);
-			PostQuitMessage(EXIT_SUCCESS);
 			return;
 		}
 
@@ -643,13 +646,10 @@ public:
 				}
 			}
 			else ::MessageBox(NULL, L"Cannot continue without runtimes, quitting...", title.c_str(), MB_OK);
-
-			PostQuitMessage(EXIT_SUCCESS);
 			return;
 		}
 
 		game.create(inst, cmdshow, [this]() {
-			LOG_INFO("Game window created");
 			listen_navigation(game);
 		});
 
@@ -661,8 +661,6 @@ public:
 			DispatchMessage(&msg);
 			game.on_dispatch();
 		}
-
-		// PostQuitMessage(EXIT_SUCCESS);
 	}
 };
 
