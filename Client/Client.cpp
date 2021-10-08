@@ -33,6 +33,11 @@
 #include "./ClientFolder.h"
 #include "./WebView2Installer.h"
 
+constexpr const wchar_t* client_title = L"Guru Client++";
+constexpr const wchar_t* krunker_game = L"/";
+constexpr const wchar_t* krunker_editor = L"/editor.html";
+constexpr const wchar_t* krunker_social = L"/social.html";
+
 using namespace StringUtil;
 using namespace Microsoft::WRL;
 
@@ -237,10 +242,9 @@ public:
 	virtual void on_dispatch() {}
 };
 
-template<class T>
 class KrunkerWindow : public WebViewWindow {
 public:
-	std::vector<std::wstring> blocked_hosts{
+	std::vector<std::wstring> blocked_hosts {
 		L"cookie-cdn.cookiepro.com",
 		L"googletagmanager.com",
 		L"googlesyndication.com",
@@ -253,12 +257,13 @@ public:
 	std::vector<JSON> post;
 	std::mutex mtx;
 	std::wstring og_title;
+	std::wstring pathname;
 	// https://peter.sh/experiments/chromium-command-line-switches/
 	std::wstring cmdline() {
 		std::vector<std::wstring> cmds = {
-			// L"--profile-directory=Profile",
 			L"--force-dark-mode",
 			L"--autoplay-policy=no-user-gesture-required",
+			// L"--profile-directory=Profile",
 			// L"disable-background-timer-throttling"
 		};
 
@@ -344,7 +349,7 @@ public:
 					// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
 					control->Close();
 
-					((T*)this)->call_create_webview([]() {});
+					call_create_webview([]() {});
 				}
 				else if (event == "fullscreen") {
 					if (folder.config["client"]["fullscreen"].get<bool>()) enter_fullscreen();
@@ -427,7 +432,7 @@ public:
 			request->get_Uri(&uriptr);
 			Uri uri(uriptr);
 
-			if (uri.HostEquals(L"krunker.io")) {
+			if (uri.host_owns(L"krunker.io")) {
 				std::wstring swap = folder.directory + folder.p_swapper + uri.pathname();
 
 				if (IOUtil::file_exists(swap)) {
@@ -443,7 +448,7 @@ public:
 					else LOG_ERROR("Error creating IStream on swap: " << Convert::string(swap));
 				}
 			}
-			else for (std::wstring test : blocked_hosts) if (uri.HostEquals(test)) {
+			else for (std::wstring test : blocked_hosts) if (uri.host_owns(test)) {
 				wil::com_ptr<ICoreWebView2WebResourceResponse> response;
 				env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"Content-Type: text/plain", &response);
 				args->put_Response(response.get());
@@ -455,7 +460,24 @@ public:
 	}
 	void create(HINSTANCE inst, int cmdshow, std::function<void()> callback) override {
 		create_window(inst, cmdshow);
-		((T*)this)->call_create_webview(callback);
+		call_create_webview(callback);
+	}
+	void call_create_webview(std::function<void()> callback) {
+		create_webview(cmdline(), [this, callback]() {
+			ICoreWebView2Settings* settings;
+			webview->get_Settings(&settings);
+
+			resize_wv();
+
+			KrunkerSettings(settings);
+			KrunkerEvents();
+
+			webview->Navigate((L"https://krunker.io/" + pathname).c_str());
+
+			LOG_INFO("KrunkerWindow created: " << Convert::string(pathname));
+
+			callback();
+		});
 	}
 	void get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) override {
 		if (!open) create(inst, cmdshow, [this, callback]() {
@@ -471,79 +493,29 @@ public:
 		post.clear();
 		mtx.unlock();
 	}
-	KrunkerWindow(ClientFolder& folder , Vector2 scale, std::wstring title) : WebViewWindow(folder, scale, title), og_title(title) {}
+	KrunkerWindow(ClientFolder& folder , Vector2 scale, std::wstring title, std::wstring p) : WebViewWindow(folder, scale, title), og_title(title), pathname(p) {}
 };
 
-class SocialWindow : public KrunkerWindow<SocialWindow> {
+class SocialWindow : public KrunkerWindow {
 public:
-	SocialWindow(ClientFolder& f) : KrunkerWindow(f, { 0.4, 0.6 }, L"Guru Client++") {}
-	void call_create_webview(std::function<void()> callback) {
-		create_webview(cmdline(), [this, callback]() {
-			ICoreWebView2Settings* settings;
-			webview->get_Settings(&settings);
-			
-			resize_wv();
-
-			KrunkerSettings(settings);
-			KrunkerEvents();
-			
-			webview->Navigate(L"https://krunker.io/social.html");
-
-			LOG_INFO("Social window created");
-
-			callback();
-		});
-	}
+	SocialWindow(ClientFolder& f) : KrunkerWindow(f, { 0.4, 0.6 }, L"Guru Client++", krunker_social) {}
 };
 
-class EditorWindow : public KrunkerWindow<EditorWindow> {
+class EditorWindow : public KrunkerWindow {
 public:
-	EditorWindow(ClientFolder& f) : KrunkerWindow(f, { 0.4, 0.6 }, L"Social") {}
-	void call_create_webview(std::function<void()> callback) {
-		create_webview(cmdline(), [this, callback]() {
-			ICoreWebView2Settings* settings;
-			webview->get_Settings(&settings);
-
-			resize_wv();
-
-			KrunkerSettings(settings);
-			KrunkerEvents();
-
-			webview->Navigate(L"https://krunker.io/editor.html");
-
-			LOG_INFO("Game window created");
-
-			callback();
-		});
-	}
+	EditorWindow(ClientFolder& f) : KrunkerWindow(f, { 0.4, 0.6 }, L"Social", krunker_editor) {}
 };
 
-class GameWindow : public KrunkerWindow<GameWindow> {
+class GameWindow : public KrunkerWindow {
 public:
-	void call_create_webview(std::function<void()> callback) {
-		create_webview(cmdline(), [this, callback]() {
-			ICoreWebView2Settings* settings;
-			webview->get_Settings(&settings);
-
-			resize_wv();
-
-			KrunkerSettings(settings);
-			KrunkerEvents();
-
-			webview->Navigate(L"https://krunker.io/");
-
-			callback();
-		});
-	}
-	GameWindow(ClientFolder& f) : KrunkerWindow(f, { 0.8, 0.8 }, L"Guru Client++") {}
+	GameWindow(ClientFolder& f) : KrunkerWindow(f, { 0.8, 0.8 }, L"Guru Client++", krunker_game) {}
 };
 
 class Main {
 private:
-	std::wstring title = L"Guru Client++";
-	ClientFolder folder;
 	Updater updater;
 	WebView2Installer installer;
+	ClientFolder folder;
 	GameWindow game;
 	SocialWindow social;
 	EditorWindow editor;
@@ -554,14 +526,14 @@ private:
 		std::wstring uhost = uri.host();
 		WebViewWindow* send = 0;
 
-		if (uhost == L"krunker.io") {
-			if(uri.pathname() == L"/"){
+		if (uri.host_owns(L"krunker.io")) {
+			if(uri.pathname() == krunker_game){
 				send = &game;
 			}
-			else if (uri.pathname() == L"/social.html") {
+			else if (uri.pathname() == krunker_social) {
 				send = &social;
 			}
-			else if (uri.pathname() == L"/editor.html") {
+			else if (uri.pathname() == krunker_editor) {
 				send = &editor;
 			}
 		}
@@ -615,23 +587,23 @@ public:
 		CoInitialize(NULL);
 
 		std::string update_url;
-		if (updater.UpdatesAvailable(update_url) && ::MessageBox(NULL, L"A new client update is available. Download?", title.c_str(), MB_YESNO) == IDYES) {
+		if (updater.UpdatesAvailable(update_url) && ::MessageBox(NULL, L"A new client update is available. Download?", client_title, MB_YESNO) == IDYES) {
 			ShellExecute(NULL, L"open", Convert::wstring(update_url).c_str(), L"", L"", SW_SHOW);
 			return;
 		}
 
 		if (!installer.Installed()) {
-			if (::MessageBox(NULL, L"You are missing runtimes. Do you wish to install WebView2 Runtime?", title.c_str(), MB_YESNO) == IDYES) {
+			if (::MessageBox(NULL, L"You are missing runtimes. Do you wish to install WebView2 Runtime?", client_title, MB_YESNO) == IDYES) {
 				WebView2Installer::Error error;
 				if (installer.Install(error))
-					::MessageBox(NULL, L"Relaunch the client after installation is complete.", title.c_str(), MB_OK);
+					::MessageBox(NULL, L"Relaunch the client after installation is complete.", client_title, MB_OK);
 				else switch (error) {
 				case WebView2Installer::Error::CantOpenProcess:
-					::MessageBox(NULL, (L"Couldn't open " + installer.bin + L". You will need to run the exe manually.").c_str(), title.c_str(), MB_OK);
+					::MessageBox(NULL, (L"Couldn't open " + installer.bin + L". You will need to run the exe manually.").c_str(), client_title, MB_OK);
 					break;
 				}
 			}
-			else ::MessageBox(NULL, L"Cannot continue without runtimes, quitting...", title.c_str(), MB_OK);
+			else ::MessageBox(NULL, L"Cannot continue without runtimes, quitting...", client_title, MB_OK);
 			return;
 		}
 

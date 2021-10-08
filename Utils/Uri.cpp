@@ -44,7 +44,7 @@ std::wstring Uri::pathname() {
 	return p.substr(0, p.length() - search().length());
 }
 
-bool Uri::HostEquals(std::wstring match) {
+bool Uri::host_owns(std::wstring match) {
 	std::wstring h = host();
 
 	return h == match || h.ends_with(L'.' + match);

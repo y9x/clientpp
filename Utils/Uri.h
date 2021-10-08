@@ -14,7 +14,7 @@ public:
 	std::wstring search();
 	std::wstring pathname();
 	std::wstring href;
-	bool HostEquals(std::wstring match);
+	bool host_owns(std::wstring match);
 };
 
 // using SearchParams = std::map<std::wstring, std::wstring>
