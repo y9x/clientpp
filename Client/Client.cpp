@@ -618,6 +618,8 @@ public:
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 			game.on_dispatch();
+			social.on_dispatch();
+			editor.on_dispatch();
 		}
 	}
 };
