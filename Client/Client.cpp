@@ -277,19 +277,7 @@ public:
 
 		return cmdline;
 	}
-	void KrunkerSettings(ICoreWebView2Settings* settings) {
-		settings->put_IsScriptEnabled(true);
-		settings->put_AreDefaultScriptDialogsEnabled(true);
-		settings->put_IsWebMessageEnabled(true);
-		settings->put_IsZoomControlEnabled(false);
-		settings->put_AreDefaultContextMenusEnabled(false);
-#if _DEBUG != 1
-		settings->put_AreDevToolsEnabled(false);
-#else
-		webview->OpenDevToolsWindow();
-#endif
-	}
-	void KrunkerEvents() {
+	void register_events() {
 		EventRegistrationToken token;
 
 		std::string bootstrap;
@@ -335,7 +323,7 @@ public:
 					else if (message[1] == "swapper") open = folder->directory + folder->p_swapper;
 					else if (message[1] == "url") open = Convert::wstring(message[2].get<std::string>());
 
-					ShellExecute(NULL, L"open", open.c_str(), L"", L"", SW_SHOW);
+					ShellExecute(m_hWnd, L"open", open.c_str(), L"", L"", SW_SHOW);
 				}
 				else if (event == "relaunch") {
 					// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
@@ -467,10 +455,20 @@ public:
 			ICoreWebView2Settings* settings;
 			webview->get_Settings(&settings);
 
+			settings->put_IsScriptEnabled(true);
+			settings->put_AreDefaultScriptDialogsEnabled(true);
+			settings->put_IsWebMessageEnabled(true);
+			settings->put_IsZoomControlEnabled(false);
+			settings->put_AreDefaultContextMenusEnabled(false);
+#if _DEBUG != 1
+			settings->put_AreDevToolsEnabled(false);
+#else
+			webview->OpenDevToolsWindow();
+#endif
+
 			resize_wv();
 
-			KrunkerSettings(settings);
-			KrunkerEvents();
+			register_events();
 
 			webview->Navigate((L"https://krunker.io/" + pathname).c_str());
 
@@ -586,15 +584,6 @@ public:
 	{
 		CoInitialize(NULL);
 
-		// checking updates causes delay
-		new std::thread([this]() {
-			std::string update_url;
-			if (updater.UpdatesAvailable(update_url) && ::MessageBox(NULL, L"A new client update is available. Download?", client_title, MB_YESNO) == IDYES) {
-				ShellExecute(NULL, L"open", Convert::wstring(update_url).c_str(), L"", L"", SW_SHOW);
-				return;
-			}
-		});
-
 		if (!installer.Installed()) {
 			if (::MessageBox(NULL, L"You are missing runtimes. Do you wish to install WebView2 Runtime?", client_title, MB_YESNO) == IDYES) {
 				WebView2Installer::Error error;
@@ -612,6 +601,15 @@ public:
 
 		game.create(inst, cmdshow, [this]() {
 			listen_navigation(game);
+		});
+
+		// checking updates causes delay
+		new std::thread([this]() {
+			std::string update_url;
+			if (updater.UpdatesAvailable(update_url) && MessageBox(game.m_hWnd, L"A new client update is available. Download?", client_title, MB_YESNO) == IDYES) {
+				ShellExecute(game.m_hWnd, L"open", Convert::wstring(update_url).c_str(), L"", L"", SW_SHOW);
+				return;
+			}
 		});
 
 		MSG msg;
