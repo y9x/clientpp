@@ -1,3 +1,6 @@
+// fix to aim freeze:
+// hook websocket, reduce amount of packets sent when shooting
+
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <iostream>
