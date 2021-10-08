@@ -36,17 +36,6 @@
 using namespace StringUtil;
 using namespace Microsoft::WRL;
 
-std::vector<std::wstring> blocked_hosts{
-	L"cookie-cdn.cookiepro.com",
-	L"googletagmanager.com",
-	L"googlesyndication.com",
-	L"a.pub.network",
-	L"paypalobjects.com",
-	L"doubleclick.net",
-	L"adinplay.com",
-	L"syndication.twitter.com"
-};
-
 class WebViewWindow : public CWindowImpl<WebViewWindow> {
 public:
 	wil::com_ptr<ICoreWebView2Controller> control;
@@ -251,6 +240,16 @@ public:
 template<class T>
 class KrunkerWindow : public WebViewWindow {
 public:
+	std::vector<std::wstring> blocked_hosts{
+		L"cookie-cdn.cookiepro.com",
+		L"googletagmanager.com",
+		L"googlesyndication.com",
+		L"a.pub.network",
+		L"paypalobjects.com",
+		L"doubleclick.net",
+		L"adinplay.com",
+		L"syndication.twitter.com"
+	};
 	std::vector<JSON> post;
 	std::mutex mtx;
 	std::wstring og_title;
@@ -330,7 +329,6 @@ public:
 				}
 				else if (event == "relaunch") {
 					// if (::IsWindow(m_hWnd)) DestroyWindow();
-
 					// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
 					control->Close();
 
@@ -678,6 +676,6 @@ int APIENTRY WinMain(HINSTANCE _In_ hInstance, HINSTANCE _In_opt_ hPrevInstance,
 	else MessageBox(NULL, L"Failure attatching console", L"Debugger", MB_OK);
 #endif
 
-	Main(hInstance, nCmdShow);
+	Main m(hInstance, nCmdShow);
 	return EXIT_SUCCESS;
 }
