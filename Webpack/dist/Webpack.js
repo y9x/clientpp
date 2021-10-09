@@ -46,10 +46,10 @@ if(config.game.fast_load && !Object.keys(js).length){
 
 /***/ }),
 
-/***/ "./src/FixLoad.js":
-/*!************************!*\
-  !*** ./src/FixLoad.js ***!
-  \************************/
+/***/ "./src/Fixes.js":
+/*!**********************!*\
+  !*** ./src/Fixes.js ***!
+  \**********************/
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
 
 
@@ -362,7 +362,7 @@ window.addEventListener('keydown', event => {
 	//  || keybind.repeat
 	for(let keybind of Keybind.keybinds)if((!event.repeat) && keybind.keys.has(event.code)){
 		event.preventDefault();
-		for(let callback of keybind.callbacks)callback();
+		for(let callback of keybind.callbacks)callback(event);
 	}
 });
 
@@ -1521,7 +1521,7 @@ Object.defineProperty(console, 'log', {
 });
 */
 
-__webpack_require__(/*! ./FixLoad */ "./src/FixLoad.js");
+__webpack_require__(/*! ./Fixes */ "./src/Fixes.js");
 __webpack_require__(/*! ./Resources */ "./src/Resources.js");
 __webpack_require__(/*! ./FastLoad */ "./src/FastLoad.js");
 
@@ -1656,7 +1656,8 @@ class Menu extends Events {
 			walk: 'game.f4_seek',
 		});
 		
-		new Keybind('F4', () => {
+		new Keybind('F4', event => {
+			if(event.altKey)ipc.send('close window');
 			if(this.config.game.f4_seek)location.assign('/');
 		});
 		

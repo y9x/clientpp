@@ -18,7 +18,7 @@ Object.defineProperty(console, 'log', {
 });
 */
 
-require('./FixLoad');
+require('./Fixes');
 require('./Resources');
 require('./FastLoad');
 
@@ -153,7 +153,8 @@ class Menu extends Events {
 			walk: 'game.f4_seek',
 		});
 		
-		new Keybind('F4', () => {
+		new Keybind('F4', event => {
+			if(event.altKey)ipc.send('close window');
 			if(this.config.game.f4_seek)location.assign('/');
 		});
 		

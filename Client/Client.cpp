@@ -1,6 +1,3 @@
-// fix to aim freeze:
-// hook websocket, reduce amount of packets sent when shooting
-
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <iostream>
@@ -330,6 +327,9 @@ public:
 					control->Close();
 
 					call_create_webview([]() {});
+				}
+				else if (event == "close window") {
+					if (::IsWindow(m_hWnd)) DestroyWindow();
 				}
 				else if (event == "fullscreen") {
 					if (folder->config["client"]["fullscreen"].get<bool>()) enter_fullscreen();
