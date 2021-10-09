@@ -95,12 +95,16 @@
     <ClCompile Include="..\Utils\StringUtil.cpp" />
     <ClCompile Include="..\Utils\Uri.cpp" />
     <ClCompile Include="ClientFolder.cpp" />
+    <ClCompile Include="KrunkerWindow.cpp" />
     <ClCompile Include="LoadRes.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="Client.cpp" />
+    <ClCompile Include="Points.cpp" />
     <ClCompile Include="Updater.cpp" />
     <ClCompile Include="Updater.h" />
+    <ClCompile Include="WebResourceRequested.cpp" />
     <ClCompile Include="WebView2Installer.cpp" />
+    <ClCompile Include="WebView2Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Utils\Base64.h" />
@@ -109,11 +113,13 @@
     <ClInclude Include="..\Utils\StringUtil.h" />
     <ClInclude Include="..\Utils\Uri.h" />
     <ClInclude Include="ClientFolder.h" />
+    <ClInclude Include="KrunkerWindow.h" />
     <ClInclude Include="LoadRes.h" />
     <ClInclude Include="httplib.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="WebView2Installer.h" />
+    <ClInclude Include="WebView2Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />

@@ -59,6 +59,18 @@
     <ClCompile Include="WebView2Installer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WebView2Window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Points.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WebResourceRequested.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="KrunkerWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Utils\StringUtil.h">
@@ -92,6 +104,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WebView2Installer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WebView2Window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KrunkerWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

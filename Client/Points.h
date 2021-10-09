@@ -1,5 +1,6 @@
 #pragma once
 #include <Windows.h>
+#include <ostream>
 
 // manage RECT and retrieve unique pointer on stack
 class Rect2D {
@@ -36,10 +37,5 @@ struct Vector2 {
 		return point;
 	}
 };
-
-std::ostream& operator << (std::ostream& o, const Vector2& vec) {
-	o << vec.x << "," << vec.y;
-	return o;
-}
 
 #define RECT_ARGS(r) r.left, r.top, r.right - r.left, r.bottom - r.top
