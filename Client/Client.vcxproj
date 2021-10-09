@@ -102,7 +102,6 @@
     <ClCompile Include="Points.cpp" />
     <ClCompile Include="Updater.cpp" />
     <ClCompile Include="Updater.h" />
-    <ClCompile Include="WebResourceRequested.cpp" />
     <ClCompile Include="WebView2Installer.cpp" />
     <ClCompile Include="WebView2Window.cpp" />
   </ItemGroup>

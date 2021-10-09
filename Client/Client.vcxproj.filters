@@ -65,9 +65,6 @@
     <ClCompile Include="Points.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WebResourceRequested.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="KrunkerWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
