@@ -123,6 +123,9 @@ public:
 				case WebView2Installer::Error::CantOpenProcess:
 					::MessageBox(NULL, (L"Couldn't open " + installer.bin + L". You will need to run the exe manually.").c_str(), client_title, MB_OK);
 					break;
+				default:
+					::MessageBox(NULL, L"An unknown error occurred.", client_title, MB_OK);
+					break;
 				}
 			}
 			else ::MessageBox(NULL, L"Cannot continue without runtimes, quitting...", client_title, MB_OK);
