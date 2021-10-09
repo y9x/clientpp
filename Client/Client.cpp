@@ -1,7 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <iostream>
-#include <vector>
 #include <chrono>
 #include <ctime>
 #include <atlbase.h>
@@ -10,14 +9,10 @@
 #include <stdlib.h>
 #include <tchar.h>
 #include <thread>
-#include <mutex>
 #include "../Utils/StringUtil.h"
 #include "../Utils/Uri.h"
-#include "./resource.h"
 #include "./Log.h"
 #include "./Updater.h"
-#include "./Points.h"
-#include "./LoadRes.h"
 #include "./WebView2Installer.h"
 #include "./KrunkerWindow.h"
 
@@ -113,6 +108,8 @@ public:
 		, editor(&folder)
 	{
 		CoInitialize(NULL);
+
+		LOG_INFO("Main initialized");
 
 		if (!installer.Installed()) {
 			if (::MessageBox(NULL, L"You are missing runtimes. Do you wish to install WebView2 Runtime?", client_title, MB_YESNO) == IDYES) {

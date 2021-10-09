@@ -12,6 +12,8 @@ using namespace StringUtil;
 using Microsoft::WRL::Make;
 using Microsoft::WRL::Callback;
 
+KrunkerWindow::KrunkerWindow(ClientFolder* f, Vector2 scale, std::wstring title, std::wstring p) : WebView2Window(scale, title), folder(f), og_title(title), pathname(p) {}
+
 JSON KrunkerWindow::runtime_data() {
 	JSON data = JSON::object();
 
@@ -315,5 +317,3 @@ void KrunkerWindow::on_dispatch() {
 	post.clear();
 	mtx.unlock();
 }
-
-KrunkerWindow::KrunkerWindow(ClientFolder* f, Vector2 scale, std::wstring title, std::wstring p) : WebView2Window(scale, title), folder(f), og_title(title), pathname(p) {}
