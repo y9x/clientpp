@@ -28,5 +28,5 @@ public:
 	void get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) override;
 	void call_create_webview(std::function<void()> callback);
 	void on_dispatch() override;
-	KrunkerWindow(ClientFolder* folder , Vector2 scale, std::wstring title, std::wstring path);
+	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path);
 };

@@ -25,29 +25,14 @@ constexpr const wchar_t* krunker_social = L"/social.html";
 using namespace StringUtil;
 using Microsoft::WRL::Callback;
 
-class SocialWindow : public KrunkerWindow {
-public:
-	SocialWindow(ClientFolder* f) : KrunkerWindow(f, { 0.4, 0.6 }, L"Guru Client++", krunker_social) {}
-};
-
-class EditorWindow : public KrunkerWindow {
-public:
-	EditorWindow(ClientFolder* f) : KrunkerWindow(f, { 0.4, 0.6 }, L"Social", krunker_editor) {}
-};
-
-class GameWindow : public KrunkerWindow {
-public:
-	GameWindow(ClientFolder* f) : KrunkerWindow(f, { 0.8, 0.8 }, L"Guru Client++", krunker_game) {}
-};
-
 class Main {
 private:
 	Updater updater;
 	WebView2Installer installer;
 	ClientFolder folder;
-	GameWindow game;
-	SocialWindow social;
-	EditorWindow editor;
+	KrunkerWindow game;
+	KrunkerWindow social;
+	KrunkerWindow editor;
 	HINSTANCE inst;
 	int cmdshow;
 	bool navigation_cancelled(ICoreWebView2* sender, Uri uri) {
@@ -103,29 +88,29 @@ public:
 		, updater(client_version, "https://y9x.github.io", "/userscripts/serve.json")
 		, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 		, folder(L"GC++")
-		, game(&folder)
-		, social(&folder)
-		, editor(&folder)
+		, game(folder, { 0.8, 0.8 }, L"Guru Client++", krunker_game)
+		, social(folder, { 0.4, 0.6 }, L"Guru Client++", krunker_social)
+		, editor(folder, { 0.4, 0.6 }, L"Social", krunker_editor)
 	{
 		CoInitialize(NULL);
 
 		LOG_INFO("Main initialized");
 
 		if (!installer.Installed()) {
-			if (::MessageBox(NULL, L"You are missing runtimes. Do you wish to install WebView2 Runtime?", client_title, MB_YESNO) == IDYES) {
+			if (MessageBox(NULL, L"You are missing runtimes. Do you wish to install WebView2 Runtime?", client_title, MB_YESNO) == IDYES) {
 				WebView2Installer::Error error;
 				if (installer.Install(error))
-					::MessageBox(NULL, L"Relaunch the client after installation is complete.", client_title, MB_OK);
+					MessageBox(NULL, L"Relaunch the client after installation is complete.", client_title, MB_OK);
 				else switch (error) {
 				case WebView2Installer::Error::CantOpenProcess:
-					::MessageBox(NULL, (L"Couldn't open " + installer.bin + L". You will need to run the exe manually.").c_str(), client_title, MB_OK);
+					MessageBox(NULL, (L"Couldn't open " + installer.bin + L". You will need to run the exe manually.").c_str(), client_title, MB_OK);
 					break;
 				default:
-					::MessageBox(NULL, L"An unknown error occurred.", client_title, MB_OK);
+					MessageBox(NULL, L"An unknown error occurred.", client_title, MB_OK);
 					break;
 				}
 			}
-			else ::MessageBox(NULL, L"Cannot continue without runtimes, quitting...", client_title, MB_OK);
+			else MessageBox(NULL, L"Cannot continue without runtimes, quitting...", client_title, MB_OK);
 			return;
 		}
 

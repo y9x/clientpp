@@ -12,7 +12,12 @@ using namespace StringUtil;
 using Microsoft::WRL::Make;
 using Microsoft::WRL::Callback;
 
-KrunkerWindow::KrunkerWindow(ClientFolder* f, Vector2 scale, std::wstring title, std::wstring p) : WebView2Window(scale, title), folder(f), og_title(title), pathname(p) {}
+KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title, std::wstring p)
+	: WebView2Window(scale, title)
+	, folder(&f)
+	, og_title(title)
+	, pathname(p)
+{}
 
 JSON KrunkerWindow::runtime_data() {
 	JSON data = JSON::object();
@@ -26,7 +31,7 @@ JSON KrunkerWindow::runtime_data() {
 	for (Search search : std::vector<Search>{
 		{folder->p_styles, L"*.css", data["css"] = JSON::object()},
 		{folder->p_scripts, L"*.js", data["js"] = JSON::object()},
-		})
+	})
 		for (IOUtil::WDirectoryIterator it(folder->directory + search.dir, search.filter); ++it;) {
 			std::string buffer;
 
@@ -299,7 +304,7 @@ void KrunkerWindow::call_create_webview(std::function<void()> callback) {
 		LOG_INFO("KrunkerWindow created: " << Convert::string(pathname));
 
 		callback();
-		});
+	});
 }
 
 void KrunkerWindow::get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) {
