@@ -12,11 +12,12 @@ using namespace StringUtil;
 using Microsoft::WRL::Make;
 using Microsoft::WRL::Callback;
 
-KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title, std::wstring p)
+KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title, std::wstring p, std::function<void()> s)
 	: WebView2Window(scale, title)
 	, folder(&f)
 	, og_title(title)
 	, pathname(p)
+	, webview2_startup(s)
 {}
 
 JSON KrunkerWindow::runtime_data() {
@@ -59,7 +60,7 @@ std::wstring KrunkerWindow::cmdline() {
 
 	if (folder->config["client"]["uncap_fps"].get<bool>()) {
 		cmds.push_back(L"--disable-frame-rate-limit");
-		cmds.push_back(L"--disable-gpu-vsync");
+		// cmds.push_back(L"--disable-gpu-vsync");
 	}
 
 	std::wstring cmdline;
@@ -308,9 +309,10 @@ void KrunkerWindow::call_create_webview(std::function<void()> callback) {
 
 		webview->Navigate((L"https://krunker.io" + pathname).c_str());
 
-		LOG_INFO("KrunkerWindow created: " << Convert::string(pathname));
+		// LOG_INFO("KrunkerWindow created: " << Convert::string(pathname));
 
-		callback();
+		if (webview2_startup) webview2_startup();
+		if (callback) callback();
 	});
 }
 

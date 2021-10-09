@@ -24,9 +24,10 @@ public:
 	JSON runtime_data();
 	std::wstring cmdline();
 	void register_events();
-	void create(HINSTANCE inst, int cmdshow, std::function<void()> callback) override;
-	void get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) override;
+	void create(HINSTANCE inst, int cmdshow, std::function<void()> callback = nullptr) override;
+	void get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr) override;
 	void call_create_webview(std::function<void()> callback);
 	void on_dispatch() override;
-	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path);
+	std::function<void()> webview2_startup;
+	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr);
 };

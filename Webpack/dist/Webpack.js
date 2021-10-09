@@ -200,7 +200,7 @@ for(let [ name, data ] of Object.entries(js)){
 		context = {
 			module,
 			exports: module.exports,
-			console: new IPCConsole(ipc, name + ':'),
+			// console: new IPCConsole(ipc, name + ':'),
 		};
 	
 	try{

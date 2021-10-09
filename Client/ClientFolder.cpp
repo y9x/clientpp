@@ -91,7 +91,7 @@ ClientFolder::ClientFolder(std::wstring n) : name(n) {
 		default_config["window"]["meta"]["icon"] = Convert::string(directory + p_clientpp);
 	}
 
-	if (error_creating)LOG_ERROR("Had an error creating directories");
+	if (error_creating) LOG_ERROR("Had an error creating directories");
 	else load_config();
 }
 

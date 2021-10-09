@@ -87,9 +87,9 @@ public:
 		, updater(client_version, "https://y9x.github.io", "/userscripts/serve.json")
 		, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 		, folder(L"GC++")
-		, game(folder, { 0.8, 0.8 }, L"Guru Client++", krunker_game)
-		, social(folder, { 0.4, 0.6 }, L"Guru Client++", krunker_social)
-		, editor(folder, { 0.4, 0.6 }, L"Social", krunker_editor)
+		, game(folder, { 0.8, 0.8 }, L"Guru Client++", krunker_game, [this]() { listen_navigation(game); })
+		, social(folder, { 0.4, 0.6 }, L"Guru Client++", krunker_social, [this]() { listen_navigation(social); })
+		, editor(folder, { 0.4, 0.6 }, L"Social", krunker_editor, [this]() { listen_navigation(editor); })
 	{
 		CoInitialize(NULL);
 
@@ -113,9 +113,7 @@ public:
 			return;
 		}
 
-		game.create(inst, cmdshow, [this]() {
-			listen_navigation(game);
-		});
+		game.create(inst, cmdshow);
 
 		// checking updates causes delay
 		new std::thread([this]() {
