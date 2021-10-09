@@ -189,12 +189,12 @@ void KrunkerWindow::register_events() {
 				mtx.lock();
 				post.push_back(response);
 				mtx.unlock();
-				}, message);
+			}, message);
 		}
 		else LOG_ERROR("Recieved invalid message");
 
 		return S_OK;
-		}).Get(), &token);
+	}).Get(), &token);
 
 	webview->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
 		LPWSTR sender_uriptr;
