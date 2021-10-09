@@ -21,6 +21,5 @@ public:
 private:
 	std::wstring name;
 	std::vector<std::wstring> directories{ p_scripts, p_styles, p_swapper, p_profile };
-	int last_error = 0;
 	bool error_creating = false;
 };
