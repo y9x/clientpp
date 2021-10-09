@@ -149,10 +149,8 @@ void KrunkerWindow::register_events() {
 				ZeroMemory(&filename, sizeof(filename));
 				ZeroMemory(&ofn, sizeof(ofn));
 				ofn.lStructSize = sizeof(ofn);
-				ofn.hwndOwner = NULL;  // If you have a window to center over, put its HANDLE here
-				// std::wstring filters;
+				ofn.hwndOwner = m_hWnd;
 				std::wstring title = Convert::wstring(message[2]);
-				// std::vector<wchar_t> filters;
 				std::wstring filters;
 				for (JSON value : message[3]) {
 					std::string label = value[0];
