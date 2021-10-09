@@ -4,19 +4,24 @@
 #include <streambuf>
 #include <chrono>
 
-class FileCout : private std::streambuf, public std::ostream {
-private:
-	std::string buffer;
-	int overflow(int c) override;
-public:
-	std::wstring path;
-	FileCout(std::wstring path);
+namespace clog {
+	extern char endl;
+
+	extern std::wstring logs;
+
+	class FileOut : private std::streambuf, public std::ostream {
+	private:
+		std::string buffer;
+		int overflow(int c) override;
+		bool badge_file;
+		std::string badge;
+		std::wstring file;
+	public:
+		FileOut(std::string badge, std::wstring file, bool cout = false, bool add_badge_to_file = false);
+	};
+
+	extern FileOut info;
+	extern FileOut warn;
+	extern FileOut error;
+	extern FileOut debug;
 };
-
-extern FileCout fc;
-
-std::string create_log_badge(std::string type);
-
-#define LOG_INFO(data) fc << create_log_badge("Info") << data << '\n'
-#define LOG_WARN(data) fc << create_log_badge("Warning") << data << '\n'
-#define LOG_ERROR(data) fc << create_log_badge("Error") << data << '\n'

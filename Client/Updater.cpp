@@ -10,9 +10,7 @@ JSON Updater::GetServing() {
 
 bool Updater::UpdatesAvailable(std::string& url) {
 	JSON serve = GetServing();
-
 	url = serve["client"]["url"].get<std::string>();
-
 	return version < serve["client"]["version"].get<double>();
 }
 

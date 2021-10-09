@@ -3,10 +3,6 @@
 window.onbeforeunload = () => {};
 Object.defineProperty(window, 'onbeforeunload', { writable: false, value(){} })
 
-require('./Fixes');
-require('./Resources');
-require('./FastLoad');
-
 var HTMLProxy = require('./libs/HTMLProxy'),
 	Category = require('./libs/MenuUI/Window/Category'),
 	Control = require('./libs/MenuUI/Control'),
@@ -28,7 +24,7 @@ class FilePicker extends Control.Types.TextBoxControl {
 			},
 			events: {
 				click: () => {
-					var id = Math.random();
+					var id = Math.random().toString();
 					
 					ipc.once(id, (data, error) => {
 						if(error)return;
@@ -114,6 +110,11 @@ class Menu extends Events {
 		
 		var Render = this.category('Rendering');
 		
+		Render.control('Adblock', {
+			type: 'boolean',
+			walk: 'client.adblock',
+		}).on('change', (value, init) => !init && location.assign('/'));
+		
 		Render.control('Uncap FPS', {
 			type: 'boolean',
 			walk: 'client.uncap_fps',
@@ -196,20 +197,24 @@ class Menu extends Events {
 		ipc.send('save config', this.config);
 	}
 	async main(){
-		if(site_location == 'game'){
-			var array = await utils.wait_for(() => typeof windows == 'object' && windows),
-				settings = array[0],
-				index = settings.tabs.length,
-				get = settings.getSettings;
+		var array = await utils.wait_for(() => typeof windows == 'object' && windows),
+			settings = array[0],
+			index = settings.tabs.length,
+			get = settings.getSettings;
+	
+		settings.tabs.push({
+			name: 'Client',
+			categories: [],
+		});
 		
-			settings.tabs.push({
-				name: 'Client',
-				categories: [],
-			});
-			
-			settings.getSettings = () => settings.tabIndex == index ? this.html.get() : get.call(settings);
-		}
+		settings.getSettings = () => settings.tabIndex == index ? this.html.get() : get.call(settings);
 	}
 };
 
-new Menu();
+require('./Resources');
+
+if(site_location == 'game'){
+	require('./Fixes');
+	require('./FastLoad');
+	new Menu();
+}

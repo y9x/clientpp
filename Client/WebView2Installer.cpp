@@ -16,7 +16,6 @@ std::wstring WebView2Installer::BinPath() {
 	std::wstring path;
 	path.resize(5000);
 	path.resize(GetTempPath(path.size(), path.data()));
-	LOG_INFO(Convert::string(path));
 	path += L"\\" + bin;
 	return path;
 }
@@ -35,7 +34,7 @@ bool WebView2Installer::Install(Error& error) {
 		DWORD bytes;
 		WriteFile(file, res->body.data(), res->body.length(), &bytes, nullptr);
 		CloseHandle(file);
-		LOG_INFO("Downloaded " << Convert::string(bin_path));
+		clog::info << "Downloaded " << Convert::string(bin_path) << clog::endl;
 	}
 
 	STARTUPINFO startup;

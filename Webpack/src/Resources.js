@@ -3,7 +3,6 @@
 var { site_location, utils } = require('./Consts'),
 	{ css, js } = require('./Runtime'),
 	ipc = require('./IPC'),
-	IPCConsole = require('./IPCConsole'),
 	Userscript = require('./Userscript');
 
 // wait for krunker css
@@ -33,7 +32,7 @@ for(let [ name, data ] of Object.entries(js)){
 		context = {
 			module,
 			exports: module.exports,
-			// console: new IPCConsole(ipc, name + ':'),
+			// console: ipc.console,
 		};
 	
 	try{

@@ -44,13 +44,13 @@ void WebView2Window::create_webview(std::wstring cmdline, std::wstring directory
 
 	CreateCoreWebView2EnvironmentWithOptions(nullptr, directory.c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Environment* envp) -> HRESULT {
 		if (envp == nullptr) {
-			LOG_ERROR("Env was nullptr");
+			clog::error << "Env was nullptr" << clog::endl;
 			return S_FALSE;
 		}
 		env = envp;
 		env->CreateCoreWebView2Controller(m_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
 			if (controller == nullptr) {
-				LOG_ERROR("Controller was nullptr");
+				clog::error << "Controller was nullptr" << clog::endl;
 				return S_FALSE;
 			}
 
@@ -117,7 +117,10 @@ bool WebView2Window::monitor_data(RECT& rect) {
 	MONITORINFO info;
 	info.cbSize = sizeof(info);
 
-	if (!GetMonitorInfo(monitor, &info))return LOG_ERROR("Can't get monitor info"), false;
+	if (!GetMonitorInfo(monitor, &info)) {
+		clog::error << "Can't get monitor info" << clog::endl;
+		return false;
+	}
 
 	rect = info.rcMonitor;
 
@@ -149,3 +152,7 @@ LRESULT WebView2Window::on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 	open = false;
 	return true;
 }
+
+void WebView2Window::get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) {}
+void WebView2Window::create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {}
+void WebView2Window::on_dispatch() {}

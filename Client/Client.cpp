@@ -88,23 +88,34 @@ public:
 		, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 		, folder(L"GC++")
 		, game(folder, { 0.8, 0.8 }, L"Guru Client++", krunker_game, [this]() { listen_navigation(game); })
-		, social(folder, { 0.4, 0.6 }, L"Guru Client++", krunker_social, [this]() { listen_navigation(social); })
-		, editor(folder, { 0.4, 0.6 }, L"Social", krunker_editor, [this]() { listen_navigation(editor); })
+		, social(folder, { 0.4, 0.6 }, L"Guru Client++: Social", krunker_social, [this]() { listen_navigation(social); })
+		, editor(folder, { 0.4, 0.6 }, L"Guru Client++: Editor", krunker_editor, [this]() { listen_navigation(editor); })
 	{
+		if (!folder.create()) {
+			clog::debug << "Error creating folder" << clog::endl;
+			MessageBox(NULL, L"Error creating folder. See Error.log.", client_title, MB_OK);
+			return;
+		}
+
+		folder.load_config();
+
 		CoInitialize(NULL);
 
-		LOG_INFO("Main initialized");
+		clog::info << "Main initialized" << clog::endl;
 
 		if (!installer.Installed()) {
+			clog::error << "WebView2 Runtime not installed, prompting installation" << clog::endl;
 			if (MessageBox(NULL, L"You are missing runtimes. Do you wish to install WebView2 Runtime?", client_title, MB_YESNO) == IDYES) {
 				WebView2Installer::Error error;
 				if (installer.Install(error))
 					MessageBox(NULL, L"Relaunch the client after installation is complete.", client_title, MB_OK);
 				else switch (error) {
 				case WebView2Installer::Error::CantOpenProcess:
+					clog::error << "CantOpenProcess during WebView2 installation" << clog::endl;
 					MessageBox(NULL, (L"Couldn't open " + installer.bin + L". You will need to run the exe manually.").c_str(), client_title, MB_OK);
 					break;
 				default:
+					clog::error << "Unknown error " << (int)error << " during WebView2 installation" << clog::endl;
 					MessageBox(NULL, L"An unknown error occurred.", client_title, MB_OK);
 					break;
 				}

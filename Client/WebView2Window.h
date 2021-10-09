@@ -33,9 +33,9 @@ public:
 	bool resize_wv();
 	bool monitor_data(RECT& rect);
 	bool monitor_data(Vector2& pos, Vector2& size);
-	virtual void get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) {}
-	virtual void create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {}
-	virtual void on_dispatch() {}
+	virtual void get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback);
+	virtual void create(HINSTANCE inst, int cmdshow, std::function<void()> callback);
+	virtual void on_dispatch();
 	LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
 	LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
 

@@ -3,55 +3,84 @@
 #include "./Log.h"
 #include <Windows.h>
 
-FileCout::FileCout(std::wstring p) : std::ostream(this), path(p) {
-#if WILL_LOG == 1
-	SetConsoleCtrlHandler(0, true);
-	if (AllocConsole()) {
-		freopen("CONOUT$", "w", stdout);
-		freopen("CONOUT$", "w", stderr);
-		freopen("CONIN$", "r", stdin);
+namespace clog {
+	char endl = '\n';
+	std::wstring logs;
 
-		std::cout.clear();
-		std::cin.clear();
-	}
-	else MessageBox(NULL, L"Failure attatching console", L"Debugger", MB_OK);
-#endif
-}
-
-int FileCout::overflow(int c) {
-	if (c == EOF) return 0;
-
-	buffer += c;
-
-	if (c == '\n') {
-#if WILL_LOG == 0
-		FILE* handle = _wfopen(path.c_str(), L"a");
-		if (handle) {
-			fwrite(buffer.data(), sizeof(char), buffer.size(), handle);
-			fclose(handle);
-		}
+#if _DEBUG == 1
+	constexpr bool cout = true;
 #else
-		std::cout << buffer;
+	constexpr bool cout = false;
 #endif
-		buffer.erase();
+
+	int FileOut::overflow(int c) {
+		if (c == EOF) return 0;
+
+		buffer += c;
+
+		if (c == endl) {
+			std::string prefix;
+
+			if (cout || badge_file) prefix += "[" + badge + "] ";
+
+			if (!cout) {
+				std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+				std::string ts = std::ctime(&now);
+				ts.pop_back();
+				prefix += "[" + ts + "] ";
+			}
+
+			prefix.pop_back();
+			
+			buffer = prefix + ": " + buffer;
+
+			if(cout){
+				std::cout << buffer;
+			}
+			else {
+				FILE* handle = _wfopen((logs + file).c_str(), L"a");
+				if (handle) {
+					fwrite(buffer.data(), sizeof(char), buffer.size(), handle);
+					fclose(handle);
+				}
+			}
+
+			buffer.erase();
+		}
+
+		return 0;
 	}
 
-	return 0;
-}
+	bool console_attached = false;
 
-FileCout fc(L"./TmpLogs.txt");
+	bool attach_console() {
+		if (console_attached) return true;
 
-std::string create_log_badge(std::string type) {
-	std::string result = "[" + type + "]";
+#if _DEBUG == 1
+		SetConsoleCtrlHandler(0, true);
+		if (AllocConsole()) {
+			freopen("CONOUT$", "w", stdout);
+			freopen("CONOUT$", "w", stderr);
+			freopen("CONIN$", "r", stdin);
 
-#if WILL_LOG == 0
-	std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	std::string ts = std::ctime(&now);
-	ts.pop_back();
-	result += " [" + ts + "]";
+			std::cout.clear();
+			std::cin.clear();
+		}
+		else {
+			MessageBox(NULL, L"Failure attatching console", L"Debugger", MB_OK);
+			return false;
+		}
 #endif
+		return true;
+	}
 
-	result += ": ";
+	FileOut::FileOut(std::string b, std::wstring f, bool c, bool bf) : badge(b), badge_file(bf), file(f), std::ostream(this) {
+		console_attached = attach_console();
+	}
 
-	return result;
-}
+	// badges for shared log files
+	FileOut info("Info", L"\\Info.log", true);
+	FileOut warn("Warning", L"\\Info.log", true);
+	FileOut error("Error", L"\\Error.log");
+	FileOut debug("Debug", L"\\Debug.log");
+};

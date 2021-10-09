@@ -113,28 +113,6 @@ var	{ utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
 
 var Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js");
 
-class IPC extends Events {
-	constructor(){
-		super();
-	}
-	send(event, ...data){
-		chrome.webview.postMessage(JSON.stringify([ event, ...data ]));
-		return true;
-	}
-};
-
-module.exports = new IPC();
-
-/***/ }),
-
-/***/ "./src/IPCConsole.js":
-/*!***************************!*\
-  !*** ./src/IPCConsole.js ***!
-  \***************************/
-/***/ ((module) => {
-
-
-
 class IPCConsole {
 	constructor(ipc, prefix){
 		this.ipc = ipc;
@@ -142,20 +120,34 @@ class IPCConsole {
 		if(typeof prefix == 'string')this.prefix.push(prefix);
 	}
 	log(...args){
-		this.ipc.send('log', 'info', this.prefix.concat(args).join(' '));
+		this.ipc.send('log', 'info', args.join(' '));
 	}
 	info(...args){
-		this.ipc.send('log', 'info', this.prefix.concat(args).join(' '));
+		this.ipc.send('log', 'info', args.join(' '));
 	}
 	warn(...args){
-		this.ipc.send('log', 'warn', this.prefix.concat(args).join(' '));
+		this.ipc.send('log', 'warn', args.join(' '));
 	}
 	error(...args){
-		this.ipc.send('log', 'error', this.prefix.concat(args).join(' '));
+		this.ipc.send('log', 'error', args.join(' '));
+	}
+	debug(...args){
+		this.ipc.send('log', 'debug', args.join(' '));
 	}
 };
 
-module.exports = IPCConsole;
+class IPC extends Events {
+	constructor(){
+		super();
+	}
+	console = new IPCConsole();
+	send(event, ...data){
+		chrome.webview.postMessage(JSON.stringify([ event, ...data ]));
+		return true;
+	}
+};
+
+module.exports = new IPC();
 
 /***/ }),
 
@@ -170,7 +162,6 @@ module.exports = IPCConsole;
 var { site_location, utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
 	{ css, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
 	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
-	IPCConsole = __webpack_require__(/*! ./IPCConsole */ "./src/IPCConsole.js"),
 	Userscript = __webpack_require__(/*! ./Userscript */ "./src/Userscript.js");
 
 // wait for krunker css
@@ -200,7 +191,7 @@ for(let [ name, data ] of Object.entries(js)){
 		context = {
 			module,
 			exports: module.exports,
-			// console: new IPCConsole(ipc, name + ':'),
+			// console: ipc.console,
 		};
 	
 	try{
@@ -261,7 +252,7 @@ class Userscript {
 	version = 'Unknown version';
 	author = 'Unknown author';
 	description = 'No description provided';
-	locations = ['game'];
+	locations = ['game' ];
 	platforms = ['all'];
 	settings = { used: false };
 	constructor(data){
@@ -1582,7 +1573,7 @@ module.exports = Utils;
   \*****************************/
 /***/ ((module) => {
 
-module.exports = JSON.parse('{"game":{"fast_load":true,"f4_seek":true},"client":{"uncap_fps":false,"fullscreen":false},"window":{"meta":{"replace":false,"title":"Client++","icon":""}}}');
+module.exports = JSON.parse('{"game":{"fast_load":true,"f4_seek":true},"client":{"uncap_fps":false,"adblock":true,"fullscreen":false},"window":{"meta":{"replace":false,"title":"Client++","icon":""}}}');
 
 /***/ })
 
@@ -1624,10 +1615,6 @@ var __webpack_exports__ = {};
 window.onbeforeunload = () => {};
 Object.defineProperty(window, 'onbeforeunload', { writable: false, value(){} })
 
-__webpack_require__(/*! ./Fixes */ "./src/Fixes.js");
-__webpack_require__(/*! ./Resources */ "./src/Resources.js");
-__webpack_require__(/*! ./FastLoad */ "./src/FastLoad.js");
-
 var HTMLProxy = __webpack_require__(/*! ./libs/HTMLProxy */ "./src/libs/HTMLProxy.js"),
 	Category = __webpack_require__(/*! ./libs/MenuUI/Window/Category */ "./src/libs/MenuUI/Window/Category.js"),
 	Control = __webpack_require__(/*! ./libs/MenuUI/Control */ "./src/libs/MenuUI/Control.js"),
@@ -1649,7 +1636,7 @@ class FilePicker extends Control.Types.TextBoxControl {
 			},
 			events: {
 				click: () => {
-					var id = Math.random();
+					var id = Math.random().toString();
 					
 					ipc.once(id, (data, error) => {
 						if(error)return;
@@ -1735,6 +1722,11 @@ class Menu extends Events {
 		
 		var Render = this.category('Rendering');
 		
+		Render.control('Adblock', {
+			type: 'boolean',
+			walk: 'client.adblock',
+		}).on('change', (value, init) => !init && location.assign('/'));
+		
 		Render.control('Uncap FPS', {
 			type: 'boolean',
 			walk: 'client.uncap_fps',
@@ -1817,23 +1809,27 @@ class Menu extends Events {
 		ipc.send('save config', this.config);
 	}
 	async main(){
-		if(site_location == 'game'){
-			var array = await utils.wait_for(() => typeof windows == 'object' && windows),
-				settings = array[0],
-				index = settings.tabs.length,
-				get = settings.getSettings;
+		var array = await utils.wait_for(() => typeof windows == 'object' && windows),
+			settings = array[0],
+			index = settings.tabs.length,
+			get = settings.getSettings;
+	
+		settings.tabs.push({
+			name: 'Client',
+			categories: [],
+		});
 		
-			settings.tabs.push({
-				name: 'Client',
-				categories: [],
-			});
-			
-			settings.getSettings = () => settings.tabIndex == index ? this.html.get() : get.call(settings);
-		}
+		settings.getSettings = () => settings.tabIndex == index ? this.html.get() : get.call(settings);
 	}
 };
 
-new Menu();
+__webpack_require__(/*! ./Resources */ "./src/Resources.js");
+
+if(site_location == 'game'){
+	__webpack_require__(/*! ./Fixes */ "./src/Fixes.js");
+	__webpack_require__(/*! ./FastLoad */ "./src/FastLoad.js");
+	new Menu();
+}
 })();
 
 /******/ })()
