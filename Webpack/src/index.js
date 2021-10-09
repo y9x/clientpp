@@ -1,22 +1,7 @@
 'use strict';
 
-/*
-use fast load for development
-prevents the game loader from disabling console
-
-console.log('Running');
-
-var log = console.log;
-Object.defineProperty(console, 'log', {
-	get(){
-		return log;
-	},
-	set(value){
-		return value;
-	},
-	configurable: false,
-});
-*/
+window.onbeforeunload = () => {};
+Object.defineProperty(window, 'onbeforeunload', { writable: false, value(){} })
 
 require('./Fixes');
 require('./Resources');
@@ -25,12 +10,11 @@ require('./FastLoad');
 var HTMLProxy = require('./libs/HTMLProxy'),
 	Category = require('./libs/MenuUI/Window/Category'),
 	Control = require('./libs/MenuUI/Control'),
-	IPC = require('./libs/IPC'),
 	Events = require('./libs/Events'),
 	Keybind = require('./libs/Keybind'),
-	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data))),
+	ipc = require('./IPC'),
 	{ config: runtime_config, js } = require('./Runtime'),
-	{ utils, meta } = require('./Consts');
+	{ site_location, utils, meta } = require('./Consts');
 
 class FilePicker extends Control.Types.TextBoxControl {
 	static id = 'filepicker';
@@ -212,17 +196,19 @@ class Menu extends Events {
 		ipc.send('save config', this.config);
 	}
 	async main(){
-		var array = await utils.wait_for(() => typeof windows == 'object' && windows),
-			settings = array[0],
-			index = settings.tabs.length,
-			get = settings.getSettings;
-	
-		settings.tabs.push({
-			name: 'Client',
-			categories: [],
-		});
+		if(site_location == 'game'){
+			var array = await utils.wait_for(() => typeof windows == 'object' && windows),
+				settings = array[0],
+				index = settings.tabs.length,
+				get = settings.getSettings;
 		
-		settings.getSettings = () => settings.tabIndex == index ? this.html.get() : get.call(settings);
+			settings.tabs.push({
+				name: 'Client',
+				categories: [],
+			});
+			
+			settings.getSettings = () => settings.tabIndex == index ? this.html.get() : get.call(settings);
+		}
 	}
 };
 

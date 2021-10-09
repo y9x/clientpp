@@ -10,15 +10,22 @@
 
 
 
-var Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js");
+var Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
+	utils = new Utils();
 
-exports.utils = new Utils();
+exports.utils = utils;
 
 exports.meta = {
 	github: 'https://github.com/y9x/',
 	discord: 'https://y9x.github.io/discord/',
 	forum: 'https://forum.sys32.dev/',
 };
+
+exports.site_location = {
+	'/': 'game',
+	'/social.html': 'social',
+	'/editor.html': 'editor',
+}[location.pathname];
 
 /***/ }),
 
@@ -96,6 +103,62 @@ var	{ utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
 
 /***/ }),
 
+/***/ "./src/IPC.js":
+/*!********************!*\
+  !*** ./src/IPC.js ***!
+  \********************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+
+
+var Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js");
+
+class IPC extends Events {
+	constructor(){
+		super();
+	}
+	send(event, ...data){
+		chrome.webview.postMessage(JSON.stringify([ event, ...data ]));
+		return true;
+	}
+};
+
+module.exports = new IPC();
+
+/***/ }),
+
+/***/ "./src/IPCConsole.js":
+/*!***************************!*\
+  !*** ./src/IPCConsole.js ***!
+  \***************************/
+/***/ ((module) => {
+
+
+
+class IPCConsole {
+	constructor(ipc, prefix){
+		this.ipc = ipc;
+		this.prefix = [];
+		if(typeof prefix == 'string')this.prefix.push(prefix);
+	}
+	log(...args){
+		this.ipc.send('log', 'info', this.prefix.concat(args).join(' '));
+	}
+	info(...args){
+		this.ipc.send('log', 'info', this.prefix.concat(args).join(' '));
+	}
+	warn(...args){
+		this.ipc.send('log', 'warn', this.prefix.concat(args).join(' '));
+	}
+	error(...args){
+		this.ipc.send('log', 'error', this.prefix.concat(args).join(' '));
+	}
+};
+
+module.exports = IPCConsole;
+
+/***/ }),
+
 /***/ "./src/Resources.js":
 /*!**************************!*\
   !*** ./src/Resources.js ***!
@@ -104,12 +167,14 @@ var	{ utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
 
 
 
-var { utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
+var { site_location, utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
+	{ css, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
+	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+	IPCConsole = __webpack_require__(/*! ./IPCConsole */ "./src/IPCConsole.js"),
+	Userscript = __webpack_require__(/*! ./Userscript */ "./src/Userscript.js");
 
 // wait for krunker css
 // utils.wait_for(() => document.querySelector(`link[href*='/css/main_custom.css']`))
-
-var { css, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js");
 
 for(let [ name, data ] of Object.entries(css)){
 	let url = URL.createObjectURL(new Blob([ data ], { type: 'text/css' }));
@@ -127,14 +192,32 @@ for(let [ name, data ] of Object.entries(css)){
 }
 
 for(let [ name, data ] of Object.entries(js)){
+	// quick fix
+	if(data.includes('// ==UserScript==') && site_location != 'game')continue;
+	
 	let module = { exports: {} },
-		ev = `(function(module,exports){${data}//# sourceURL=${name}\n})`;
+		func,
+		context = {
+			module,
+			exports: module.exports,
+			console: new IPCConsole(ipc, name + ':'),
+		};
 	
 	try{
-		eval(ev)(module, module.exports);
+		func = eval(`(function(${Object.keys(context)}){${data}//# sourceURL=${name}\n})`);
 	}catch(err){
-		console.error(`Error loading script ${name}:\n`, err);
-		// todo: postMessage write to logs.txt in client folder
+		ipc.send('log', 'error', `Error parsing UserScript ${name}:\n${err}`);
+	}
+	
+	
+	try{
+		func(...Object.values(context));
+		
+		let userscript = new Userscript(module.exports);
+		
+		userscript.run();
+	}catch(err){
+		ipc.send('log', 'warn', `Error executing UserScript ${name}:\n${err}`);
 	}
 }
 
@@ -147,8 +230,64 @@ for(let [ name, data ] of Object.entries(js)){
 /***/ ((module) => {
 
 
-
 module.exports = _RUNTIME_DATA_;
+
+/***/ }),
+
+/***/ "./src/Userscript.js":
+/*!***************************!*\
+  !*** ./src/Userscript.js ***!
+  \***************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+
+
+// Legacy IDKR userscript
+
+var { site_location } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
+
+class Userscript {
+	#field(compare, value){
+		if(Array.isArray(compare)){
+			if(!Array.isArray(value))value = [].concat(value);
+			
+			if(!value.length || value.some(data => typeof data != 'string'))return compare;
+		}else if(typeof compare != typeof value)return compare;
+		
+		return value;
+	}
+	#run = () => {}
+	name = 'Unnamed userscript';
+	version = 'Unknown version';
+	author = 'Unknown author';
+	description = 'No description provided';
+	locations = ['game'];
+	platforms = ['all'];
+	settings = { used: false };
+	constructor(data){
+		this.#run = this.#field(this.#run, data.run);
+		this.name = this.#field(this.name, data.name);
+		this.version = this.#field(this.version, data.version);
+		this.author = this.#field(this.author, data.author);
+		this.description = this.#field(this.description, data.description);
+		this.locations = this.#field(this.locations, data.locations);
+		this.platforms = this.#field(this.platforms, data.platforms);
+		this.settings = this.#field(this.settings, data.settings);
+	}
+	async run(){
+		if(!this.locations.includes('all') && !this.locations.includes(site_location))return false;
+		
+		try{
+			await this.#run();
+			return true;
+		}catch(err){
+			console.error(err);
+			return false;
+		}
+	}
+};
+
+module.exports = Userscript;
 
 /***/ }),
 
@@ -160,15 +299,22 @@ module.exports = _RUNTIME_DATA_;
 
 
 
-var Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js");
+var Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
+	utils = new Utils();
 
-exports.utils = new Utils();
+exports.utils = utils;
 
 exports.meta = {
 	github: 'https://github.com/y9x/',
 	discord: 'https://y9x.github.io/discord/',
 	forum: 'https://forum.sys32.dev/',
 };
+
+exports.site_location = {
+	'/': 'game',
+	'/social.html': 'social',
+	'/editor.html': 'editor',
+}[location.pathname];
 
 /***/ }),
 
@@ -283,34 +429,6 @@ class HTMLProxy {
 };
 
 module.exports = HTMLProxy;
-
-/***/ }),
-
-/***/ "./src/libs/IPC.js":
-/*!*************************!*\
-  !*** ./src/libs/IPC.js ***!
-  \*************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-
-
-var Events = __webpack_require__(/*! ./Events */ "./src/libs/Events.js");
-
-class IPC extends Events {
-	#send
-	constructor(send){
-		super();
-		
-		if(typeof send != 'function')throw new TypeError('Invalid send function');
-		this.#send = send;
-	}
-	send(event, ...data){
-		this.#send(event, ...data);
-		return true;
-	}
-};
-
-module.exports = IPC;
 
 /***/ }),
 
@@ -1503,23 +1621,8 @@ var __webpack_exports__ = {};
   \**********************/
 
 
-/*
-use fast load for development
-prevents the game loader from disabling console
-
-console.log('Running');
-
-var log = console.log;
-Object.defineProperty(console, 'log', {
-	get(){
-		return log;
-	},
-	set(value){
-		return value;
-	},
-	configurable: false,
-});
-*/
+window.onbeforeunload = () => {};
+Object.defineProperty(window, 'onbeforeunload', { writable: false, value(){} })
 
 __webpack_require__(/*! ./Fixes */ "./src/Fixes.js");
 __webpack_require__(/*! ./Resources */ "./src/Resources.js");
@@ -1528,12 +1631,11 @@ __webpack_require__(/*! ./FastLoad */ "./src/FastLoad.js");
 var HTMLProxy = __webpack_require__(/*! ./libs/HTMLProxy */ "./src/libs/HTMLProxy.js"),
 	Category = __webpack_require__(/*! ./libs/MenuUI/Window/Category */ "./src/libs/MenuUI/Window/Category.js"),
 	Control = __webpack_require__(/*! ./libs/MenuUI/Control */ "./src/libs/MenuUI/Control.js"),
-	IPC = __webpack_require__(/*! ./libs/IPC */ "./src/libs/IPC.js"),
 	Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
 	Keybind = __webpack_require__(/*! ./libs/Keybind */ "./src/libs/Keybind.js"),
-	ipc = new IPC((...data) => chrome.webview.postMessage(JSON.stringify(data))),
+	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	{ config: runtime_config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
-	{ utils, meta } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
+	{ site_location, utils, meta } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
 
 class FilePicker extends Control.Types.TextBoxControl {
 	static id = 'filepicker';
@@ -1715,17 +1817,19 @@ class Menu extends Events {
 		ipc.send('save config', this.config);
 	}
 	async main(){
-		var array = await utils.wait_for(() => typeof windows == 'object' && windows),
-			settings = array[0],
-			index = settings.tabs.length,
-			get = settings.getSettings;
-	
-		settings.tabs.push({
-			name: 'Client',
-			categories: [],
-		});
+		if(site_location == 'game'){
+			var array = await utils.wait_for(() => typeof windows == 'object' && windows),
+				settings = array[0],
+				index = settings.tabs.length,
+				get = settings.getSettings;
 		
-		settings.getSettings = () => settings.tabIndex == index ? this.html.get() : get.call(settings);
+			settings.tabs.push({
+				name: 'Client',
+				categories: [],
+			});
+			
+			settings.getSettings = () => settings.tabIndex == index ? this.html.get() : get.call(settings);
+		}
 	}
 };
 

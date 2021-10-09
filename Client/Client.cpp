@@ -36,15 +36,14 @@ private:
 	HINSTANCE inst;
 	int cmdshow;
 	bool navigation_cancelled(ICoreWebView2* sender, Uri uri) {
+		bool kru_owns = uri.host_owns(L"krunker.io");
 		bool cancel = false;
 		std::wstring uhost = uri.host();
 		WebView2Window* send = 0;
 
-		if (uri.host_owns(L"krunker.io")) {
-			if (uri.pathname() == krunker_game) send = &game;
-			else if (uri.pathname() == krunker_social) send = &social;
-			else if (uri.pathname() == krunker_editor) send = &editor;
-		}
+		if (kru_owns && uri.pathname() == krunker_game) send = &game;
+		else if (kru_owns && uri.pathname() == krunker_social) send = &social;
+		else if (kru_owns && uri.pathname() == krunker_editor) send = &editor;
 		else {
 			cancel = true;
 			ShellExecute(NULL, L"open", uri.href.c_str(), L"", L"", SW_SHOW);

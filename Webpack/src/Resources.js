@@ -1,11 +1,13 @@
 'use strict';
 
-var { utils } = require('./Consts');
+var { site_location, utils } = require('./Consts'),
+	{ css, js } = require('./Runtime'),
+	ipc = require('./IPC'),
+	IPCConsole = require('./IPCConsole'),
+	Userscript = require('./Userscript');
 
 // wait for krunker css
 // utils.wait_for(() => document.querySelector(`link[href*='/css/main_custom.css']`))
-
-var { css, js } = require('./Runtime');
 
 for(let [ name, data ] of Object.entries(css)){
 	let url = URL.createObjectURL(new Blob([ data ], { type: 'text/css' }));
@@ -23,13 +25,31 @@ for(let [ name, data ] of Object.entries(css)){
 }
 
 for(let [ name, data ] of Object.entries(js)){
+	// quick fix
+	if(data.includes('// ==UserScript==') && site_location != 'game')continue;
+	
 	let module = { exports: {} },
-		ev = `(function(module,exports){${data}//# sourceURL=${name}\n})`;
+		func,
+		context = {
+			module,
+			exports: module.exports,
+			console: new IPCConsole(ipc, name + ':'),
+		};
 	
 	try{
-		eval(ev)(module, module.exports);
+		func = eval(`(function(${Object.keys(context)}){${data}//# sourceURL=${name}\n})`);
 	}catch(err){
-		console.error(`Error loading script ${name}:\n`, err);
-		// todo: postMessage write to logs.txt in client folder
+		ipc.send('log', 'error', `Error parsing UserScript ${name}:\n${err}`);
+	}
+	
+	
+	try{
+		func(...Object.values(context));
+		
+		let userscript = new Userscript(module.exports);
+		
+		userscript.run();
+	}catch(err){
+		ipc.send('log', 'warn', `Error executing UserScript ${name}:\n${err}`);
 	}
 }

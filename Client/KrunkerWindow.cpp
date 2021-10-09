@@ -108,6 +108,13 @@ void KrunkerWindow::register_events() {
 
 				sender->PostWebMessageAsJson(Convert::wstring(response.dump()).c_str());
 			}
+			else if (event == "log") {
+				std::string log = message[2].get<std::string>();
+
+				if (message[1] == "info")LOG_INFO(log);
+				else if (message[1] == "warn")LOG_WARN(log);
+				else if (message[1] == "error")LOG_ERROR(log);
+			}
 			else if (event == "save config") {
 				folder->config = message[1];
 				folder->save_config();
@@ -195,8 +202,8 @@ void KrunkerWindow::register_events() {
 				post.push_back(response);
 				mtx.unlock();
 			}, message);
+			else LOG_ERROR("Unknown message " << message[0]);
 		}
-		else LOG_ERROR("Recieved invalid message");
 
 		return S_OK;
 	}).Get(), &token);
@@ -299,7 +306,7 @@ void KrunkerWindow::call_create_webview(std::function<void()> callback) {
 
 		register_events();
 
-		webview->Navigate((L"https://krunker.io/" + pathname).c_str());
+		webview->Navigate((L"https://krunker.io" + pathname).c_str());
 
 		LOG_INFO("KrunkerWindow created: " << Convert::string(pathname));
 

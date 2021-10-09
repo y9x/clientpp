@@ -18,7 +18,6 @@ bool OVR(int result) {
 
 JSON traverse_copy(JSON value, JSON match, bool& bad_key, JSON result = JSON::object()) {
 	if (value.is_object()) {
-		// result = preset_result; // JSON::object();
 		for (auto [skey, svalue] : value.items()) {
 			if (match.contains(skey)) {
 				result[skey] = traverse_copy(svalue, match[skey], bad_key);
@@ -110,8 +109,6 @@ bool ClientFolder::load_config() {
 	}
 	catch (JSON::exception err) {
 		new_config = default_config;
-		// JSON::parse(config_buffer);
-		// non-unicode, might lose data
 		save = true;
 	}
 
