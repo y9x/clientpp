@@ -27,11 +27,11 @@ public:
 	std::mutex mtx;
 	std::wstring og_title;
 	std::wstring pathname;
-	std::vector<std::wstring> blocked_hosts {
+	std::vector<std::wstring> ad_hosts {
 		L"cookie-cdn.cookiepro.com",
 		L"googletagmanager.com",
 		L"googlesyndication.com",
-		L"a.pub.network",
+		L"pub.network",
 		L"paypalobjects.com",
 		L"doubleclick.net",
 		L"adinplay.com",

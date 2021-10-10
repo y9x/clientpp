@@ -249,7 +249,7 @@ void KrunkerWindow::register_events() {
 
 					if (stream->Write(res->body.data(), res->body.length(), &written) == S_OK) {
 						wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-						env->CreateWebResourceResponse(stream, 200, L"OK", L"", &response);
+						env->CreateWebResourceResponse(stream, 200, L"Swapped", L"", &response);
 						args->put_Response(response.get());
 					}
 					else clog::error << "Error writing to IStream" << clog::endl;
@@ -274,9 +274,9 @@ void KrunkerWindow::register_events() {
 				}
 			}
 		}
-		else if (folder->config["client"]["adblock"].get<bool>()) for (std::wstring test : blocked_hosts) if (uri.host_owns(test)) {
+		else if (folder->config["client"]["adblock"].get<bool>()) for (std::wstring test : ad_hosts) if (uri.host_owns(test)) {
 			wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-			env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"Content-Type: text/plain", &response);
+			env->CreateWebResourceResponse(nullptr, 403, L"Ad", L"", &response);
 			args->put_Response(response.get());
 			break;
 		}
