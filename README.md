@@ -8,16 +8,6 @@ DISCLAIMER: This client does not contain cheats unless installed by the user.
 
 [Discord](https://y9x.github.io/discord)
 
-## Features
-
-- Higher FPS potential: No NodeJS and Electron overhead unlike IDKR and Official Client
-- Lightweight
-- Fast Loading
-- Resource Swapper
-- User Styles
-- User Scripts
-- Blocks Ads
-
 ## Installation
 
 1. [Download the Latest Release](https://github.com/y9x/clientpp/releases)
