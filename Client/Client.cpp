@@ -98,8 +98,9 @@ public:
 		}
 
 		folder.load_config();
-
-		CoInitialize(NULL);
+		
+		HRESULT coinit = CoInitialize(NULL);
+		if (!SUCCEEDED(coinit)) MessageBox(NULL, (L"COM could not be initialized. CoInitialize returned " + Convert::wstring(std::to_string(coinit))).c_str(), client_title, MB_OK);
 
 		clog::info << "Main initialized" << clog::endl;
 
@@ -119,7 +120,7 @@ public:
 					break;
 				}
 			}
-			else MessageBox(NULL, L"Cannot continue without runtimes, quitting...", client_title, MB_OK);
+			else MessageBox(NULL, L"Cannot continue without runtimes. Client will now exit.", client_title, MB_OK);
 			return;
 		}
 
@@ -133,7 +134,8 @@ public:
 				return;
 			}
 		});
-
+	}
+	int messages() {
 		MSG msg;
 		BOOL ret;
 
@@ -144,10 +146,12 @@ public:
 			social.on_dispatch();
 			editor.on_dispatch();
 		}
+
+		return EXIT_SUCCESS;
 	}
 };
 
 int APIENTRY WinMain(HINSTANCE _In_ hInstance, HINSTANCE _In_opt_ hPrevInstance, _In_ LPSTR cmdline, _In_ int nCmdShow) {
-	Main m(hInstance, nCmdShow);
-	return EXIT_SUCCESS;
+	Main main(hInstance, nCmdShow);
+	return main.messages();
 }

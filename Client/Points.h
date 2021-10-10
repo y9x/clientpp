@@ -5,7 +5,7 @@
 // manage RECT and retrieve unique pointer on stack
 class Rect2D {
 private:
-	RECT rect;
+	RECT rect{};
 public:
 	long x = 0;
 	long y = 0;
