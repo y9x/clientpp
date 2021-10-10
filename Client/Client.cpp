@@ -131,6 +131,7 @@ public:
 			std::string update_url;
 			if (updater.UpdatesAvailable(update_url) && MessageBox(game.m_hWnd, L"A new client update is available. Download?", client_title, MB_YESNO) == IDYES) {
 				ShellExecute(game.m_hWnd, L"open", Convert::wstring(update_url).c_str(), L"", L"", SW_SHOW);
+				game.open = false;
 				return;
 			}
 		});
