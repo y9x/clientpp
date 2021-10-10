@@ -28,6 +28,12 @@ DISCLAIMER: This client does not contain cheats unless installed by the user.
 - Windows 7-10
 - [Visual C++ Runtime](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-160#visual-studio-2015-2017-2019-and-2022)
 
+## Why you shouldn't uncap FPS
+
+- Aim freeze no longer occurs
+- Bhopping and movement is no longer dependent on FPS
+- Less resource usage
+
 ## Finding the Client Folder
 
 1. Open Krunker Settings

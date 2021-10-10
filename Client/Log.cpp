@@ -1,5 +1,4 @@
 #define _CRT_SECURE_NO_WARNINGS
-#define WILL_LOG 1
 #include "./Log.h"
 #include <Windows.h>
 
