@@ -1,12 +1,12 @@
-.vs
-Release
-Debug
-x64
-*.user
-*packages
-node_modules
-package-lock.json
-.initial .git file
-enc_temp_folder
-Client/TmpLogs.txt
-Client/MicrosoftEdgeWebview2Setup.exe
+/.vs
+/*.user
+/packages
+/webpack/node_modules
+/webpack/package-lock.json
+/enc_temp_folder
+/Release
+/Debug
+/libs/Release/libcrypto-1_1-static.lib
+/Client/Debug
+/Client/Release
+/Client/MicrosoftEdgeWebview2Setup.exe

@@ -19,7 +19,7 @@ class Userscript {
 	version = 'Unknown version';
 	author = 'Unknown author';
 	description = 'No description provided';
-	locations = ['game' ];
+	locations = ['game'];
 	platforms = ['all'];
 	settings = { used: false };
 	constructor(data){

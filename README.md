@@ -62,23 +62,38 @@ DISCLAIMER: This client does not explicitly condone the use of cheats.
 
 1. Download the [Krunker Cheat Loader](https://api.sys32.dev/v2/cheat-loader)
 2. Follow the [Userscript installation steps](#installing-a-user-script)
-## Building
 
-### Requirements
+## Build Requirements
 
 - [Visual Studio](https://visualstudio.microsoft.com/downloads/)
 - Desktop Development with C++
 - C++ ATL for latest v142 build tools
 - NodeJS
 
-### Build for Webpack
+## Preparing repository
+
+- Clone the repo
+- Enter `libs/Release/`
+- Enter `libcrypto-1_1-static.zip`
+- Extract `libcrypto-1_1-static.lib` to `libs/Release/`
+
+This is because libcrypto is >100 mb, if it were left unextracted then the repo can't be committed 
+
+**Remove conflicting OpenSSL and zlib packages**
+
+```sh
+vcpkg remove openssl:x86-windows --recurse
+vcpkg remove zlib:x86-windows --recurse
+```
+
+## Build Webpack
 
 1. Extract and open the Client repo
 2. CD into the Webpack folder
 3. Install modules: `npm install`
 4. Build: `npm run build-once`
 
-### Build for VS
+## Build VS
 
 1. Open `Guru Client++.sln`
 2. Press Build in the toolbar

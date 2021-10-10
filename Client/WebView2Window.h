@@ -9,9 +9,6 @@
 #include <WebView2.h>
 #include "./Points.h"
 
-/*#include "WebView2.h"
-#include "WebView2EnvironmentOptions.h"*/
-
 class WebView2Window : public CWindowImpl<WebView2Window> {
 public:
 	wil::com_ptr<ICoreWebView2Controller> control;
