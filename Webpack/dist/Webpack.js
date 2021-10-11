@@ -197,7 +197,8 @@ for(let [ name, data ] of Object.entries(js)){
 	try{
 		func = eval(`(function(${Object.keys(context)}){${data}//# sourceURL=${name}\n})`);
 	}catch(err){
-		ipc.send('log', 'error', `Error parsing UserScript ${name}:\n${err}`);
+		console.error('Error parsing UserScript:', name, '\n', err);
+		// ipc.send('log', 'error', `Error parsing UserScript ${name}:\n${err}`);
 	}
 	
 	
@@ -208,7 +209,8 @@ for(let [ name, data ] of Object.entries(js)){
 		
 		userscript.run();
 	}catch(err){
-		ipc.send('log', 'warn', `Error executing UserScript ${name}:\n${err}`);
+		console.warn('Error executing UserScript:', name, '\n', err);
+		// ipc.send('log', 'warn', `Error executing UserScript ${name}:\n${err}`);
 	}
 }
 
@@ -252,7 +254,7 @@ class Userscript {
 	version = 'Unknown version';
 	author = 'Unknown author';
 	description = 'No description provided';
-	locations = ['game' ];
+	locations = ['game'];
 	platforms = ['all'];
 	settings = { used: false };
 	constructor(data){
