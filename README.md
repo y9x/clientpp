@@ -2,7 +2,7 @@
 
 Guru Client++ is a modern Krunker client written in C++ and powered by WebView2
 
-Join the [Discord](https://y9x.github.io/discord) server for release announcements
+Join the [Discord](https://discord.gg/4r47ZwdSQj) server for release announcements
 
 ## Features
 
