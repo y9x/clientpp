@@ -1,5 +1,5 @@
 /.vs
-/*.user
+/Client/Client.vcxproj.user
 /packages
 /webpack/node_modules
 /webpack/package-lock.json

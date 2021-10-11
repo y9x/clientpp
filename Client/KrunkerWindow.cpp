@@ -84,7 +84,7 @@ std::wstring KrunkerWindow::cmdline() {
 
 	if (folder->config["client"]["uncap_fps"].get<bool>()) {
 		cmds.push_back(L"--disable-frame-rate-limit");
-		// cmds.push_back(L"--disable-gpu-vsync");
+		cmds.push_back(L"--disable-gpu-vsync");
 	}
 
 	std::wstring cmdline;
@@ -211,7 +211,11 @@ void KrunkerWindow::register_events() {
 				JSMessage res(msg.args[0].get<std::string>());
 
 				if (GetOpenFileName(&ofn)) {
-					res.args[0] = Convert::string(filename);
+					std::wstring fn;
+					fn.resize(MAX_PATH);
+					fn = filename;
+
+					res.args[0] = Convert::string(fn);
 					res.args[1] = false;
 				}
 				else res.args[1] = true;

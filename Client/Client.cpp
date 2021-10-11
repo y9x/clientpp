@@ -87,9 +87,9 @@ public:
 		, updater(client_version, "https://y9x.github.io", "/userscripts/serve.json")
 		, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 		, folder(L"GC++")
-		, game(folder, { 0.8, 0.8 }, L"Guru Client++", krunker_game, [this]() { listen_navigation(game); })
-		, social(folder, { 0.4, 0.6 }, L"Guru Client++: Social", krunker_social, [this]() { listen_navigation(social); })
-		, editor(folder, { 0.4, 0.6 }, L"Guru Client++: Editor", krunker_editor, [this]() { listen_navigation(editor); })
+		, game(folder, { 0.8, 0.8 }, client_title, krunker_game, [this]() { listen_navigation(game); })
+		, social(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Social").c_str(), krunker_social, [this]() { listen_navigation(social); })
+		, editor(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Editor").c_str(), krunker_editor, [this]() { listen_navigation(editor); })
 	{
 		if (!folder.create()) {
 			clog::debug << "Error creating folder" << clog::endl;
