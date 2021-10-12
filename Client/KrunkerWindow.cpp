@@ -75,12 +75,30 @@ JSON KrunkerWindow::runtime_data() {
 // https://peter.sh/experiments/chromium-command-line-switches/
 std::wstring KrunkerWindow::cmdline() {
 	std::vector<std::wstring> cmds = {
-		L"--disable-features=msSmartScreenProtection",
+		L"--disable-features=msSmartScreenProtection,msEdgeOnRampFRE,msEdgeOnRampImport,msEdgeMGPFrev1,msEdgeSettingsImport,msEdgeSettingsImportV2,msReadAloud,msApplicationGuard,msEdgeTranslate,msEdgeReadingView,WebPayments,msSendClientDataHeader,msSendClientDataHeaderToEdgeServices,msImplicitSignin,SpareRendererForSitePerProcess",
+		L"--enable-features=ForwardMemoryPressureEventsToGpuProcess,WebAssembly,SharedArrayBuffer",
 		L"--force-dark-mode",
+		L"--high-dpi-support=1",
+		L"--ignore-gpu-blacklist",
+		L"--no-default-browser-check",
+		L"--disable-default-apps",
+		L"--noerrdialogs",
+		L"--no-first-run",
+		L"--winhttp-proxy-resolver",
+		L"--embedded-browser-webview-dpi-awareness=0",
+		L"--disable-popup-blocking",
+		L"--disable-print-preview",
+		L"--enable-zero-copy",
+		L"--disable-component-extensions-with-background-pages",
+		L"--internet-explorer-integration=none",
+		L"--js-flags=--experimental-wasm-threads",
+		L"--webrtc-max-cpu-consumption-percentage=100",
 		L"--autoplay-policy=no-user-gesture-required",
 		// L"--profile-directory=Profile",
-		// L"disable-background-timer-throttling"
+		// remove?
+		L"--disable-background-timer-throttling",
 	};
+
 
 	if (folder->config["client"]["uncap_fps"].get<bool>()) {
 		cmds.push_back(L"--disable-frame-rate-limit");
@@ -135,6 +153,9 @@ void KrunkerWindow::register_events() {
 				else if (msg.args[0] == "error")clog::error << log << clog::endl;
 				else if (msg.args[0] == "debug")clog::debug << log << clog::endl;
 			}
+			else if (msg.event == "open devtools") {
+				if (folder->config["client"]["devtools"]) webview->OpenDevToolsWindow();
+			}
 			else if (msg.event == "save config") {
 				folder->config = msg.args[0];
 				folder->save_config();
@@ -161,7 +182,7 @@ void KrunkerWindow::register_events() {
 				if (::IsWindow(m_hWnd)) DestroyWindow();
 			}
 			else if (msg.event == "fullscreen") {
-				if (folder->config["client"]["fullscreen"].get<bool>()) enter_fullscreen();
+				if (folder->config["client"]["fullscreen"]) enter_fullscreen();
 				else exit_fullscreen();
 			}
 			else if (msg.event == "update meta") {

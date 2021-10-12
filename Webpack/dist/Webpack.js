@@ -111,7 +111,10 @@ var	{ utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
 
 
 
-var Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js");
+var Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
+	{ webview } = chrome;
+
+delete chrome.webview;
 
 class IPCConsole {
 	constructor(ipc, prefix){
@@ -142,12 +145,16 @@ class IPC extends Events {
 	}
 	console = new IPCConsole();
 	send(event, ...data){
-		chrome.webview.postMessage(JSON.stringify([ event, ...data ]));
+		webview.postMessage(JSON.stringify([ event, ...data ]));
 		return true;
 	}
 };
 
-module.exports = new IPC();
+var ipc = new IPC();
+
+webview.addEventListener('message', ({ data }) => ipc.emit(...data));
+
+module.exports = ipc;
 
 /***/ }),
 
@@ -1575,7 +1582,7 @@ module.exports = Utils;
   \*****************************/
 /***/ ((module) => {
 
-module.exports = JSON.parse('{"game":{"fast_load":true,"f4_seek":true},"client":{"uncap_fps":false,"adblock":true,"fullscreen":false},"window":{"meta":{"replace":false,"title":"Client++","icon":""}}}');
+module.exports = JSON.parse('{"game":{"fast_load":true,"f4_seek":true},"client":{"uncap_fps":false,"adblock":true,"fullscreen":false,"devtools":false},"window":{"meta":{"replace":false,"title":"Client++","icon":""}}}');
 
 /***/ })
 
@@ -1654,8 +1661,6 @@ class FilePicker extends Control.Types.TextBoxControl {
 };
 
 Control.Types.FilePicker = FilePicker;
-
-chrome.webview.addEventListener('message', ({ data }) => ipc.emit(...data));
 
 class Menu extends Events {
 	html = new HTMLProxy();
@@ -1752,18 +1757,12 @@ class Menu extends Events {
 			walk: 'game.f4_seek',
 		});
 		
-		new Keybind('F4', event => {
-			if(event.altKey)ipc.send('close window');
-			if(this.config.game.f4_seek)location.assign('/');
-		});
-		
-		new Keybind('F11', () => {
-			this.config.client.fullscreen = !this.config.client.fullscreen;
-			this.save_config();
-			ipc.send('fullscreen');
-		});
-		
 		var Window = this.category('Window');
+		
+		Window.control('DevTools [F10]', {
+			type: 'boolean',
+			walk: 'client.devtools',
+		});
 		
 		Window.control('Replace Icon & Title', {
 			type: 'boolean',
@@ -1796,7 +1795,25 @@ class Menu extends Events {
 				ipc.send('update meta');
 		});
 		
+		this.keybinds();
+		
 		for(let category of this.categories)category.update(true);
+	}
+	keybinds(){
+		new Keybind('F4', event => {
+			if(event.altKey)ipc.send('close window');
+			else if(this.config.game.f4_seek)location.assign('/');
+		});
+		
+		new Keybind('F10', event => {
+			ipc.send('open devtools');
+		});
+		
+		new Keybind('F11', () => {
+			this.config.client.fullscreen = !this.config.client.fullscreen;
+			this.save_config();
+			ipc.send('fullscreen');
+		});
 	}
 	relaunch(){
 		ipc.send('relaunch');

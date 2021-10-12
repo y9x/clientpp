@@ -41,8 +41,6 @@ class FilePicker extends Control.Types.TextBoxControl {
 
 Control.Types.FilePicker = FilePicker;
 
-chrome.webview.addEventListener('message', ({ data }) => ipc.emit(...data));
-
 class Menu extends Events {
 	html = new HTMLProxy();
 	config = runtime_config;
@@ -138,18 +136,12 @@ class Menu extends Events {
 			walk: 'game.f4_seek',
 		});
 		
-		new Keybind('F4', event => {
-			if(event.altKey)ipc.send('close window');
-			if(this.config.game.f4_seek)location.assign('/');
-		});
-		
-		new Keybind('F11', () => {
-			this.config.client.fullscreen = !this.config.client.fullscreen;
-			this.save_config();
-			ipc.send('fullscreen');
-		});
-		
 		var Window = this.category('Window');
+		
+		Window.control('DevTools [F10]', {
+			type: 'boolean',
+			walk: 'client.devtools',
+		});
 		
 		Window.control('Replace Icon & Title', {
 			type: 'boolean',
@@ -182,7 +174,25 @@ class Menu extends Events {
 				ipc.send('update meta');
 		});
 		
+		this.keybinds();
+		
 		for(let category of this.categories)category.update(true);
+	}
+	keybinds(){
+		new Keybind('F4', event => {
+			if(event.altKey)ipc.send('close window');
+			else if(this.config.game.f4_seek)location.assign('/');
+		});
+		
+		new Keybind('F10', event => {
+			ipc.send('open devtools');
+		});
+		
+		new Keybind('F11', () => {
+			this.config.client.fullscreen = !this.config.client.fullscreen;
+			this.save_config();
+			ipc.send('fullscreen');
+		});
 	}
 	relaunch(){
 		ipc.send('relaunch');

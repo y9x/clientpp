@@ -5,8 +5,9 @@
 	},
 	"client": {
 		"uncap_fps": false,
-		"adblock":  true,
-		"fullscreen": false
+		"adblock": true,
+		"fullscreen": false,
+		"devtools":  false
 	},
 	"window": {
 		"meta": {

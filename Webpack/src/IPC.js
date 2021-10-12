@@ -1,6 +1,9 @@
 'use strict';
 
-var Events = require('./libs/Events');
+var Events = require('./libs/Events'),
+	{ webview } = chrome;
+
+delete chrome.webview;
 
 class IPCConsole {
 	constructor(ipc, prefix){
@@ -31,9 +34,13 @@ class IPC extends Events {
 	}
 	console = new IPCConsole();
 	send(event, ...data){
-		chrome.webview.postMessage(JSON.stringify([ event, ...data ]));
+		webview.postMessage(JSON.stringify([ event, ...data ]));
 		return true;
 	}
 };
 
-module.exports = new IPC();
+var ipc = new IPC();
+
+webview.addEventListener('message', ({ data }) => ipc.emit(...data));
+
+module.exports = ipc;
