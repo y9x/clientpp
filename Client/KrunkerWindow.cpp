@@ -174,6 +174,7 @@ void KrunkerWindow::register_events() {
 				if (::IsWindow(m_hWnd)) DestroyWindow();
 			}
 			else if (msg.event == "seek game") {
+				webview->Stop();
 				seek_game();
 			}
 			else if (msg.event == "reload") {

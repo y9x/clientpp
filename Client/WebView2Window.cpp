@@ -99,7 +99,6 @@ bool WebView2Window::exit_fullscreen() {
 	resize_wv();
 
 	fullscreen = false;
-
 	return true;
 }
 bool WebView2Window::resize_wv() {
