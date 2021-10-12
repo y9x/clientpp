@@ -7,6 +7,9 @@
 #include "../Utils/Uri.h"
 #include "../Utils/Base64.h"
 #include "./Log.h"
+#include <ShellScalingApi.h>
+
+#pragma comment(lib, "Shcore.lib")
 
 using namespace StringUtil;
 using Microsoft::WRL::Make;
@@ -311,7 +314,9 @@ void KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> ca
 		title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
 
 	create_window(inst, cmdshow);
-
+	
+	HRESULT sda = SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+	if (!SUCCEEDED(sda)) clog::error << "SetProcessDpiAwareness returned " << PROCESS_PER_MONITOR_DPI_AWARE << clog::endl;	
 	SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(RGB(0, 0, 0)));
 
 	if (folder->config["window"]["meta"]["replace"].get<bool>())
@@ -336,7 +341,7 @@ void KrunkerWindow::call_create_webview(std::function<void()> callback) {
 		wil::com_ptr<ICoreWebView2Controller3> control3;
 		control3 = control.query<ICoreWebView2Controller3>();
 		if (control3) {
-			control3->put_ShouldDetectMonitorScaleChanges(false);
+			control3->put_ShouldDetectMonitorScaleChanges(true);
 		}
 
 		wil::com_ptr<ICoreWebView2Settings> settings;
