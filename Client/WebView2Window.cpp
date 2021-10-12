@@ -79,12 +79,10 @@ bool WebView2Window::enter_fullscreen() {
 	GetClientRect(&windowed);
 	ClientToScreen(&windowed);
 
-	SetWindowLongPtr(GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TOPMOST);
-	SetWindowLongPtr(GWL_STYLE, WS_POPUP | WS_VISIBLE);
+	DWORD style = GetWindowLong(GWL_STYLE);
+	SetWindowLong(GWL_STYLE, style & ~WS_OVERLAPPEDWINDOW);
 
-	SetWindowPos(0, &screen, SWP_SHOWWINDOW);
-	ShowWindow(SW_MAXIMIZE);
-
+	SetWindowPos(0, &screen, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 	resize_wv();
 
 	return fullscreen = true;
@@ -94,12 +92,13 @@ bool WebView2Window::exit_fullscreen() {
 
 	SetWindowLongPtr(GWL_EXSTYLE, WS_EX_LEFT);
 	SetWindowLongPtr(GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
-	SetWindowPos(HWND_NOTOPMOST, RECT_ARGS(windowed), SWP_SHOWWINDOW);
-	ShowWindow(SW_RESTORE);
+
+	DWORD style = GetWindowLong(GWL_STYLE);
+	SetWindowLong(GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
+	SetWindowPos(NULL, RECT_ARGS(windowed), SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+	resize_wv();
 
 	fullscreen = false;
-
-	resize_wv();
 
 	return true;
 }

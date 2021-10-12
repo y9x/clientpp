@@ -306,7 +306,7 @@ void KrunkerWindow::register_events() {
 		}
 
 		return S_OK;
-		}).Get(), &token);
+	}).Get(), &token);
 }
 
 void KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {
@@ -314,7 +314,9 @@ void KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> ca
 		title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
 
 	create_window(inst, cmdshow);
-	
+
+	if (folder->config["client"]["fullscreen"]) enter_fullscreen();
+
 	HRESULT sda = SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
 	if (!SUCCEEDED(sda)) clog::error << "SetProcessDpiAwareness returned " << PROCESS_PER_MONITOR_DPI_AWARE << clog::endl;	
 	SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(RGB(0, 0, 0)));
