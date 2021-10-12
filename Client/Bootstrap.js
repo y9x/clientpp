@@ -1,15 +1,19 @@
 if(location.host == 'krunker.io' || location.host.endsWith('.krunker.io')){
-	window.chrome.webview.postMessage('["send webpack"]');
-	chrome.webview.addEventListener('message', ({ data }) => {
-		if (data[0] == 'eval webpack') {
-			let [event, webpack, runtime_data] = data;
+	let { log } = console,
+		{ webview } = chrome;
 
-			// try{
-			new Function('_RUNTIME_DATA_', 'webpack', 'eval(webpack)')(runtime_data, webpack);
-			console.log('Guru Client++ Webpack Initialized');
-			// }catch(err){
-			// 	console.error('Error loading Guru Client++ Bootstrapper:\n', err);
-			//}
-		} else console.error('Failure bootstrapping GC++: Unknown event:', event);
+	// delete chrome.webview;
+
+	webview.postMessage('["send webpack"]');
+	// first message should ALWAYS be evaluate data
+	webview.addEventListener('message', ({ data }) => {
+		var [event] = data.slice(0, 1);
+
+		if (event != 'eval webpack') throw Error('Invalid message recieved: ' + JSON.stringify(data));
+
+		var [, webpack, runtime_data] = data;
+		new Function('webview', 'webpack', '_RUNTIME_DATA_', 'eval(webpack)')(webview, webpack, runtime_data);
+
+		log('Guru Client++ Webpack Initialized');
 	}, { once: true });
 }

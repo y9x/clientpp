@@ -1,9 +1,8 @@
 'use strict';
 
-var Events = require('./libs/Events'),
-	{ webview } = chrome;
+// webview is chrome.webview but captured by bootstrap.js
 
-delete chrome.webview;
+var Events = require('./libs/Events');
 
 class IPCConsole {
 	constructor(ipc, prefix){

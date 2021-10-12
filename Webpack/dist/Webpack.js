@@ -111,10 +111,9 @@ var	{ utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
 
 
 
-var Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
-	{ webview } = chrome;
+// webview is chrome.webview but captured by bootstrap.js
 
-delete chrome.webview;
+var Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js");
 
 class IPCConsole {
 	constructor(ipc, prefix){
@@ -1802,7 +1801,7 @@ class Menu extends Events {
 	keybinds(){
 		new Keybind('F4', event => {
 			if(event.altKey)ipc.send('close window');
-			else if(this.config.game.f4_seek)location.assign('/');
+			else if(this.config.game.f4_seek)ipc.send('seek game');
 		});
 		
 		new Keybind('F10', event => {
@@ -1849,6 +1848,9 @@ if(site_location == 'game'){
 	__webpack_require__(/*! ./FastLoad */ "./src/FastLoad.js");
 	new Menu();
 }
+
+new Keybind('F5', event => ipc.send('reload'));
+
 })();
 
 /******/ })()

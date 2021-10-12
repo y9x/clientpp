@@ -1,3 +1,6 @@
+// look into
+// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2?view=webview2-1.0.992.28#addhostobjecttoscript
+
 #pragma once
 #include <string>
 #include <functional>

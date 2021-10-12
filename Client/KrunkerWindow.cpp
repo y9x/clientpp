@@ -75,30 +75,21 @@ JSON KrunkerWindow::runtime_data() {
 // https://peter.sh/experiments/chromium-command-line-switches/
 std::wstring KrunkerWindow::cmdline() {
 	std::vector<std::wstring> cmds = {
-		L"--disable-features=msSmartScreenProtection,msEdgeOnRampFRE,msEdgeOnRampImport,msEdgeMGPFrev1,msEdgeSettingsImport,msEdgeSettingsImportV2,msReadAloud,msApplicationGuard,msEdgeTranslate,msEdgeReadingView,WebPayments,msSendClientDataHeader,msSendClientDataHeaderToEdgeServices,msImplicitSignin,SpareRendererForSitePerProcess",
-		L"--enable-features=ForwardMemoryPressureEventsToGpuProcess,WebAssembly,SharedArrayBuffer",
+		// on chrome 86
+		// L"--enable-features=WebAssembly,SharedArrayBuffer",
+		// bad for cpu
+		L"--disable-background-timer-throttling",
+		L"--disable-features=msSmartScreenProtection",
 		L"--force-dark-mode",
 		L"--high-dpi-support=1",
 		L"--ignore-gpu-blacklist",
-		L"--no-default-browser-check",
-		L"--disable-default-apps",
-		L"--noerrdialogs",
-		L"--no-first-run",
-		L"--winhttp-proxy-resolver",
-		L"--embedded-browser-webview-dpi-awareness=0",
-		L"--disable-popup-blocking",
 		L"--disable-print-preview",
 		L"--enable-zero-copy",
-		L"--disable-component-extensions-with-background-pages",
-		L"--internet-explorer-integration=none",
 		L"--js-flags=--experimental-wasm-threads",
 		L"--webrtc-max-cpu-consumption-percentage=100",
 		L"--autoplay-policy=no-user-gesture-required",
 		// L"--profile-directory=Profile",
-		// remove?
-		L"--disable-background-timer-throttling",
 	};
-
 
 	if (folder->config["client"]["uncap_fps"].get<bool>()) {
 		cmds.push_back(L"--disable-frame-rate-limit");
@@ -138,9 +129,7 @@ void KrunkerWindow::register_events() {
 				std::string js_webpack = "throw Error('Failure loading Webpack.js');";
 				load_resource(JS_WEBPACK, js_webpack);
 				std::string js_webpack_map;
-				load_resource(JS_WEBPACK_MAP, js_webpack_map);
-
-				js_webpack += "\n//# sourceMappingURL=data:application/json;base64," + Base64::Encode(js_webpack_map);
+				if(load_resource(JS_WEBPACK_MAP, js_webpack_map)) js_webpack += "\n//# sourceMappingURL=data:application/json;base64," + Base64::Encode(js_webpack_map);
 
 				JSMessage res("eval webpack", { js_webpack, runtime_data() });
 				if (!res.send(sender))clog::error << "Unable to send " << res.json() << clog::endl;
@@ -180,6 +169,13 @@ void KrunkerWindow::register_events() {
 			}
 			else if (msg.event == "close window") {
 				if (::IsWindow(m_hWnd)) DestroyWindow();
+			}
+			else if (msg.event == "seek game") {
+				seek_game();
+			}
+			else if (msg.event == "reload") {
+				webview->Stop();
+				webview->Reload();
 			}
 			else if (msg.event == "fullscreen") {
 				if (folder->config["client"]["fullscreen"]) enter_fullscreen();
@@ -325,31 +321,54 @@ void KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> ca
 	call_create_webview(callback);
 }
 
+bool KrunkerWindow::seek_game() {
+	return SUCCEEDED(webview->Navigate((L"https://krunker.io" + pathname).c_str()));
+}
+
 void KrunkerWindow::call_create_webview(std::function<void()> callback) {
 	create_webview(cmdline(), folder->directory + folder->p_profile, [this, callback]() {
 		wil::com_ptr<ICoreWebView2Controller2> control2;
 		control2 = control.query<ICoreWebView2Controller2>();
-		if (control2) control2->put_DefaultBackgroundColor(ColorRef(RGB(255, 255, 255)));
+		if (control2) {
+			control2->put_DefaultBackgroundColor(ColorRef(RGB(255, 255, 255)));
+		}
 
-		ICoreWebView2Settings* settings;
-		webview->get_Settings(&settings);
+		wil::com_ptr<ICoreWebView2Controller3> control3;
+		control3 = control.query<ICoreWebView2Controller3>();
+		if (control3) {
+			control3->put_ShouldDetectMonitorScaleChanges(false);
+		}
 
-		settings->put_IsScriptEnabled(true);
-		settings->put_AreDefaultScriptDialogsEnabled(true);
-		settings->put_IsWebMessageEnabled(true);
-		settings->put_IsZoomControlEnabled(false);
-		settings->put_AreDefaultContextMenusEnabled(false);
+		wil::com_ptr<ICoreWebView2Settings> settings;
+		ICoreWebView2Settings* se;
+		webview->get_Settings(&se);
+
+		if (settings = se) {
+			clog::info << "Settings work" << clog::endl;
+			settings->put_IsScriptEnabled(true);
+			settings->put_AreDefaultScriptDialogsEnabled(true);
+			settings->put_IsWebMessageEnabled(true);
+			settings->put_IsZoomControlEnabled(false);
+			settings->put_AreDefaultContextMenusEnabled(false);
+			settings->put_IsStatusBarEnabled(false);
 #if _DEBUG != 1
-		settings->put_AreDevToolsEnabled(false);
+			settings->put_AreDevToolsEnabled(false);
 #else
-		webview->OpenDevToolsWindow();
+			webview->OpenDevToolsWindow();
 #endif
+
+			wil::com_ptr<ICoreWebView2Settings3> settings3;
+
+			if (settings3 = settings.query<ICoreWebView2Settings3>()) {
+				settings3->put_AreBrowserAcceleratorKeysEnabled(false);
+			}
+		}
 
 		resize_wv();
 
 		register_events();
 
-		webview->Navigate((L"https://krunker.io" + pathname).c_str());
+		seek_game();
 
 		clog::debug << "KrunkerWindow created: " << Convert::string(pathname) << clog::endl;
 

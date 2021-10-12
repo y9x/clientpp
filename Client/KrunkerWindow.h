@@ -40,6 +40,7 @@ public:
 	void create(HINSTANCE inst, int cmdshow, std::function<void()> callback = nullptr) override;
 	void get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr) override;
 	void on_dispatch() override;
+	bool seek_game();
 	std::function<void()> webview2_startup;
 	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr);
 };

@@ -181,7 +181,7 @@ class Menu extends Events {
 	keybinds(){
 		new Keybind('F4', event => {
 			if(event.altKey)ipc.send('close window');
-			else if(this.config.game.f4_seek)location.assign('/');
+			else if(this.config.game.f4_seek)ipc.send('seek game');
 		});
 		
 		new Keybind('F10', event => {
@@ -228,3 +228,5 @@ if(site_location == 'game'){
 	require('./FastLoad');
 	new Menu();
 }
+
+new Keybind('F5', event => ipc.send('reload'));
