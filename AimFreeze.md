@@ -6,7 +6,7 @@ On Chromium versions after 86.0.4231.0 with high frame rate, WebSocket responses
 ## Steps to reproduce
 
 1. Launch Chromium > 86 with the `--disable-frame-rate-limit` flag
-2. Visit https://krunker.io`
+2. Visit https://krunker.io
 3. Verify you have over 244 FPS. Open the game's settings and search for "Show FPS"
 3. In DevTools, open the network tab then search for the websocket `/ws?gameId=`. Select this then open the messages tab
 5. In the game, press "Click to play" to trigger pointer lock and move your mouse cursor while holding the left mouse button
