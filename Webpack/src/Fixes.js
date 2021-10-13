@@ -1,8 +1,6 @@
 'use strict';
 
-require('./WSFix');
-
-var	{ utils } = require('./Consts');
+var { utils } = require('./Consts');
 
 (async () => {
 	if(localStorage.kro_setngss_scaleUI == void[])
