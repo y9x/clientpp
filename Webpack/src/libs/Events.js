@@ -3,7 +3,7 @@
 class Events {
 	static original = Symbol();
 	#events = new Map();
-	#resolve(target, event){
+	#resolve(event){
 		var callbacks = this.#events.get(event);
 		
 		if(!callbacks){

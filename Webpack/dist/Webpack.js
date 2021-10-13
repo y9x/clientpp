@@ -2,6 +2,20 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./src/WSWorker.js?raw":
+/*!*****************************!*\
+  !*** ./src/WSWorker.js?raw ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("'use strict';\r\n\r\nvar // client events\r\n\tSOCKET_OPEN = 0,\r\n\tSOCKET_SEND = 1,\r\n\tSOCKET_CLOSE = 2,\r\n\tSOCKET_SET_BINARY_TYPE = 3,\r\n\tSOCKET_GET_PROTOCOL = 4,\r\n\tSOCKET_GET_READYSTATE = 5,\r\n\tSOCKET_GET_URL = 6,\r\n\tSOCKET_GET_BUFFERED_AMOUNT = 7,\r\n\t// worker events\r\n\tSOCKET_MESSAGE = 8,\r\n\tSOCKET_OPENED = 9,\r\n\tSOCKET_CLOSED = 10,\r\n\tSOCKET_ERROR = 11;\r\n\r\n// id -> ws\r\nvar sockets = {};\r\n\r\nvar total_ws = 0;\r\n\r\nvar send = (event, ...data) => postMessage([ event, ...data ]);\r\n\r\nvar verify_socket = (event, id) => {\r\n\tlet socket = sockets[id];\r\n\t\r\n\tif(socket)return socket;\r\n\telse if(event != SOCKET_OPEN)throw RangeError(`Unknown socket ${id} on event ${event}`);\r\n};\r\n\r\nsend();\r\n\r\nvar text_decoder = new TextDecoder();\r\n\r\naddEventListener('message', ({ data: message }) => {\r\n\tvar [ event, ...data ] = message;\r\n\t\r\n\tswitch(event){\r\n\t\tcase SOCKET_SET_BINARY_TYPE:\r\n\t\t\t\r\n\t\t\tverify_socket(event, data[0]).binaryType = data[1];\r\n\t\t\t\r\n\t\t\tbreak;\r\n\t\tcase SOCKET_SEND:\r\n\t\t\t\r\n\t\t\tverify_socket(event, data[0]).send(data[1]);\r\n\t\t\t\r\n\t\t\tbreak;\r\n\t\tcase SOCKET_OPEN:\r\n\t\t\t\r\n\t\t\tlet id = total_ws++,\r\n\t\t\t\tsocket = sockets[id] = new WebSocket(data[1], data[2]);\r\n\t\t\t\r\n\t\t\tsend(data[0], id);\r\n\t\t\t\r\n\t\t\tsocket.addEventListener('error', event => {\r\n\t\t\t\tsend(id, SOCKET_ERROR, socket.readyState);\r\n\t\t\t});\r\n\t\t\t\r\n\t\t\tsocket.addEventListener('open', event => {\r\n\t\t\t\tsend(id, SOCKET_OPENED, socket.readyState);\r\n\t\t\t});\r\n\t\t\t\r\n\t\t\tsocket.addEventListener('message', event => {\r\n\t\t\t\tsend(id, SOCKET_MESSAGE, event.data);\r\n\t\t\t});\r\n\t\t\t\r\n\t\t\tbreak;\r\n\t}\r\n});");
+
+/***/ }),
+
 /***/ "./src/Consts.js":
 /*!***********************!*\
   !*** ./src/Consts.js ***!
@@ -60,6 +74,8 @@ if(config.game.fast_load && !Object.keys(js).length){
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
 
 
+
+__webpack_require__(/*! ./WSFix */ "./src/WSFix.js");
 
 var	{ utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
 
@@ -154,6 +170,71 @@ var ipc = new IPC();
 webview.addEventListener('message', ({ data }) => ipc.emit(...data));
 
 module.exports = ipc;
+
+/***/ }),
+
+/***/ "./src/Libs/Events.js":
+/*!****************************!*\
+  !*** ./src/Libs/Events.js ***!
+  \****************************/
+/***/ ((module) => {
+
+
+
+class Events {
+	static original = Symbol();
+	#events = new Map();
+	#resolve(event){
+		var callbacks = this.#events.get(event);
+		
+		if(!callbacks){
+			callbacks = new Set();
+			this.#events.set(event, callbacks);
+		}
+		
+		return callbacks;
+	};
+	on(event, callback){
+		if(typeof callback != 'function')throw new TypeError('Callback is not a function.');
+		
+		this.#resolve(event).add(callback);
+	}
+	once(event, callback){
+		var cb = function(...data){
+			this.off(event, callback);
+			callback.call(this, ...data);
+		};
+		
+		callback[Events.original] = cb;
+		
+		return this.on(event, cb);
+	}
+	off(event, callback){
+		if(typeof callback != 'function')throw new TypeError('Callback is not a function.');
+		
+		if(callback[Events.original])callback = callback[Events.original];
+		
+		var list = this.#resolve(event);
+		
+		return list.delete(callback);
+	}
+	emit(event, ...data){
+		var set = this.#resolve(event);
+		
+		if(!set.size){
+			if(event == 'error')throw data[0];
+			return false;
+		}else for(let item of set)try{
+			item.call(this, ...data);
+		}catch(err){
+			this.emit('error', err);
+		}
+		
+		return true;
+	}
+};
+
+module.exports = Events;
 
 /***/ }),
 
@@ -290,6 +371,179 @@ module.exports = Userscript;
 
 /***/ }),
 
+/***/ "./src/WSFix.js":
+/*!**********************!*\
+  !*** ./src/WSFix.js ***!
+  \**********************/
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+
+
+
+var // client events
+	SOCKET_OPEN = 0,
+	SOCKET_SEND = 1,
+	SOCKET_CLOSE = 2,
+	SOCKET_SET_BINARY_TYPE = 3,
+	SOCKET_GET_PROTOCOL = 4,
+	SOCKET_GET_READYSTATE = 5,
+	SOCKET_GET_URL = 6,
+	SOCKET_GET_BUFFERED_AMOUNT = 7,
+	// worker events
+	SOCKET_MESSAGE = 8,
+	SOCKET_OPENED = 9,
+	SOCKET_CLOSED = 10,
+	SOCKET_ERROR = 11,
+	// types
+	SOCKET_MESSAGE_TEXT = 0,
+	SOCKET_MESSAGE_BINARY = 1;
+
+var { default: code } = __webpack_require__(/*! ./WSWorker.js?raw */ "./src/WSWorker.js?raw"),
+	url = URL.createObjectURL(new Blob([ code ], { type: 'application/json' })),
+	worker = new Worker(url),
+	Events = __webpack_require__(/*! ./Libs/Events */ "./src/Libs/Events.js");
+
+class WorkerIPC extends Events {
+	constructor(worker){
+		super();
+		this.worker = worker;
+		this.worker.addEventListener('message', ({ data }) => {
+			this.emit(...data);
+		});
+		
+		this.ready = new Promise(resolve => {
+			// first message indicates ready
+			worker.addEventListener('message', event => {
+				event.stopPropagation();
+				URL.revokeObjectURL(url);
+				resolve();
+			}, { once: true });
+		});
+	}
+	send(event, ...data){
+		this.worker.postMessage([ event, ...data ]);
+		return true;
+	}
+	post(event, ...data){
+		var id = Math.random();
+			
+		this.worker.postMessage([ event, id, ...data ]);
+		
+		return new Promise(resolve => this.once(id, data => resolve(data)));
+	}
+};
+
+
+worker.ipc = new WorkerIPC(worker);
+
+var text_decoder = new TextDecoder(),
+	text_encoder = new TextEncoder();
+
+window.WebSocket = class ThreadedWebSocket extends EventTarget {
+	static CLOSED = 3;
+	static CLOSING = 2;
+	static CONNECTING = 0;
+	static OPEN = 1;
+	CLOSED = 3;
+	CLOSING = 2;
+	CONNECTING = 0;
+	OPEN = 1;
+	#wait = worker.ipc.ready
+	#id
+	#propv = {}
+	#setpropv(event, value){
+		if(typeof value == 'function'){
+			this.addEventListener(event, value);
+			this.#propv[event] = value;
+		}else{
+			this.removeEventListener(event, this.#propv[event]);
+			this.#propv[event] = null;
+		}
+		
+		return this.#propv[event];
+	}
+	get onopen(){ return this.#propv.open }
+	set onopen(value){ return this.#setpropv('open', value) }
+	get onclose(){ return this.#propv.close }
+	set onclose(value){ return this.#setpropv('close', value) }
+	get onerror(){ return this.#propv.error }
+	set onerror(value){ return this.#setpropv('error', value) }
+	get onmessage(){ return this.#propv.message }
+	set onmessage(value){ return this.#setpropv('message', value) }
+	#readyState = this.CLOSING
+	#bufferedAmount = 0
+	#binaryType = 'blob';
+	#url
+	get url(){
+		return this.#url;
+	}
+	get readyState(){
+		return this.#readyState;
+	}
+	get bufferedAmount(){
+		return this.#bufferedAmount;
+	}
+	get binaryType(){
+		return this.#binaryType;
+	}
+	set binaryType(value){
+		this.#wait.then(() => worker.ipc.send(SOCKET_SET_BINARY_TYPE, this.#id, value));
+		if(['blob','arrayBuffer'].includes(value))this.#binaryType = value;
+		return value;
+	}
+	#event_listener
+	async #create(url, protocol){
+		await this.#wait;
+		
+		try{
+			this.#url = new URL(url);
+			if(!(['ws:','wss:'].includes(this.#url.protocol)))throw new DOMException(`Failed to construct 'WebSocket': The URL's scheme must be either 'ws' or 'wss'. '${this.#url.protocol.slice(0,-1)}' is not allowed.`);
+		}catch(err){
+			throw new DOMException(`Failed to construct 'WebSocket': The URL '${url}' is invalid.`);
+		}
+		
+		var id = await worker.ipc.post(SOCKET_OPEN, url, protocol);
+		
+		this.#id = id;
+		
+		this.#event_listener = (type, ...data) => {
+			switch(type){
+				case SOCKET_CLOSED:
+					this.dispatchEvent(new Event('close'));
+					worker.ipc.off(this.#id, this.#event_listener);
+					break;
+				case SOCKET_ERROR:
+					this.#readyState = data[0];
+					this.dispatchEvent(new Event('error'));
+					break;
+				case SOCKET_OPENED:
+					this.#readyState = data[0];
+					this.dispatchEvent(new Event('open'));
+					break;
+				case SOCKET_MESSAGE:
+					this.dispatchEvent(new MessageEvent('message', { data: data[0] }));
+					break;
+			}
+		};
+		
+		worker.ipc.on(this.#id, this.#event_listener);
+	}
+	constructor(url, protocol){
+		super();
+		this.#wait = this.#create(url, protocol);
+	}
+	close(code, reason){
+		this.#readyState = this.CLOSED;
+		worker.ipc.send(SOCKET_CLOSE, code, reason);
+	}
+	send(data){
+		// doesnt throw?
+		if(this.#readyState != this.OPEN)return console.error('WebSocket is already in CLOSING or CLOSED state.');
+		worker.ipc.send(SOCKET_SEND, this.#id, data);
+	}
+};
+
+/***/ }),
+
 /***/ "./src/consts.js":
 /*!***********************!*\
   !*** ./src/consts.js ***!
@@ -328,7 +582,7 @@ exports.site_location = {
 class Events {
 	static original = Symbol();
 	#events = new Map();
-	#resolve(target, event){
+	#resolve(event){
 		var callbacks = this.#events.get(event);
 		
 		if(!callbacks){
@@ -592,6 +846,8 @@ class Loader extends Events {
 		holder.style.display = 'block';
 		holder.style.pointerEvents = 'all';
 		
+		for(let node of document.querySelectorAll('#loadingBg, #initLoader'))node.style.display = 'none';
+	
 		instructions.innerHTML = `<div style='color:#FFF9'>${title}</div><div style='margin-top:10px;font-size:20px;color:#FFF6'>${message}</div>`;
 	}
 	async token(){
@@ -671,7 +927,7 @@ class Loader extends Events {
 			cache: true,
 		});
 	}
-	async load(add_args = {}, add_context = {}){
+	async load(add_args = {}, add_context = {}, before_load = () => {}){
 		var args = {
 				...add_args,
 				[this.context.key]: this.context,
@@ -683,6 +939,7 @@ class Loader extends Events {
 		
 		try{
 			await this.loadp;
+			before_load();
 			new Function(...Object.keys(args), source)(...Object.values(args));
 		}catch(err){
 			this.report_error('loading', err);
@@ -1610,6 +1867,35 @@ module.exports = JSON.parse('{"game":{"fast_load":true,"f4_seek":true},"client":
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};

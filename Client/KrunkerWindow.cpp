@@ -80,6 +80,7 @@ std::wstring KrunkerWindow::cmdline() {
 	std::vector<std::wstring> cmds = {
 		// on chrome 86
 		// L"--enable-features=WebAssembly,SharedArrayBuffer",
+		// L"--js-flags=--experimental-wasm-threads",
 		// bad for cpu
 		L"--disable-background-timer-throttling",
 		L"--disable-features=msSmartScreenProtection",
@@ -88,9 +89,9 @@ std::wstring KrunkerWindow::cmdline() {
 		L"--ignore-gpu-blacklist",
 		L"--disable-print-preview",
 		L"--enable-zero-copy",
-		L"--js-flags=--experimental-wasm-threads",
 		L"--webrtc-max-cpu-consumption-percentage=100",
 		L"--autoplay-policy=no-user-gesture-required",
+		L"--disable-ipc-flooding-protection",
 		// L"--profile-directory=Profile",
 	};
 
@@ -315,13 +316,15 @@ void KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> ca
 		title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
 
 	create_window(inst, cmdshow);
+	
+	SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(RGB(0, 0, 0)));
 
 	if (folder->config["client"]["fullscreen"]) enter_fullscreen();
 
 	HRESULT sda = SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
 	if (!SUCCEEDED(sda)) clog::error << "SetProcessDpiAwareness returned " << PROCESS_PER_MONITOR_DPI_AWARE << clog::endl;	
-	SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(RGB(0, 0, 0)));
-
+	
+	
 	if (folder->config["window"]["meta"]["replace"].get<bool>())
 		SetIcon((HICON)LoadImage(inst, Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
 	else SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));
@@ -338,9 +341,9 @@ void KrunkerWindow::call_create_webview(std::function<void()> callback) {
 		wil::com_ptr<ICoreWebView2Controller2> control2;
 		control2 = control.query<ICoreWebView2Controller2>();
 		if (control2) {
-			control2->put_DefaultBackgroundColor(ColorRef(RGB(255, 255, 255)));
+			control2->put_DefaultBackgroundColor(ColorRef(RGB(0, 0, 0)));
 		}
-
+		
 		wil::com_ptr<ICoreWebView2Controller3> control3;
 		control3 = control.query<ICoreWebView2Controller3>();
 		if (control3) {

@@ -1,5 +1,7 @@
 'use strict';
 
+require('./WSFix');
+
 var	{ utils } = require('./Consts');
 
 (async () => {

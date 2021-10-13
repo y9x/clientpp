@@ -97,6 +97,8 @@ class Loader extends Events {
 		holder.style.display = 'block';
 		holder.style.pointerEvents = 'all';
 		
+		for(let node of document.querySelectorAll('#loadingBg, #initLoader'))node.style.display = 'none';
+	
 		instructions.innerHTML = `<div style='color:#FFF9'>${title}</div><div style='margin-top:10px;font-size:20px;color:#FFF6'>${message}</div>`;
 	}
 	async token(){
@@ -176,7 +178,7 @@ class Loader extends Events {
 			cache: true,
 		});
 	}
-	async load(add_args = {}, add_context = {}){
+	async load(add_args = {}, add_context = {}, before_load = () => {}){
 		var args = {
 				...add_args,
 				[this.context.key]: this.context,
@@ -188,6 +190,7 @@ class Loader extends Events {
 		
 		try{
 			await this.loadp;
+			before_load();
 			new Function(...Object.keys(args), source)(...Object.values(args));
 		}catch(err){
 			this.report_error('loading', err);
