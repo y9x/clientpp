@@ -14,9 +14,8 @@ On Chromium versions after 86.0.4231.0 with high frame rate, WebSocket responses
 
 ## Notes
 
-- ~~This is NOT an issue with the game servers; Modifying all variables relevant to reporting the frames (delta time) will result in the same behavior~~
-After attempting to recreate this, I've concluded this is an issue unique to Krunker's frame and event handling
-- WebSocket messages aren't skipped
+- This is NOT an issue with the game servers; Modifying all variables relevant to reporting the frames (delta time) will result in the same behavior
+- WebSocket messages aren't skipped?
 - Only occurs when moving mouse on pointer locked elements:
 ```js
 window.addEventListener('click', event => event.target.requestPointerLock());
@@ -41,4 +40,4 @@ HTMLCanvasElement.prototype.getContext = function(type, options){
 - Chromium thread prioritizes emitting `mousemove` events over WebSocket messages
 (Noticable when both events are frequently emitted)
 
-- Krunker servers are overwhelmed by the possibility of high camera changes per frame
+- ~~Krunker servers are overwhelmed by the possibility of high camera changes per frame~~
