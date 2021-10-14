@@ -40,4 +40,4 @@ HTMLCanvasElement.prototype.getContext = function(type, options){
 - Chromium thread prioritizes emitting `mousemove` events over WebSocket messages
 (Noticable when both events are frequently emitted)
 
-- Krunker servers are overwhelmed by the possibility of high camera changes per frame
+- ~~Krunker servers are overwhelmed by the possibility of high camera changes per frame~~
