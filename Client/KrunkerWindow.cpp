@@ -441,7 +441,7 @@ void KrunkerWindow::on_dispatch() {
 	post.clear();
 	mtx.unlock();
 
-	if (GetActiveWindow() == m_hWnd) active_window = this;
+	if (pathname == L"/" && GetActiveWindow() == m_hWnd) active_window = this;
 
 	if (now() - last_client_poll > 2000 && mouse_hooked) {
 		clog::error << "Client polling behind" << clog::endl;
