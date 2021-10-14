@@ -13,14 +13,13 @@ var { utils } = require('./Consts'),
 
 document.addEventListener('pointerlockchange', () => {
 	if(!document.pointerLockElement){
-		locked_node?.removeEventListener('mousedown', listener);
+		// locked_node?.removeEventListener('mousedown', listener);
 		locked_node = null;
 		return ipc.send('pointer', 'unhook');
 	}
 	
 	locked_node = document.pointerLockElement;
-	
-	locked_node.addEventListener('mousedown', listener)
+	// locked_node.addEventListener('mousedown', listener)
 	ipc.send('pointer', 'hook');
 });
 
