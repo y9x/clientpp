@@ -2,7 +2,6 @@
 #include <iostream>
 #include <ostream>
 #include <streambuf>
-#include <chrono>
 
 namespace clog {
 	extern char endl;

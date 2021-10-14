@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "./Log.h"
 #include <Windows.h>
+#include <chrono>
 
 namespace clog {
 	char endl = '\n';

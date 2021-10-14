@@ -45,6 +45,7 @@ KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title,
 	, og_title(title)
 	, pathname(p)
 	, webview2_startup(s)
+	, last_client_poll(now())
 {}
 
 JSON KrunkerWindow::runtime_data() {
@@ -75,17 +76,12 @@ JSON KrunkerWindow::runtime_data() {
 	return data;
 }
 
-// make polling to inform client.exe the pointer is still a canvas
-// if no response is recieved eg timeout then unhook
 KrunkerWindow* active_window;
 
 bool mousedown = false;
 
 LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam) {
 	if (active_window && GetActiveWindow() == active_window->m_hWnd && wParam == WM_LBUTTONDOWN) {
-		// mousedown = true;
-		clog::info << "MouseDown" << clog::endl;
-
 		JSMessage msg("mousedown");
 		if (!msg.send(active_window->webview.get()))clog::error << "Unable to send " << msg.json() << clog::endl;;
 		
@@ -141,6 +137,10 @@ std::wstring KrunkerWindow::cmdline() {
 	return cmdline;
 }
 
+std::time_t KrunkerWindow::now() {
+	return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+}
+
 void KrunkerWindow::register_events() {
 	EventRegistrationToken token;
 
@@ -156,12 +156,12 @@ void KrunkerWindow::register_events() {
 		if (mpt) {
 			JSMessage msg(mpt);
 			JSON message = JSON::parse(Convert::string(mpt));
-			
+
 			if (msg.event == "send webpack") {
 				std::string js_webpack = "throw Error('Failure loading Webpack.js');";
 				load_resource(JS_WEBPACK, js_webpack);
 				std::string js_webpack_map;
-				if(load_resource(JS_WEBPACK_MAP, js_webpack_map)) js_webpack += "\n//# sourceMappingURL=data:application/json;base64," + Base64::Encode(js_webpack_map);
+				if (load_resource(JS_WEBPACK_MAP, js_webpack_map)) js_webpack += "\n//# sourceMappingURL=data:application/json;base64," + Base64::Encode(js_webpack_map);
 
 				JSMessage res("eval webpack", { js_webpack, runtime_data() });
 				if (!res.send(sender))clog::error << "Unable to send " << res.json() << clog::endl;
@@ -195,7 +195,12 @@ void KrunkerWindow::register_events() {
 			}
 			else if (msg.event == "pointer") {
 				if (msg.args[0] == "hook" && !mouse_hooked) hook_mouse();
-				else if(mouse_hooked) unhook_mouse();
+				else if (mouse_hooked) unhook_mouse();
+			}
+			else if (msg.event == "locked poll") {
+				last_client_poll = now();
+				if (msg.args[0] && !mouse_hooked) hook_mouse();
+				else if (msg.args[0] && mouse_hooked) unhook_mouse();
 			}
 			else if (msg.event == "relaunch") {
 				// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
@@ -423,7 +428,7 @@ void KrunkerWindow::call_create_webview(std::function<void()> callback) {
 void KrunkerWindow::get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) {
 	if (!open) create(inst, cmdshow, [this, callback]() {
 		callback(true);
-		});
+	});
 	else callback(false);
 }
 
@@ -436,4 +441,6 @@ void KrunkerWindow::on_dispatch() {
 	mtx.unlock();
 
 	if (GetActiveWindow() == m_hWnd) active_window = this;
+
+	if (now() - last_client_poll > 2000 && mouse_hooked) unhook_mouse();
 }

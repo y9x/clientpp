@@ -6,7 +6,10 @@ var { utils } = require('./Consts'),
 	locked_node,
 	listener = event => {
 		if(event.button == 0)console.log('Recieved', event.ipc ? 'simulated' : 'real', 'left mousedown event');
-	};
+	},
+	is_game_canvas = node => node?.className == 'canvas' && !node.id;
+
+
 
 document.addEventListener('pointerlockchange', () => {
 	if(!document.pointerLockElement){
@@ -17,12 +20,15 @@ document.addEventListener('pointerlockchange', () => {
 	
 	locked_node = document.pointerLockElement;
 	
-	console.log(locked_node);
-	// if(node.className == 'canvas' && !node.id){*
-	
-	locked_node.addEventListener('mousedown', listener)
-	ipc.send('pointer', 'hook');
+	if(is_game_canvas(locked_node)){
+		locked_node.addEventListener('mousedown', listener)
+		ipc.send('pointer', 'hook');
+	}
 });
+
+setInterval(() => {
+	ipc.send('locked poll', is_game_canvas(document.pointerLockElement));
+}, 1000);
 
 ipc.on('mousedown', () => {
 	var event = new MouseEvent('mousedown');

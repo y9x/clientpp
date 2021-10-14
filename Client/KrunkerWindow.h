@@ -17,15 +17,17 @@ public:
 
 class KrunkerWindow : public WebView2Window {
 private:
-	HHOOK mouse_hook;
+	static LRESULT CALLBACK mouse_message(int code, WPARAM wParam, LPARAM lParam);
+	HHOOK mouse_hook = 0;
 	bool mouse_hooked = false;
+	std::time_t last_client_poll;
 	void hook_mouse();
 	void unhook_mouse();
-	static LRESULT CALLBACK mouse_message(int code, WPARAM wParam, LPARAM lParam);
 	JSON runtime_data();
 	std::wstring cmdline();
 	void register_events();
 	void call_create_webview(std::function<void()> callback);
+	std::time_t now();
 public:
 	ClientFolder* folder;
 	std::vector<JSMessage> post;
