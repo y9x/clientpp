@@ -75,6 +75,34 @@ JSON KrunkerWindow::runtime_data() {
 	return data;
 }
 
+// make polling to inform client.exe the pointer is still a canvas
+// if no response is recieved eg timeout then unhook
+KrunkerWindow* active_window;
+
+bool mousedown = false;
+
+LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam) {
+	if (active_window && GetActiveWindow() == active_window->m_hWnd && wParam == WM_LBUTTONDOWN) {
+		// mousedown = true;
+		clog::info << "MouseDown" << clog::endl;
+
+		JSMessage msg("mousedown");
+		if (!msg.send(active_window->webview.get()))clog::error << "Unable to send " << msg.json() << clog::endl;;
+		
+		return 1;
+	}
+	return CallNextHookEx(NULL, code, wParam, lParam);
+}
+
+void KrunkerWindow::hook_mouse() {
+	mouse_hook = ::SetWindowsHookEx(WH_MOUSE_LL, *mouse_message, get_hinstance(), NULL);
+	mouse_hooked = mouse_hook != NULL;
+}
+
+void KrunkerWindow::unhook_mouse() {
+	if (UnhookWindowsHookEx(mouse_hook)) mouse_hooked = false;
+}
+
 // https://peter.sh/experiments/chromium-command-line-switches/
 std::wstring KrunkerWindow::cmdline() {
 	std::vector<std::wstring> cmds = {
@@ -164,6 +192,10 @@ void KrunkerWindow::register_events() {
 				else if (msg.args[0] == "url") open = Convert::wstring(msg.args[1].get<std::string>());
 
 				ShellExecute(m_hWnd, L"open", open.c_str(), L"", L"", SW_SHOW);
+			}
+			else if (msg.event == "pointer") {
+				if (msg.args[0] == "hook" && !mouse_hooked) hook_mouse();
+				else if(mouse_hooked) unhook_mouse();
 			}
 			else if (msg.event == "relaunch") {
 				// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
@@ -402,4 +434,6 @@ void KrunkerWindow::on_dispatch() {
 
 	post.clear();
 	mtx.unlock();
+
+	if (GetActiveWindow() == m_hWnd) active_window = this;
 }

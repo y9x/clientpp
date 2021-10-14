@@ -61,7 +61,37 @@ if(config.game.fast_load && !Object.keys(js).length){
 
 
 
-var { utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
+var { utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
+	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+	listening = new WeakSet(),
+	locked_node,
+	listener = event => {
+		if(event.button == 0)console.log('Recieved', event.ipc ? 'simulated' : 'real', 'left mousedown event');
+	};
+
+document.addEventListener('pointerlockchange', () => {
+	if(!document.pointerLockElement){
+		locked_node?.removeEventListener('mousedown', listener);
+		locked_node = null;
+		return ipc.send('pointer', 'unhook');
+	}
+	
+	locked_node = document.pointerLockElement;
+	
+	console.log(locked_node);
+	// if(node.className == 'canvas' && !node.id){*
+	
+	locked_node.addEventListener('mousedown', listener)
+	ipc.send('pointer', 'hook');
+});
+
+ipc.on('mousedown', () => {
+	var event = new MouseEvent('mousedown');
+	event.ipc = true;
+	locked_node?.dispatchEvent(event);
+});
+
+// document.addEventListener('click', event => event.target.nodeName == 'A' && event.target.requestPointerLock());
 
 (async () => {
 	if(localStorage.kro_setngss_scaleUI == void[])

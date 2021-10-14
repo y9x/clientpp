@@ -17,6 +17,11 @@ public:
 
 class KrunkerWindow : public WebView2Window {
 private:
+	HHOOK mouse_hook;
+	bool mouse_hooked = false;
+	void hook_mouse();
+	void unhook_mouse();
+	static LRESULT CALLBACK mouse_message(int code, WPARAM wParam, LPARAM lParam);
 	JSON runtime_data();
 	std::wstring cmdline();
 	void register_events();

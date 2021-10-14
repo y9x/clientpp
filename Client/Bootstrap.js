@@ -2,8 +2,6 @@ if(location.host == 'krunker.io' || location.host.endsWith('.krunker.io')){
 	let { log } = console,
 		{ webview } = chrome;
 
-	// delete chrome.webview;
-
 	webview.postMessage('["send webpack"]');
 	// first message should ALWAYS be evaluate data
 	webview.addEventListener('message', ({ data }) => {
