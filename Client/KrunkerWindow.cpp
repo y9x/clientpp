@@ -82,9 +82,14 @@ bool mousedown = false;
 
 LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam) {
 	if (wParam == WM_LBUTTONDOWN) {
-		JSMessage msg("mousedown");
-		if (!msg.send(active_window->webview.get()))clog::error << "Unable to send " << msg.json() << clog::endl;;
-		
+		MSLLHOOKSTRUCT* hook = (MSLLHOOKSTRUCT*)lParam;
+		POINT point = hook->pt;
+
+		if (active_window->ScreenToClient(&point)) {
+			JSMessage msg("mousedown", { point.x, point.y });
+			if (!msg.send(active_window->webview.get()))clog::error << "Unable to send " << msg.json() << clog::endl;
+		}
+
 		return 1;
 	}
 

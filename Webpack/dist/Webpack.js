@@ -89,8 +89,12 @@ setInterval(() => {
 	ipc.send('mouse locked', document.pointerLockElement != void[]);
 }, 1000);
 
-ipc.on('mousedown', () => {
-	var event = new MouseEvent('mousedown');
+ipc.on('mousedown', (x, y) => {
+	var event = new MouseEvent('mousedown', {
+		clientX: x,
+		clientY: y,
+	});
+	
 	event.ipc = true;
 	locked_node?.dispatchEvent(event);
 });
