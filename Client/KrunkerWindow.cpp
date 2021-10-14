@@ -81,12 +81,13 @@ KrunkerWindow* active_window;
 bool mousedown = false;
 
 LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam) {
-	if (active_window && GetActiveWindow() == active_window->m_hWnd && wParam == WM_LBUTTONDOWN) {
+	if (wParam == WM_LBUTTONDOWN) {
 		JSMessage msg("mousedown");
 		if (!msg.send(active_window->webview.get()))clog::error << "Unable to send " << msg.json() << clog::endl;;
 		
 		return 1;
 	}
+
 	return CallNextHookEx(NULL, code, wParam, lParam);
 }
 
@@ -197,10 +198,10 @@ void KrunkerWindow::register_events() {
 				if (msg.args[0] == "hook" && !mouse_hooked) hook_mouse();
 				else if (mouse_hooked) unhook_mouse();
 			}
-			else if (msg.event == "locked poll") {
+			else if (msg.event == "mouse locked") {
 				last_client_poll = now();
 				if (msg.args[0] && !mouse_hooked) hook_mouse();
-				else if (msg.args[0] && mouse_hooked) unhook_mouse();
+				else if (!msg.args[0] && mouse_hooked) unhook_mouse();
 			}
 			else if (msg.event == "relaunch") {
 				// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
@@ -442,5 +443,8 @@ void KrunkerWindow::on_dispatch() {
 
 	if (GetActiveWindow() == m_hWnd) active_window = this;
 
-	if (now() - last_client_poll > 2000 && mouse_hooked) unhook_mouse();
+	if (now() - last_client_poll > 2000 && mouse_hooked) {
+		clog::error << "Client polling behind" << clog::endl;
+		unhook_mouse();
+	}
 }

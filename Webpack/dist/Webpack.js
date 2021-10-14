@@ -81,14 +81,12 @@ document.addEventListener('pointerlockchange', () => {
 	
 	locked_node = document.pointerLockElement;
 	
-	if(is_game_canvas(locked_node)){
-		locked_node.addEventListener('mousedown', listener)
-		ipc.send('pointer', 'hook');
-	}
+	locked_node.addEventListener('mousedown', listener)
+	ipc.send('pointer', 'hook');
 });
 
 setInterval(() => {
-	ipc.send('locked poll', is_game_canvas(document.pointerLockElement));
+	ipc.send('mouse locked', document.pointerLockElement != void[]);
 }, 1000);
 
 ipc.on('mousedown', () => {
