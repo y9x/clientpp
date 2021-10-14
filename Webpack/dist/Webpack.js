@@ -1622,7 +1622,7 @@ module.exports = Utils;
   \*****************************/
 /***/ ((module) => {
 
-module.exports = JSON.parse('{"game":{"fast_load":true,"f4_seek":true},"client":{"uncap_fps":false,"adblock":true,"fullscreen":false,"devtools":false},"window":{"meta":{"replace":false,"title":"Client++","icon":""}}}');
+module.exports = JSON.parse('{"game":{"fast_load":false,"f4_seek":true},"client":{"uncap_fps":false,"adblock":true,"fullscreen":false,"devtools":false},"window":{"meta":{"replace":false,"title":"Client++","icon":""}}}');
 
 /***/ })
 
@@ -1786,8 +1786,8 @@ class Menu extends Events {
 		
 		var Game = this.category('Game');
 		
-		// loads krunker from api.sys32.dev
-		Game.control('Fast Loading', {
+		// loads krunker from api
+		Game.control('Fast Loading (Risky)', {
 			type: 'boolean',
 			walk: 'game.fast_load',
 		});

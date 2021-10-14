@@ -125,8 +125,8 @@ class Menu extends Events {
 		
 		var Game = this.category('Game');
 		
-		// loads krunker from api.sys32.dev
-		Game.control('Fast Loading', {
+		// loads krunker from api
+		Game.control('Fast Loading (Risky)', {
 			type: 'boolean',
 			walk: 'game.fast_load',
 		});
