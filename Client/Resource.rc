@@ -98,7 +98,7 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "The Gaming Gurus"
-            VALUE "FileDescription", "Modern C++ WebView2 Krunker client"
+            VALUE "FileDescription", "Modern C++ WebView2 Krunker Client"
             VALUE "FileVersion", "0.0.4.0"
             VALUE "InternalName", "Client.exe"
             VALUE "LegalCopyright", "Copyright (C) 2021 The Gaming Gurus"
