@@ -8,7 +8,8 @@ class WebView2Installer {
 public:
 	enum class Error {
 		OK,
-		CantOpenProcess
+		CantOpenProcess,
+		NoBytesDownloaded
 	};
 	std::string host, path;
 	std::wstring bin = L"MicrosoftEdgeWebview2Setup.exe";

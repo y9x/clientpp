@@ -354,6 +354,27 @@ void KrunkerWindow::register_events() {
 	}).Get(), &token);
 }
 
+std::map<std::string, void*> loaded;
+
+void* library_functionv(std::string function, std::string dll) {
+	std::string prop = dll + function;
+
+	if (!loaded.contains(prop)) {
+		HMODULE lib = LoadLibrary(Convert::wstring(dll).c_str());
+
+		if (lib)loaded[prop] = (void*)GetProcAddress(lib, function.c_str());
+	}
+
+	return loaded[prop];
+}
+
+HMODULE shcore = LoadLibrary(L"api-ms-win-shcore-scaling-l1-1-1.dll");
+
+template<class T>
+inline T* LibraryFunction(std::string function, std::string dll) {
+	return (T*)library_functionv(function, dll);
+}
+
 void KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {
 	if (folder->config["window"]["meta"]["replace"].get<bool>())
 		title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
@@ -364,9 +385,16 @@ void KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> ca
 
 	if (folder->config["client"]["fullscreen"]) enter_fullscreen();
 
-	HRESULT sda = SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-	if (!SUCCEEDED(sda)) clog::error << "SetProcessDpiAwareness returned " << PROCESS_PER_MONITOR_DPI_AWARE << clog::endl;	
-	
+	if (shcore) {
+		using dec = decltype(::SetProcessDpiAwareness);
+		std::function SetProcessDpiAwareness = (dec*)GetProcAddress(shcore, "SetProcessDpiAwareness");
+
+		if (SetProcessDpiAwareness) {
+			HRESULT sda = SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+			if (!SUCCEEDED(sda)) clog::error << "SetProcessDpiAwareness returned " << PROCESS_PER_MONITOR_DPI_AWARE << clog::endl;
+		}
+		else clog::error << "Unable to get address of SetProcessDpiAwareness" << clog::endl;
+	}else clog::warn << "Unable to load shcore, is the host Win7?" << clog::endl;
 	
 	if (folder->config["window"]["meta"]["replace"].get<bool>())
 		SetIcon((HICON)LoadImage(inst, Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));

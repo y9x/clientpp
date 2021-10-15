@@ -24,13 +24,18 @@ bool WebView2Installer::Install(Error& error) {
 	error = Error::OK;
 	
 	std::wstring bin_path = BinPath();
+	httplib::Client cli(host);
+	cli.set_follow_location(true);
+	auto res = cli.Get(path.c_str());
+	
+	if (!res->body.length()) {
+		error = Error::NoBytesDownloaded;
+		return false;
+	}
+
 	HANDLE file = CreateFile(bin_path.c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (file != INVALID_HANDLE_VALUE) {
-		httplib::Client cli(host);
-		cli.set_follow_location(true);
-		auto res = cli.Get(path.c_str());
-		
 		DWORD bytes;
 		WriteFile(file, res->body.data(), res->body.length(), &bytes, nullptr);
 		CloseHandle(file);

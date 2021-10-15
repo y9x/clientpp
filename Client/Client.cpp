@@ -106,13 +106,17 @@ public:
 
 		if (!installer.Installed()) {
 			clog::warn << "WebView2 Runtime not installed, prompting installation" << clog::endl;
-			if (MessageBox(NULL, L"You are missing runtimes. Do you wish to install WebView2 Runtime?", client_title, MB_YESNO) == IDYES) {
+			if (MessageBox(NULL, L"You are missing runtimes. Install the WebView2 Runtime?", client_title, MB_YESNO) == IDYES) {
 				WebView2Installer::Error error;
 				MessageBox(NULL, L"Relaunch the client after installation is complete.", client_title, MB_OK);
 				if (!installer.Install(error)) switch (error) {
 				case WebView2Installer::Error::CantOpenProcess:
 					clog::error << "CantOpenProcess during WebView2 installation" << clog::endl;
-					MessageBox(NULL, (L"Couldn't open " + installer.bin + L". You will need to run the exe manually.").c_str(), client_title, MB_OK);
+					MessageBox(NULL, (L"Unable to open " + installer.bin + L". You will need to run the exe manually.").c_str(), client_title, MB_OK);
+					break;
+				case WebView2Installer::Error::NoBytesDownloaded:
+					clog::error << "NoBytesDownloaded during WebView2 installation" << clog::endl;
+					MessageBox(NULL, L"Unable to download MicrosoftEdgeWebview2Setup. Relaunch the client then try again.", client_title, MB_OK);
 					break;
 				default:
 					clog::error << "Unknown error " << (int)error << " during WebView2 installation" << clog::endl;
