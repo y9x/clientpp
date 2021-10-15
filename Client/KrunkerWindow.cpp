@@ -355,26 +355,7 @@ void KrunkerWindow::register_events() {
 	}).Get(), &token);
 }
 
-std::map<std::string, void*> loaded;
-
-void* library_functionv(std::string function, std::string dll) {
-	std::string prop = dll + function;
-
-	if (!loaded.contains(prop)) {
-		HMODULE lib = LoadLibrary(Convert::wstring(dll).c_str());
-
-		if (lib)loaded[prop] = (void*)GetProcAddress(lib, function.c_str());
-	}
-
-	return loaded[prop];
-}
-
 HMODULE shcore = LoadLibrary(L"api-ms-win-shcore-scaling-l1-1-1.dll");
-
-template<class T>
-inline T* LibraryFunction(std::string function, std::string dll) {
-	return (T*)library_functionv(function, dll);
-}
 
 void KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {
 	if (folder->config["window"]["meta"]["replace"].get<bool>())
