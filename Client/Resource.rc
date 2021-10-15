@@ -52,7 +52,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-MAINICON                ICON                    "Icon.ico"
+MAINICON                ICON                    "..\\Images\\Icon.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -70,9 +70,9 @@ JS_BOOTSTRAP            RCDATA                  "Bootstrap.js"
 
 JS_WEBPACK_MAP          RCDATA                  "..\\Webpack\\dist\\Webpack.js.map"
 
-ICON_GURU               RCDATA                  "Icon.ico"
+ICON_GURU               RCDATA                  "..\\Images\\Icon.ico"
 
-ICON_CLIENTPP           RCDATA                  "Client++.ico"
+ICON_CLIENTPP           RCDATA                  "..\\Images\\Client++.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
