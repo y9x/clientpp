@@ -16,7 +16,7 @@
 #include "./WebView2Installer.h"
 #include "./KrunkerWindow.h"
 
-constexpr const long double client_version = 0.04;
+constexpr const long double client_version = 0.05;
 constexpr const wchar_t* client_title = L"Guru Client++";
 constexpr const wchar_t* krunker_game = L"/";
 constexpr const wchar_t* krunker_editor = L"/editor.html";
