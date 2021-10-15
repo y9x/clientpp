@@ -143,7 +143,6 @@ public:
 	int messages() {
 		MSG msg;
 		BOOL ret;
-
 		while (game.open && (ret = GetMessage(&msg, 0, 0, 0))) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);

@@ -39,6 +39,8 @@ bool JSMessage::send(ICoreWebView2* target) {
 	return SUCCEEDED(target->PostWebMessageAsJson(Convert::wstring(json().dump()).c_str()));
 }
 
+KrunkerWindow* awindow;
+
 KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title, std::wstring p, std::function<void()> s)
 	: WebView2Window(scale, title)
 	, folder(&f)
@@ -47,6 +49,10 @@ KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title,
 	, webview2_startup(s)
 	, last_client_poll(now())
 {}
+
+KrunkerWindow::~KrunkerWindow() {
+	if(awindow == this)awindow = NULL;
+}
 
 JSON KrunkerWindow::runtime_data() {
 	JSON data = JSON::object();
@@ -76,18 +82,16 @@ JSON KrunkerWindow::runtime_data() {
 	return data;
 }
 
-KrunkerWindow* active_window;
-
 bool mousedown = false;
 
 LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam) {
+	MSLLHOOKSTRUCT* hook = (MSLLHOOKSTRUCT*)lParam;
+	
 	if (wParam == WM_LBUTTONDOWN) {
-		MSLLHOOKSTRUCT* hook = (MSLLHOOKSTRUCT*)lParam;
 		POINT point = hook->pt;
-
-		if (active_window->ScreenToClient(&point)) {
+		if (awindow && ::IsWindow(awindow->m_hWnd) && awindow->ScreenToClient(&point)) {
 			JSMessage msg("mousedown", { point.x, point.y });
-			if (!msg.send(active_window->webview.get()))clog::error << "Unable to send " << msg.json() << clog::endl;
+			if (!msg.send(awindow->webview.get()))clog::error << "Unable to send " << msg.json() << clog::endl;
 		}
 
 		return 1;
@@ -158,141 +162,140 @@ void KrunkerWindow::register_events() {
 	webview->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) {
 		LPWSTR mpt;
 		args->TryGetWebMessageAsString(&mpt);
+		if (!mpt) return S_OK;
+		
+		JSMessage msg(mpt);
+		JSON message = JSON::parse(Convert::string(mpt));
 
-		if (mpt) {
-			JSMessage msg(mpt);
-			JSON message = JSON::parse(Convert::string(mpt));
+		if (msg.event == "send webpack") {
+			std::string js_webpack = "throw Error('Failure loading Webpack.js');";
+			load_resource(JS_WEBPACK, js_webpack);
+			std::string js_webpack_map;
+			if (load_resource(JS_WEBPACK_MAP, js_webpack_map)) js_webpack += "\n//# sourceMappingURL=data:application/json;base64," + Base64::Encode(js_webpack_map);
 
-			if (msg.event == "send webpack") {
-				std::string js_webpack = "throw Error('Failure loading Webpack.js');";
-				load_resource(JS_WEBPACK, js_webpack);
-				std::string js_webpack_map;
-				if (load_resource(JS_WEBPACK_MAP, js_webpack_map)) js_webpack += "\n//# sourceMappingURL=data:application/json;base64," + Base64::Encode(js_webpack_map);
-
-				JSMessage res("eval webpack", { js_webpack, runtime_data() });
-				if (!res.send(sender))clog::error << "Unable to send " << res.json() << clog::endl;
-			}
-			else if (msg.event == "log") {
-				std::string log = msg.args[1];
-
-				if (msg.args[0] == "info")clog::info << log << clog::endl;
-				else if (msg.args[0] == "warn")clog::warn << log << clog::endl;
-				else if (msg.args[0] == "error")clog::error << log << clog::endl;
-				else if (msg.args[0] == "debug")clog::debug << log << clog::endl;
-			}
-			else if (msg.event == "open devtools") {
-				if (folder->config["client"]["devtools"]) webview->OpenDevToolsWindow();
-			}
-			else if (msg.event == "save config") {
-				folder->config = msg.args[0];
-				folder->save_config();
-			}
-			else if (msg.event == "open") {
-				std::wstring open;
-
-				if (msg.args[0] == "root")open = folder->directory;
-				else if (msg.args[0] == "logs") open = folder->directory + folder->p_logs;
-				else if (msg.args[0] == "scripts") open = folder->directory + folder->p_scripts;
-				else if (msg.args[0] == "styles") open = folder->directory + folder->p_styles;
-				else if (msg.args[0] == "swapper") open = folder->directory + folder->p_swapper;
-				else if (msg.args[0] == "url") open = Convert::wstring(msg.args[1].get<std::string>());
-
-				ShellExecute(m_hWnd, L"open", open.c_str(), L"", L"", SW_SHOW);
-			}
-			else if (msg.event == "pointer") {
-				if (msg.args[0] == "hook" && !mouse_hooked) hook_mouse();
-				else if (mouse_hooked) unhook_mouse();
-			}
-			else if (msg.event == "mouse locked") {
-				last_client_poll = now();
-				if (msg.args[0] && !mouse_hooked) hook_mouse();
-				else if (!msg.args[0] && mouse_hooked) unhook_mouse();
-			}
-			else if (msg.event == "relaunch") {
-				// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
-				control->Close();
-
-				call_create_webview([]() {});
-			}
-			else if (msg.event == "close window") {
-				if (::IsWindow(m_hWnd)) DestroyWindow();
-			}
-			else if (msg.event == "seek game") {
-				webview->Stop();
-				seek_game();
-			}
-			else if (msg.event == "reload") {
-				webview->Stop();
-				webview->Reload();
-			}
-			else if (msg.event == "fullscreen") {
-				if (folder->config["client"]["fullscreen"]) enter_fullscreen();
-				else exit_fullscreen();
-			}
-			else if (msg.event == "update meta") {
-				title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
-				SetIcon((HICON)LoadImage(get_hinstance(), folder->resolve_path(Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
-				SetWindowText(title.c_str());
-			}
-			else if (msg.event == "revert meta") {
-				title = og_title;
-				SetIcon(LoadIcon(get_hinstance(), MAKEINTRESOURCE(MAINICON)));
-				SetWindowText(title.c_str());
-			}
-			else if (msg.event == "reload config") {
-				folder->load_config();
-			}
-			else if (msg.event == "browse file") new std::thread([this](JSMessage msg) {
-				wchar_t filename[MAX_PATH];
-
-				OPENFILENAME ofn;
-				ZeroMemory(&filename, sizeof(filename));
-				ZeroMemory(&ofn, sizeof(ofn));
-				ofn.lStructSize = sizeof(ofn);
-				ofn.hwndOwner = m_hWnd;
-				std::wstring title = Convert::wstring(msg.args[1]);
-				std::wstring filters;
-				for (JSON value : msg.args[2]) {
-					std::string label = value[0];
-					std::string filter = value[1];
-
-					label += " (" + filter + ")";
-
-					filters += Convert::wstring(label);
-					filters += L'\0';
-					filters += Convert::wstring(filter);
-					filters += L'\0';
-				}
-
-				// L"Icon Files\0*.ico\0Any File\0*.*\0"
-				// filters is terminated by 2 null characters
-				// each filter is terminated by 1 null character
-				ofn.lpstrFilter = filters.c_str();
-				ofn.lpstrFile = filename;
-				ofn.nMaxFile = MAX_PATH;
-				ofn.lpstrTitle = title.c_str();
-				ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
-
-				JSMessage res(msg.args[0].get<std::string>());
-
-				if (GetOpenFileName(&ofn)) {
-					std::wstring fn;
-					fn.resize(MAX_PATH);
-					fn = filename;
-
-					// make relative
-					res.args[0] = Convert::string(folder->relative_path(fn));
-					res.args[1] = false;
-				}
-				else res.args[1] = true;
-				
-				mtx.lock();
-				post.push_back(res);
-				mtx.unlock();
-			}, msg);
-			else clog::error << "Unknown message " << msg.json() << clog::endl;
+			JSMessage res("eval webpack", { js_webpack, runtime_data() });
+			if (!res.send(sender))clog::error << "Unable to send " << res.json() << clog::endl;
 		}
+		else if (msg.event == "log") {
+			std::string log = msg.args[1];
 
+			if (msg.args[0] == "info")clog::info << log << clog::endl;
+			else if (msg.args[0] == "warn")clog::warn << log << clog::endl;
+			else if (msg.args[0] == "error")clog::error << log << clog::endl;
+			else if (msg.args[0] == "debug")clog::debug << log << clog::endl;
+		}
+		else if (msg.event == "open devtools") {
+			if (folder->config["client"]["devtools"]) webview->OpenDevToolsWindow();
+		}
+		else if (msg.event == "save config") {
+			folder->config = msg.args[0];
+			folder->save_config();
+		}
+		else if (msg.event == "open") {
+			std::wstring open;
+
+			if (msg.args[0] == "root")open = folder->directory;
+			else if (msg.args[0] == "logs") open = folder->directory + folder->p_logs;
+			else if (msg.args[0] == "scripts") open = folder->directory + folder->p_scripts;
+			else if (msg.args[0] == "styles") open = folder->directory + folder->p_styles;
+			else if (msg.args[0] == "swapper") open = folder->directory + folder->p_swapper;
+			else if (msg.args[0] == "url") open = Convert::wstring(msg.args[1].get<std::string>());
+
+			ShellExecute(m_hWnd, L"open", open.c_str(), L"", L"", SW_SHOW);
+		}
+		else if (msg.event == "pointer") {
+			if (msg.args[0] == "hook" && !mouse_hooked) hook_mouse();
+			else if (mouse_hooked) unhook_mouse();
+		}
+		else if (msg.event == "mouse locked") {
+			last_client_poll = now();
+			if (msg.args[0] && !mouse_hooked) hook_mouse();
+			else if (!msg.args[0] && mouse_hooked) unhook_mouse();
+		}
+		else if (msg.event == "relaunch") {
+			// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
+			control->Close();
+
+			call_create_webview([]() {});
+		}
+		else if (msg.event == "close window") {
+			if (::IsWindow(m_hWnd)) DestroyWindow();
+		}
+		else if (msg.event == "seek game") {
+			webview->Stop();
+			seek_game();
+		}
+		else if (msg.event == "reload") {
+			webview->Stop();
+			webview->Reload();
+		}
+		else if (msg.event == "fullscreen") {
+			if (folder->config["client"]["fullscreen"]) enter_fullscreen();
+			else exit_fullscreen();
+		}
+		else if (msg.event == "update meta") {
+			title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
+			SetIcon((HICON)LoadImage(get_hinstance(), folder->resolve_path(Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
+			SetWindowText(title.c_str());
+		}
+		else if (msg.event == "revert meta") {
+			title = og_title;
+			SetIcon(LoadIcon(get_hinstance(), MAKEINTRESOURCE(MAINICON)));
+			SetWindowText(title.c_str());
+		}
+		else if (msg.event == "reload config") {
+			folder->load_config();
+		}
+		else if (msg.event == "browse file") new std::thread([this](JSMessage msg) {
+			wchar_t filename[MAX_PATH];
+
+			OPENFILENAME ofn;
+			ZeroMemory(&filename, sizeof(filename));
+			ZeroMemory(&ofn, sizeof(ofn));
+			ofn.lStructSize = sizeof(ofn);
+			ofn.hwndOwner = m_hWnd;
+			std::wstring title = Convert::wstring(msg.args[1]);
+			std::wstring filters;
+			for (JSON value : msg.args[2]) {
+				std::string label = value[0];
+				std::string filter = value[1];
+
+				label += " (" + filter + ")";
+
+				filters += Convert::wstring(label);
+				filters += L'\0';
+				filters += Convert::wstring(filter);
+				filters += L'\0';
+			}
+
+			// L"Icon Files\0*.ico\0Any File\0*.*\0"
+			// filters is terminated by 2 null characters
+			// each filter is terminated by 1 null character
+			ofn.lpstrFilter = filters.c_str();
+			ofn.lpstrFile = filename;
+			ofn.nMaxFile = MAX_PATH;
+			ofn.lpstrTitle = title.c_str();
+			ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
+
+			JSMessage res(msg.args[0].get<std::string>());
+
+			if (GetOpenFileName(&ofn)) {
+				std::wstring fn;
+				fn.resize(MAX_PATH);
+				fn = filename;
+
+				// make relative
+				res.args[0] = Convert::string(folder->relative_path(fn));
+				res.args[1] = false;
+			}
+			else res.args[1] = true;
+				
+			mtx.lock();
+			post.push_back(res);
+			mtx.unlock();
+		}, msg);
+		else clog::error << "Unknown message " << msg.json() << clog::endl;
+		
 		return S_OK;
 	}).Get(), &token);
 
@@ -456,7 +459,7 @@ void KrunkerWindow::on_dispatch() {
 	post.clear();
 	mtx.unlock();
 
-	if (pathname == L"/" && GetActiveWindow() == m_hWnd) active_window = this;
+	if (pathname == L"/" && GetActiveWindow() == m_hWnd) awindow = this;
 
 	if (now() - last_client_poll > 2000 && mouse_hooked) {
 		clog::error << "Client polling behind" << clog::endl;

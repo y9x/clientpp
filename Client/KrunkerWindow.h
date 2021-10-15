@@ -50,4 +50,5 @@ public:
 	bool seek_game();
 	std::function<void()> webview2_startup;
 	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr);
+	~KrunkerWindow();
 };
