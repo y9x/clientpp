@@ -72,7 +72,6 @@ std::wstring ClientFolder::resolve_path(std::wstring path) {
 	FILE* file = _wfopen(joined.c_str(), L"r");
 	if (file) {
 		fclose(file);
-		clog::info << Convert::string(joined) << " exst";
 		return joined;
 	}
 
