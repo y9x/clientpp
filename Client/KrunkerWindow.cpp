@@ -231,7 +231,7 @@ void KrunkerWindow::register_events() {
 			}
 			else if (msg.event == "update meta") {
 				title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
-				SetIcon((HICON)LoadImage(get_hinstance(), Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
+				SetIcon((HICON)LoadImage(get_hinstance(), folder->resolve_path(Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
 				SetWindowText(title.c_str());
 			}
 			else if (msg.event == "revert meta") {
@@ -397,7 +397,7 @@ void KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> ca
 	}else clog::warn << "Unable to load shcore, is the host Win7?" << clog::endl;
 	
 	if (folder->config["window"]["meta"]["replace"].get<bool>())
-		SetIcon((HICON)LoadImage(inst, Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>()).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
+		SetIcon((HICON)LoadImage(inst, folder->resolve_path(Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
 	else SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));
 
 	call_create_webview(callback);

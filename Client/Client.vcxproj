@@ -131,7 +131,8 @@
     <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Client++.ico" />
+    <Image Include="..\Images\Icon.ico" />
+    <Image Include="..\Images\Krunker.ico" />
     <Image Include="Icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

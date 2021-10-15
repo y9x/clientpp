@@ -12,8 +12,8 @@
 	"window": {
 		"meta": {
 			"replace": false,
-			"title": "Client++",
-			"icon": ""
+			"title": "Krunker",
+			"icon": "Krunker.ico"
 		}
 	}
 }

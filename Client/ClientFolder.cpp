@@ -63,6 +63,22 @@ bool ClientFolder::create_directory(std::wstring directory) {
 	}
 }
 
+// document as "relative to config.json"
+std::wstring ClientFolder::resolve_path(std::wstring path) {
+	std::wstring joined = directory + L"\\" + path;
+
+	// default_config["window"]["meta"]["icon"] = Convert::string(directory + p_krunker);
+
+	FILE* file = _wfopen(joined.c_str(), L"r");
+	if (file) {
+		fclose(file);
+		clog::info << Convert::string(joined) << " exst";
+		return joined;
+	}
+
+	return path;
+}
+
 bool ClientFolder::create() {
 	bool ret = true;
 	
@@ -71,7 +87,7 @@ bool ClientFolder::create() {
 
 	if (create_directory(directory)) {
 		if (write_resource(directory + p_guru, ICON_GURU)) clog::info << "Created " << Convert::string(directory + p_guru) << clog::endl;
-		if (write_resource(directory + p_clientpp, ICON_CLIENTPP)) clog::info << "Created " << Convert::string(directory + p_clientpp) << clog::endl;
+		if (write_resource(directory + p_krunker, ICON_KRUNKER)) clog::info << "Created " << Convert::string(directory + p_krunker) << clog::endl;
 		
 		for (std::wstring sdir : directories) {
 			if (!create_directory(directory + sdir)) ret = false;
@@ -84,7 +100,6 @@ bool ClientFolder::create() {
 	std::string config_buffer;
 	if (load_resource(JSON_CONFIG, config_buffer)) {
 		default_config = JSON::parse(config_buffer);
-		default_config["window"]["meta"]["icon"] = Convert::string(directory + p_clientpp);
 	}
 
 	return ret;

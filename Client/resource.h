@@ -15,6 +15,7 @@
 #define ICON_GURU                       117
 #define IDR_RCDATA3                     121
 #define ICON_CLIENTPP                   121
+#define ICON_KRUNKER                    121
 
 // Next default values for new objects
 // 
