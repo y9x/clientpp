@@ -115,15 +115,4 @@
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
-  <ItemGroup>
-    <Image Include="Icon.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\Images\Icon.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\Images\Krunker.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-  </ItemGroup>
 </Project>

@@ -280,7 +280,8 @@ void KrunkerWindow::register_events() {
 					fn.resize(MAX_PATH);
 					fn = filename;
 
-					res.args[0] = Convert::string(fn);
+					// make relative
+					res.args[0] = Convert::string(Manipulate::replace_all(fn, folder->directory + L"\\", L""));
 					res.args[1] = false;
 				}
 				else res.args[1] = true;
