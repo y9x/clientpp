@@ -20,6 +20,7 @@ public:
 	bool create_directory(std::wstring directory);
 	bool load_config();
 	bool save_config();
+	std::wstring relative_path(std::wstring path);
 	std::wstring resolve_path(std::wstring file);
 private:
 	std::wstring name;

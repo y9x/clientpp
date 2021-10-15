@@ -64,18 +64,22 @@ bool ClientFolder::create_directory(std::wstring directory) {
 }
 
 // document as "relative to config.json"
-std::wstring ClientFolder::resolve_path(std::wstring path) {
-	std::wstring joined = directory + L"\\" + path;
+std::wstring ClientFolder::resolve_path(std::wstring file) {
+	std::wstring joined = directory + L"\\" + file;
 
 	// default_config["window"]["meta"]["icon"] = Convert::string(directory + p_krunker);
 
-	FILE* file = _wfopen(joined.c_str(), L"r");
-	if (file) {
-		fclose(file);
+	FILE* f = _wfopen(joined.c_str(), L"r");
+	if (f) {
+		fclose(f);
 		return joined;
 	}
 
-	return path;
+	return file;
+}
+
+std::wstring ClientFolder::relative_path(std::wstring path) {
+	return Manipulate::replace_all(path, directory + L"\\", L"");
 }
 
 bool ClientFolder::create() {
