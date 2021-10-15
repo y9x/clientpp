@@ -1,4 +1,4 @@
-# <img src="./Client/Icon.ico" style="height:1em"> Guru Client++
+# <img src="./Images/Icon.ico" style="height:1em"> Guru Client++
 
 Guru Client++ is a modern Krunker client written in C++ and powered by WebView2
 
