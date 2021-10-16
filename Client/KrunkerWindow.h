@@ -26,7 +26,7 @@ private:
 	void unhook_mouse();
 	JSON runtime_data();
 	void register_events();
-	void call_create_webview(std::function<void()> callback);
+	void call_create_webview(std::function<void()> callback = nullptr);
 	std::function<bool(JSMessage)> on_unknown_message;
 	std::function<void()> on_webview2_startup;
 	std::wstring cmdline();

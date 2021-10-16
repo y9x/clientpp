@@ -240,7 +240,7 @@ void KrunkerWindow::register_events() {
 		case IM::relaunch_webview:
 			// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
 			control->Close();
-			call_create_webview([]() {});
+			call_create_webview();
 
 			break;
 		case IM::close_window:
