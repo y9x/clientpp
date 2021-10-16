@@ -16,7 +16,7 @@ Join the [Discord](https://discord.gg/4r47ZwdSQj) server for release announcemen
 
 ## Requirements
 
-- Windows 7-10
+- Windows 7-11
 - [Visual C++ Runtime](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-160#visual-studio-2015-2017-2019-and-2022)
 
 ## Installation
