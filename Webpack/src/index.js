@@ -5,7 +5,7 @@ Object.defineProperty(window, 'onbeforeunload', { writable: false, value(){} })
 
 require('./FilePicker');
 
-var HTMLProxy = require('./libs/HTMLProxy'),
+var ExtendMenu = require('./libs/ExtendMenu'),
 	Category = require('./libs/MenuUI/Window/Category'),
 	Events = require('./libs/Events'),
 	Keybind = require('./libs/Keybind'),
@@ -15,21 +15,15 @@ var HTMLProxy = require('./libs/HTMLProxy'),
 	{ config: runtime_config, js } = require('./Runtime'),
 	{ site_location, meta } = require('./Consts');
 
-class Menu extends Events {
+class Menu extends ExtendMenu {
 	rpc = new RPC();
-	html = new HTMLProxy();
+	save_config(){
+		ipc.send('save config', this.config);
+	}
 	config = runtime_config;
 	default_config = require('../../Client/Config.json');
-	tab = {
-		content: this.html,
-		window: {
-			menu: this,
-		},
-	};
 	constructor(){
 		super();
-		
-		this.main();
 		
 		var Client = this.category('Client');
 		
@@ -167,6 +161,8 @@ class Menu extends Events {
 		this.keybinds();
 		
 		for(let category of this.categories)category.update(true);
+		
+		this.insert('Client');
 	}
 	keybinds(){
 		new Keybind('F4', event => {
@@ -186,28 +182,6 @@ class Menu extends Events {
 	}
 	relaunch(){
 		ipc.send('relaunch');
-	}
-	categories = new Set();
-	category(label){
-		var cat = new Category(this.tab, label);
-		this.categories.add(cat);
-		return cat;
-	}
-	save_config(){
-		ipc.send('save config', this.config);
-	}
-	async main(){
-		var array = await utils.wait_for(() => typeof windows == 'object' && windows),
-			settings = array[0],
-			index = settings.tabs.length,
-			get = settings.getSettings;
-	
-		settings.tabs.push({
-			name: 'Client',
-			categories: [],
-		});
-		
-		settings.getSettings = () => settings.tabIndex == index ? this.html.get() : get.call(settings);
 	}
 };
 
