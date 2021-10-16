@@ -137,21 +137,23 @@ bool ClientFolder::load_config() {
 	IOUtil::read_file(directory + p_config, config_buffer);
 
 	JSON new_config = JSON::object();
-	bool save = false;
+
+	bool used_default = false;
 
 	try {
 		new_config = JSON::parse(config_buffer);
 	}
 	catch (JSON::exception err) {
+		used_default = true;
 		new_config = default_config;
-		save = true;
 	}
 
-	config = traverse_copy(new_config, default_config, save, default_config);
-
-	if (save) save_config();
+	bool bad_key = false;
+	config = traverse_copy(new_config, default_config, bad_key, default_config);
 
 	clog::debug << "Config loaded" << clog::endl;
+	
+	save_config();
 
 	return true;
 }
