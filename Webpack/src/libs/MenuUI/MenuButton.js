@@ -1,10 +1,14 @@
 'use strict';
 
-var { utils, tick, select } = require('./consts'),
+var { tick, select } = require('./consts'),
+	utils = require('../Utils'),
+	Events = require('../Events'),
 	EventLite  = require('event-lite');
 
-class MenuButton {
+class MenuButton extends Events {
 	constructor(label, icon){
+		super();
+		
 		this.node = utils.crt_ele('div', {
 			className: 'menuItem',
 		});
@@ -38,7 +42,5 @@ class MenuButton {
 		this.node.style.display = 'none';
 	}
 };
-
-EventLite.mixin(MenuButton.prototype);
 
 module.exports = MenuButton;

@@ -1,7 +1,7 @@
 'use strict';
 
-var { utils } = require('./Consts'),
-	Control = require('./libs/MenuUI/Control'),
+var Control = require('./libs/MenuUI/Control'),
+	utils = require('./libs/Utils'),
 	ipc = require('./IPC');
 
 class FilePicker extends Control.Types.TextBoxControl {

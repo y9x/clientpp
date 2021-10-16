@@ -1,9 +1,8 @@
 'use strict';
 
-var Utils = require('./Utils'),
+var utils = require('./Utils'),
 	Request = require('./Request'),
-	Events = require('./Events'),
-	utils = new Utils();
+	Events = require('./Events');
 
 class Loader extends Events {
 	gconsts = {

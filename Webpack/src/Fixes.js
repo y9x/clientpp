@@ -1,6 +1,6 @@
 'use strict';
 
-var { utils } = require('./Consts'),
+var utils = require('./libs/Utils'),
 	ipc = require('./IPC'),
 	listening = new WeakSet(),
 	locked_node,

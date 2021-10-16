@@ -1,7 +1,5 @@
 'use strict';
 
-var log = console.log;
-
 class HTMLProxy {
 	children = [];
 	appendChild(node){
@@ -20,9 +18,6 @@ class HTMLProxy {
 			connectedCallback(){
 				for(let node of children)this.parentNode.insertBefore(node, this);
 				this.remove();
-				
-				// log(node.children[this.id], this.id, node.children, node);
-				// this.replaceWith(node.children[this.id]);
 			}
 		});
 	}

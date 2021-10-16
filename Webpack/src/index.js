@@ -9,10 +9,11 @@ var HTMLProxy = require('./libs/HTMLProxy'),
 	Category = require('./libs/MenuUI/Window/Category'),
 	Events = require('./libs/Events'),
 	Keybind = require('./libs/Keybind'),
+	utils = require('./libs/Utils'),
 	ipc = require('./IPC'),
+	RPC = require('./RPC'),
 	{ config: runtime_config, js } = require('./Runtime'),
-	{ site_location, utils, meta } = require('./Consts'),
-	RPC = require('./RPC');
+	{ site_location, meta } = require('./Consts');
 
 class Menu extends Events {
 	rpc = new RPC();
@@ -29,7 +30,6 @@ class Menu extends Events {
 		super();
 		
 		this.main();
-		
 		
 		var Client = this.category('Client');
 		
@@ -118,7 +118,7 @@ class Menu extends Events {
 		}).on('change', (value, init) => {
 			if(init)return;
 			if(!value)ipc.send('rpc_uninit');
-			else update_rpc();
+			else this.rpc.update(true);
 		});
 		
 		RPC.control('Show name', {

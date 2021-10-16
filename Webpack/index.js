@@ -19,14 +19,6 @@ var path = require('path'),
 			path: dist,
 			filename: 'Webpack.js',
 		},
-		module: {
-			rules: [
-				{
-					resourceQuery: /raw/,
-					use: 'raw-loader',
-				},
-			],
-		},
 		context: __dirname,
 		// inline work can be done from the client
 		// base64 strings are 3x larger

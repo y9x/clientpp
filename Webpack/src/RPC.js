@@ -1,7 +1,8 @@
 'use strict';
 
 var ipc = require('./IPC'),
-	{ utils, site_location } = require('./Consts');
+	utils = require('./libs/Utils'),
+	{ site_location } = require('./Consts');
 
 class RPC {
 	start = Date.now();

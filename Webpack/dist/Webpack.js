@@ -6,14 +6,9 @@
 /*!***********************!*\
   !*** ./src/Consts.js ***!
   \***********************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 
-
-var Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
-	utils = new Utils();
-
-exports.utils = utils;
 
 exports.meta = {
 	github: 'https://github.com/y9x/',
@@ -61,8 +56,8 @@ if(config.game.fast_load && !Object.keys(js).length){
 
 
 
-var { utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
-	Control = __webpack_require__(/*! ./libs/MenuUI/Control */ "./src/libs/MenuUI/Control.js"),
+var Control = __webpack_require__(/*! ./libs/MenuUI/Control */ "./src/libs/MenuUI/Control.js"),
+	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js");
 
 class FilePicker extends Control.Types.TextBoxControl {
@@ -104,7 +99,7 @@ module.exports = Control.Types.FilePicker = FilePicker;
 
 
 
-var { utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
+var utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	listening = new WeakSet(),
 	locked_node,
@@ -244,7 +239,8 @@ module.exports = ipc;
 
 
 var ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
-	{ utils, site_location } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
+	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
+	{ site_location } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
 
 class RPC {
 	start = Date.now();
@@ -291,8 +287,9 @@ module.exports = RPC;
 
 
 
-var { site_location, utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
+var { site_location } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
 	{ css, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
+	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	Userscript = __webpack_require__(/*! ./Userscript */ "./src/Userscript.js");
 
@@ -420,14 +417,9 @@ module.exports = Userscript;
 /*!***********************!*\
   !*** ./src/consts.js ***!
   \***********************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 
-
-var Utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
-	utils = new Utils();
-
-exports.utils = utils;
 
 exports.meta = {
 	github: 'https://github.com/y9x/',
@@ -516,8 +508,6 @@ module.exports = Events;
 
 
 
-var log = console.log;
-
 class HTMLProxy {
 	children = [];
 	appendChild(node){
@@ -536,9 +526,6 @@ class HTMLProxy {
 			connectedCallback(){
 				for(let node of children)this.parentNode.insertBefore(node, this);
 				this.remove();
-				
-				// log(node.children[this.id], this.id, node.children, node);
-				// this.replaceWith(node.children[this.id]);
 			}
 		});
 	}
@@ -621,10 +608,9 @@ module.exports = Keybind;
 
 
 
-var Utils = __webpack_require__(/*! ./Utils */ "./src/libs/Utils.js"),
+var utils = __webpack_require__(/*! ./Utils */ "./src/libs/Utils.js"),
 	Request = __webpack_require__(/*! ./Request */ "./src/libs/Request.js"),
-	Events = __webpack_require__(/*! ./Events */ "./src/libs/Events.js"),
-	utils = new Utils();
+	Events = __webpack_require__(/*! ./Events */ "./src/libs/Events.js");
 
 class Loader extends Events {
 	gconsts = {
@@ -832,7 +818,7 @@ module.exports = Loader;
 
 
 
-var { utils } = __webpack_require__(/*! ./consts */ "./src/libs/MenuUI/consts.js"),
+var utils = __webpack_require__(/*! ../Utils */ "./src/libs/Utils.js"),
 	Events = __webpack_require__(/*! ../Events */ "./src/libs/Events.js");
 
 class Control extends Events {
@@ -1136,7 +1122,7 @@ module.exports = Control;
 
 
 
-var { utils } = __webpack_require__(/*! ../consts */ "./src/libs/MenuUI/consts.js"),
+var utils = __webpack_require__(/*! ../../Utils */ "./src/libs/Utils.js"),
 	Control = __webpack_require__(/*! ../Control */ "./src/libs/MenuUI/Control.js");
 
 class Category {
@@ -1213,33 +1199,6 @@ class Category {
 };
 
 module.exports = Category;
-
-/***/ }),
-
-/***/ "./src/libs/MenuUI/consts.js":
-/*!***********************************!*\
-  !*** ./src/libs/MenuUI/consts.js ***!
-  \***********************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-
-var Utils = __webpack_require__(/*! ../utils */ "./src/libs/utils.js"),
-	utils = new Utils();
-
-exports.utils = utils;
-
-exports.tick = node => node.addEventListener('mouseenter', () => {
-	try{
-		playTick();
-	}catch(err){}
-});
-
-exports.select = node => node.addEventListener('click', () => {
-	try{
-		SOUND.play('select_0', 0.1);
-	}catch(err){}
-});
 
 /***/ }),
 
@@ -1357,13 +1316,13 @@ module.exports = request;
 
 
 class Utils {
-	is_host(url, ...hosts){
+	static is_host(url, ...hosts){
 		return hosts.some(host => url.hostname == host || url.hostname.endsWith('.' + host));
 	}
-	round(n, r){
+	static round(n, r){
 		return Math.round(n * Math.pow(10, r)) / Math.pow(10, r);
 	}
-	add_ele(node_name, parent, attributes = {}){
+	static add_ele(node_name, parent, attributes = {}){
 		var crt = this.crt_ele(node_name, attributes);
 		
 		if(typeof parent == 'function')this.wait_for(parent).then(data => data.append(crt));
@@ -1372,7 +1331,7 @@ class Utils {
 		
 		return crt;
 	}
-	crt_ele(node_name, attributes = {}){
+	static crt_ele(node_name, attributes = {}){
 		var after = {};
 		
 		for(let prop in attributes)if(typeof attributes[prop] == 'object' && attributes[prop] != null)after[prop] = attributes[prop], delete attributes[prop];
@@ -1404,7 +1363,7 @@ class Utils {
 		
 		return node;
 	}
-	wait_for(check, time){
+	static wait_for(check, time){
 		return new Promise(resolve => {
 			var interval,
 				run = () => {
@@ -1423,21 +1382,21 @@ class Utils {
 			interval = run() || setInterval(run, time || 50);
 		});
 	}
-	sanitize(string){
+	static sanitize(string){
 		var node = document.createElement('div');
 		
 		node.textContent = string;
 		
 		return node.innerHTML;
 	}
-	unsanitize(string){
+	static unsanitize(string){
 		var node = document.createElement('div');
 		
 		node.innerHTML = string;
 		
 		return node.textContent;
 	}
-	node_tree(nodes, parent = document){
+	static node_tree(nodes, parent = document){
 		var output = {
 				parent: parent,
 			},
@@ -1470,13 +1429,13 @@ class Utils {
 		
 		return output;
 	}
-	string_key(key){
+	static string_key(key){
 		return key.replace(/^([A-Z][a-z]+?)([A-Z0-9][a-z]*?)/, (match, type, key) => ['Digit', 'Key'].includes(type) ? key : `${key} ${type}`);
 	}
-	clone_obj(obj){
+	static clone_obj(obj){
 		return JSON.parse(JSON.stringify(obj));
 	}
-	assign_deep(target, ...objects){
+	static assign_deep(target, ...objects){
 		for(let ind in objects)for(let key in objects[ind]){
 			if(typeof objects[ind][key] == 'object' && objects[ind][key] != null && key in target)this.assign_deep(target[key], objects[ind][key]);
 			else if(typeof target == 'object' && target != null)Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(objects[ind], key))
@@ -1484,7 +1443,7 @@ class Utils {
 		
 		return target;
 	}
-	filter_deep(target, match){
+	static filter_deep(target, match){
 		for(let key in target){
 			if(!(key in match))delete target[key];
 			
@@ -1493,7 +1452,7 @@ class Utils {
 		
 		return target;
 	}
-	redirect(name, from, to){
+	static redirect(name, from, to){
 		var proxy = Symbol();
 		
 		to.addEventListener(name, event => {
@@ -1506,7 +1465,7 @@ class Utils {
 			preventDefault: event.preventDefault.bind(event),
 		})));
 	}
-	promise(){
+	static promise(){
 		var temp,
 			promise = new Promise((resolve, reject) => temp = { resolve, reject });
 		
@@ -1516,191 +1475,12 @@ class Utils {
 		
 		return promise;
 	}
-	rtn(number, unit){
+	static rtn(number, unit){
 		return (number / unit).toFixed() * unit;
 	}
 };
 
 module.exports = Utils;
-
-
-/***/ }),
-
-/***/ "./src/libs/utils.js":
-/*!***************************!*\
-  !*** ./src/libs/utils.js ***!
-  \***************************/
-/***/ ((module) => {
-
-
-
-class Utils {
-	is_host(url, ...hosts){
-		return hosts.some(host => url.hostname == host || url.hostname.endsWith('.' + host));
-	}
-	round(n, r){
-		return Math.round(n * Math.pow(10, r)) / Math.pow(10, r);
-	}
-	add_ele(node_name, parent, attributes = {}){
-		var crt = this.crt_ele(node_name, attributes);
-		
-		if(typeof parent == 'function')this.wait_for(parent).then(data => data.append(crt));
-		else if(typeof parent == 'object' && parent != null && parent.append)parent.append(crt);
-		else throw new Error('Parent is not resolvable to a DOM element');
-		
-		return crt;
-	}
-	crt_ele(node_name, attributes = {}){
-		var after = {};
-		
-		for(let prop in attributes)if(typeof attributes[prop] == 'object' && attributes[prop] != null)after[prop] = attributes[prop], delete attributes[prop];
-	
-		var node;
-		
-		if(node_name == 'raw')node = this.crt_ele('div', { innerHTML: attributes.html }).firstChild;
-		else if(node_name == 'text')node = document.createTextNode('');
-		else node = document.createElement(node_name);
-		
-		var cls = attributes.className;
-		
-		if(cls){
-			delete attributes.className;
-			node.setAttribute('class', cls);
-		}
-		
-		var events = after.events;
-		
-		if(events){
-			delete after.events;
-			
-			for(let event in events)node.addEventListener(event, events[event]);
-		}
-		
-		Object.assign(node, attributes);
-		
-		for(let prop in after)Object.assign(node[prop], after[prop]);
-		
-		return node;
-	}
-	wait_for(check, time){
-		return new Promise(resolve => {
-			var interval,
-				run = () => {
-					try{
-						var result = check();
-						
-						if(result){
-							if(interval)clearInterval(interval);
-							resolve(result);
-							
-							return true;
-						}
-					}catch(err){console.log(err)}
-				};
-			
-			interval = run() || setInterval(run, time || 50);
-		});
-	}
-	sanitize(string){
-		var node = document.createElement('div');
-		
-		node.textContent = string;
-		
-		return node.innerHTML;
-	}
-	unsanitize(string){
-		var node = document.createElement('div');
-		
-		node.innerHTML = string;
-		
-		return node.textContent;
-	}
-	node_tree(nodes, parent = document){
-		var output = {
-				parent: parent,
-			},
-			match_container = /^\$\s+>?/g,
-			match_parent = /^\^\s+>?/g;
-		
-		for(var label in nodes){
-			var value = nodes[label];
-			
-			if(value instanceof Node)output[label] = value;
-			else if(typeof value == 'object')output[label] = this.node_tree(value, output.container);
-			else if(match_container.test(nodes[label])){
-				if(!output.container){
-					console.warn('No container is available, could not access', value);
-					continue;
-				}
-				
-				output[label] = output.container.querySelector(nodes[label].replace(match_container, ''));
-			}else if(match_parent.test(nodes[label])){
-				if(!output.parent){
-					console.warn('No parent is available, could not access', value);
-					continue;
-				}
-				
-				output[label] = output.parent.querySelector(nodes[label].replace(match_parent, ''));
-			}else output[label] = parent.querySelector(nodes[label]);
-			
-			if(!output[label])console.warn('No node found, could not access', value);
-		}
-		
-		return output;
-	}
-	string_key(key){
-		return key.replace(/^([A-Z][a-z]+?)([A-Z0-9][a-z]*?)/, (match, type, key) => ['Digit', 'Key'].includes(type) ? key : `${key} ${type}`);
-	}
-	clone_obj(obj){
-		return JSON.parse(JSON.stringify(obj));
-	}
-	assign_deep(target, ...objects){
-		for(let ind in objects)for(let key in objects[ind]){
-			if(typeof objects[ind][key] == 'object' && objects[ind][key] != null && key in target)this.assign_deep(target[key], objects[ind][key]);
-			else if(typeof target == 'object' && target != null)Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(objects[ind], key))
-		}
-		
-		return target;
-	}
-	filter_deep(target, match){
-		for(let key in target){
-			if(!(key in match))delete target[key];
-			
-			if(typeof match[key] == 'object' && match[key] != null)this.filter_deep(target[key], match[key]);
-		}
-		
-		return target;
-	}
-	redirect(name, from, to){
-		var proxy = Symbol();
-		
-		to.addEventListener(name, event => {
-			if(event[proxy])return;
-		});
-		
-		from.addEventListener(name, event => to.dispatchEvent(Object.assign(new(event.constructor)(name, event), {
-			[proxy]: true,
-			stopImmediatePropagation: event.stopImmediatePropagation.bind(event),
-			preventDefault: event.preventDefault.bind(event),
-		})));
-	}
-	promise(){
-		var temp,
-			promise = new Promise((resolve, reject) => temp = { resolve, reject });
-		
-		Object.assign(promise, temp);
-		
-		promise.resolve_in = (time = 0, data) => setTimeout(() => promise.resolve(data), time);
-		
-		return promise;
-	}
-	rtn(number, unit){
-		return (number / unit).toFixed() * unit;
-	}
-};
-
-module.exports = Utils;
-
 
 /***/ }),
 
@@ -1758,10 +1538,11 @@ var HTMLProxy = __webpack_require__(/*! ./libs/HTMLProxy */ "./src/libs/HTMLProx
 	Category = __webpack_require__(/*! ./libs/MenuUI/Window/Category */ "./src/libs/MenuUI/Window/Category.js"),
 	Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
 	Keybind = __webpack_require__(/*! ./libs/Keybind */ "./src/libs/Keybind.js"),
+	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+	RPC = __webpack_require__(/*! ./RPC */ "./src/RPC.js"),
 	{ config: runtime_config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
-	{ site_location, utils, meta } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
-	RPC = __webpack_require__(/*! ./RPC */ "./src/RPC.js");
+	{ site_location, meta } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
 
 class Menu extends Events {
 	rpc = new RPC();
@@ -1778,7 +1559,6 @@ class Menu extends Events {
 		super();
 		
 		this.main();
-		
 		
 		var Client = this.category('Client');
 		
@@ -1867,7 +1647,7 @@ class Menu extends Events {
 		}).on('change', (value, init) => {
 			if(init)return;
 			if(!value)ipc.send('rpc_uninit');
-			else update_rpc();
+			else this.rpc.update(true);
 		});
 		
 		RPC.control('Show name', {

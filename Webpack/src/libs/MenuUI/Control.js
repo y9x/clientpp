@@ -1,6 +1,6 @@
 'use strict';
 
-var { utils } = require('./consts'),
+var utils = require('../Utils'),
 	Events = require('../Events');
 
 class Control extends Events {

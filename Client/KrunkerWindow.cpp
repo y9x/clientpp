@@ -134,7 +134,7 @@ std::wstring KrunkerWindow::cmdline() {
 		cmds.push_back(L"--disable-frame-rate-limit");
 		cmds.push_back(L"--disable-gpu-vsync");
 	}
-
+	
 	std::wstring cmdline;
 	bool first = false;
 

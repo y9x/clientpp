@@ -1,10 +1,5 @@
 'use strict';
 
-var Utils = require('./libs/Utils'),
-	utils = new Utils();
-
-exports.utils = utils;
-
 exports.meta = {
 	github: 'https://github.com/y9x/',
 	discord: 'https://y9x.github.io/discord/',
