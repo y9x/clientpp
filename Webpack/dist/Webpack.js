@@ -7,55 +7,7 @@
   \*******************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={send_webpack:0,eval_webpack:1,save_config:2,shell_open:3,fullscreen:4,update_meta:5,revert_meta:6,reload_config:7,browse_file:8,mousedown:9,pointer:10,mouse_locked:11,open_devtools:12,rpc_init:13,rpc_uninit:14,rpc_update:15,log:16,relaunch_webview:17,close_window:18,reload_window:19,seek_game:20}
-
-/***/ }),
-
-/***/ "./src/Consts.js":
-/*!***********************!*\
-  !*** ./src/Consts.js ***!
-  \***********************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-exports.meta = {
-	github: 'https://github.com/y9x/',
-	discord: 'https://y9x.github.io/discord/',
-	forum: 'https://forum.sys32.dev/',
-};
-
-exports.site_location = {
-	'/': 'game',
-	'/social.html': 'social',
-	'/editor.html': 'editor',
-}[location.pathname];
-
-/***/ }),
-
-/***/ "./src/FastLoad.js":
-/*!*************************!*\
-  !*** ./src/FastLoad.js ***!
-  \*************************/
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var { config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
-	{ meta } = __webpack_require__(/*! ./consts */ "./src/consts.js"),
-	Loader = __webpack_require__(/*! ./libs/Loader */ "./src/libs/Loader.js");
-
-if(config.game.fast_load && !Object.keys(js).length){
-	let loader = new Loader();
-	
-	loader.observe();
-	
-	loader.license(meta);
-	
-	loader.load({}, {});
-}
+exports.LogType={info:0,error:1,warn:2,debug:3};exports.RPCM={update:0,clear:1,init:2};exports.IM={send_webpack:0,eval_webpack:1,save_config:2,shell_open:3,fullscreen:4,update_meta:5,revert_meta:6,reload_config:7,browse_file:8,mousedown:9,pointer:10,mouse_locked:11,open_devtools:12,log:13,relaunch_webview:14,close_window:15,reload_window:16,seek_game:17}
 
 /***/ }),
 
@@ -84,7 +36,7 @@ class FilePicker extends Control.Types.TextBoxControl {
 			},
 			events: {
 				click: () => {
-					var id = Math.random().toString();
+					var id = (~~(Math.random() * 2147483647)).toString();
 					
 					ipc.once(id, (data, error) => {
 						if(error)return;
@@ -258,9 +210,9 @@ exports.IM = IM;
 "use strict";
 
 
-var { IM, ipc } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+var { IM, RPCM, ipc } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
-	{ site_location } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
+	site_location = __webpack_require__(/*! ./SiteLocation */ "./src/SiteLocation.js");
 
 class RPC {
 	start = Date.now();
@@ -289,7 +241,7 @@ class RPC {
 			jargs = JSON.stringify(args);
 		
 		if(!force && jargs != this.last){
-			ipc.send(IM.rpc_update, this.start, ...args);
+			ipc.send(RPCM.update, this.start, ...args);
 			this.last = jargs;
 		}
 	}
@@ -308,8 +260,8 @@ module.exports = RPC;
 "use strict";
 
 
-var { site_location } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
-	{ css, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
+var { css, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
+	site_location = __webpack_require__(/*! ./SiteLocation */ "./src/SiteLocation.js"),
 	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	Userscript = __webpack_require__(/*! ./Userscript */ "./src/Userscript.js");
@@ -376,6 +328,23 @@ module.exports = _RUNTIME_DATA_;
 
 /***/ }),
 
+/***/ "./src/SiteLocation.js":
+/*!*****************************!*\
+  !*** ./src/SiteLocation.js ***!
+  \*****************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = {
+	'/': 'game',
+	'/social.html': 'social',
+	'/editor.html': 'editor',
+}[location.pathname];
+
+/***/ }),
+
 /***/ "./src/Userscript.js":
 /*!***************************!*\
   !*** ./src/Userscript.js ***!
@@ -387,7 +356,7 @@ module.exports = _RUNTIME_DATA_;
 
 // Legacy IDKR userscript
 
-var { site_location } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
+var site_location = __webpack_require__(/*! ./SiteLocation */ "./src/SiteLocation.js");
 
 class Userscript {
 	#field(compare, value){
@@ -431,29 +400,6 @@ class Userscript {
 };
 
 module.exports = Userscript;
-
-/***/ }),
-
-/***/ "./src/consts.js":
-/*!***********************!*\
-  !*** ./src/consts.js ***!
-  \***********************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-exports.meta = {
-	github: 'https://github.com/y9x/',
-	discord: 'https://y9x.github.io/discord/',
-	forum: 'https://forum.sys32.dev/',
-};
-
-exports.site_location = {
-	'/': 'game',
-	'/social.html': 'social',
-	'/editor.html': 'editor',
-}[location.pathname];
 
 /***/ }),
 
@@ -681,217 +627,6 @@ window.addEventListener('keydown', event => {
 });
 
 module.exports = Keybind;
-
-/***/ }),
-
-/***/ "./src/libs/Loader.js":
-/*!****************************!*\
-  !*** ./src/libs/Loader.js ***!
-  \****************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var utils = __webpack_require__(/*! ./Utils */ "./src/libs/Utils.js"),
-	Request = __webpack_require__(/*! ./Request */ "./src/libs/Request.js"),
-	Events = __webpack_require__(/*! ./Events */ "./src/libs/Events.js");
-
-class Loader extends Events {
-	gconsts = {
-		playerHeight: 11,
-		cameraHeight: 1.5,
-		headScale: 2,
-		armScale: 1.3,
-		armInset: 0.1,
-		chestWidth: 2.6,
-		hitBoxPad: 1,
-		crouchDst: 3,
-		recoilMlt: 0.3,
-		nameOffset: 0.6,
-		nameOffsetHat: 0.8,
-	};
-	api =  false ? 0 : 'https://api.sys32.dev/';
-	matchmaker = 'https://matchmaker.krunker.io/';
-	badge = '[GameLoader]';
-		// outcome of above maps
-	vars = {};
-	context = {
-		key: '_' + Math.random().toString().substr(2),
-	};
-	has_instruct = this.has_instruct.bind(this);
-	stacks = new Set();
-	api_v2 = new URL('v2/', this.api);
-	
-	meta = utils.promise();
-	patches = new Map();
-	variables = new Map();
-	log(...text){
-		console.log(this.badge, ...text);
-	}
-	var(label, regex, index){
-		return this.variables.set(label, [ regex, index ]), this;
-	}
-	patch(label, regex, replacement){
-		return this.patches.set(label, [ regex, replacement ]), this;
-	}
-	observe(){
-		this.loadp = new Promise(resolve => new MutationObserver((muts, observer) => muts.forEach(mut => [...mut.addedNodes].forEach(node => {
-			if(node.tagName == 'DIV' && node.id == 'instructionHolder'){
-				this.instruction_holder = node;
-				
-				new MutationObserver(() => setTimeout(() => this.emit('instruct', this.has_instruct), 200)).observe(this.instruction_holder, {
-					attributes: true,
-					attributeFilter: [ 'style' ],
-				});
-			}
-			
-			if(node.tagName == 'SCRIPT' && node.textContent.includes('Yendis Entertainment')){
-				node.textContent = '';
-				resolve();
-			}
-		}))).observe(document, { childList: true, subtree: true }));
-	}
-	has_instruct(...test){
-		if(!this.instruction_holder)return false
-		var instruction = this.instruction_holder.textContent.trim().toLowerCase();
-		for(let string of test)if(instruction.includes(test))return true;
-		return false;
-	}
-	async report_error(where, err){
-		if(typeof err != 'object')return;
-		
-		var body = {
-			name: err.name,
-			message: err.message,
-			stack: err.stack,
-			where: where,
-		};
-		
-		if(this.stacks.has(err.stack))return;
-		
-		console.error('Where:', where, '\nUncaught', err);
-		
-		this.stacks.add(err.stack);
-		
-		await Request({
-			target: this.api_v2,
-			endpoint: 'error',
-			data: body,
-		});
-	}
-	async show_error(title, message){
-		await this.load;
-		
-		var holder = document.querySelector('#instructionHolder'),
-			instructions = document.querySelector('#instructions');
-		
-		holder.style.display = 'block';
-		holder.style.pointerEvents = 'all';
-		
-		for(let node of document.querySelectorAll('#loadingBg, #initLoader'))node.style.display = 'none';
-	
-		instructions.innerHTML = `<div style='color:#FFF9'>${title}</div><div style='margin-top:10px;font-size:20px;color:#FFF6'>${message}</div>`;
-	}
-	async token(){
-		await this.meta;
-		
-		return await Request({
-			target: this.api_v2,
-			endpoint: 'token',
-			data: await Request({
-				target: this.matchmaker,
-				endpoint: 'generate-token',
-				headers: {
-					'client-key': this.meta.key,
-				},
-				result: 'json',
-			}),
-			result: 'json',
-		});
-	}
-	apply_patches(source){
-		var missing;
-		
-		for(var [ label, [ regex, index ] ] of this.variables){
-			var value = (source.match(regex) || 0)[index];
-			
-			if(value)this.vars[label] = value;
-			else (missing || (missing = {}))[label] = [ regex, index ];
-		}
-		
-		console.log('Game Variables:');
-		console.table(this.vars);
-		
-		if(missing){
-			console.log('Missing:');
-			console.table(missing);
-		}
-		
-		for(var [ label, [ input, replacement ] ] of this.patches){
-			if(!source.match(input))console.error('Could not patch', label);
-			
-			source = source.replace(input, replacement);
-		}
-		
-		return source;
-	}
-	async license(input_meta){
-		var meta = await Request({
-			target: this.api_v2,
-			endpoint: 'meta',
-			data: {
-				...input_meta,
-				needs_key: true,
-			},
-			method: 'POST',
-			result: 'json',
-		});
-		
-		if(meta.error){
-			utils.add_ele('style', document.documentElement, {
-				textContent: '#initLoader,#instructionsUpdate{display:none!IMPORTANT}',
-			});
-			
-			this.show_error(meta.error.title, meta.error.message);
-			this.meta.reject();
-		}else this.meta.resolve(this.meta = meta);
-	}
-	async source(){
-		await this.meta;
-		
-		return await Request({
-			target: this.api_v2,
-			endpoint: 'source',
-			query: {
-				build: this.meta.build,
-			},
-			result: 'text',
-			cache: true,
-		});
-	}
-	async load(add_args = {}, add_context = {}, before_load = () => {}){
-		var args = {
-				...add_args,
-				[this.context.key]: this.context,
-				WP_fetchMMToken: this.token(),
-			},
-			source = this.apply_patches(await this.source());
-		
-		Object.assign(this.context, add_context);
-		
-		try{
-			await this.loadp;
-			before_load();
-			new Function(...Object.keys(args), source)(...Object.values(args));
-		}catch(err){
-			this.report_error('loading', err);
-			this.show_error(err.message, `Post a screenshot of this error on <a href='https://forum.sys32.dev/'>the forums</a> or <a href='/'>click here</a> to try again.`);
-		}
-	}
-};
-
-module.exports = Loader;
 
 /***/ }),
 
@@ -1289,112 +1024,6 @@ module.exports = Category;
 
 /***/ }),
 
-/***/ "./src/libs/Request.js":
-/*!*****************************!*\
-  !*** ./src/libs/Request.js ***!
-  \*****************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-var is_obj = data => typeof data == 'object' && data != null,
-	is_url = data => typeof data == 'string' || data instanceof Location || data instanceof URL,
-	headers_obj = headers => {
-		if(!is_obj(headers))return {};
-		else if(headers instanceof Headers){
-			let out = {};
-			
-			for(let [ key, value ] of headers)out[key] = value;
-			
-			return out;
-		}else return headers;
-	};
-
-var request = input => {
-	if(!is_obj(input))throw new TypeError('Input must be an object');
-	
-	var opts = {
-			cache: 'no-cache',
-			headers: headers_obj(input.headers),
-		},
-		url = request.resolve(input);
-	
-	switch(input.cache){
-		case true:
-			opts.cache = 'force-cache';
-			break;
-		case'query':	
-			url.search += '?' + Date.now();
-			break;
-	}
-	if(input.cache == true)opts.cache = 'force-cache';
-	
-	if(is_obj(input.data)){
-		opts.method = 'POST';
-		opts.body = JSON.stringify(input.data);
-		opts.headers['content-type'] = 'application/json';
-	}
-	
-	if(typeof input.method == 'string')opts.method = input.method;
-	
-	if(input.sync){
-		opts.xhr = true;
-		opts.synchronous = true;
-	}
-	
-	var result = ['text', 'json', 'arrayBuffer'].includes(input.result) ? input.result : 'text';
-	
-	return (opts.xhr ? request.fetch_xhr : window.fetch.bind(window))(url, opts).then(res => res[result]());
-};
-
-// request.fetch = window.fetch.bind(window);
-
-request.fetch_xhr = (url, opts = {}) => {
-	if(!is_url(url))throw new TypeError('url param is not resolvable');
-	
-	var url = new URL(url, location).href,
-		method = typeof opts.method == 'string' ? opts.method : 'GET';
-	
-	// if(opts.cache == 'no-cache')url += '?' + Date.now();
-	
-	var req = new XMLHttpRequest();
-	
-	req.open(method, url, !opts.synchronous);
-	
-	return new Promise((resolve, reject) => {
-		req.addEventListener('load', () => resolve({
-			async text(){
-				return req.responseText;
-			},
-			async json(){
-				return JSON.parse(req.responseText);
-			},
-			headers: new Headers(),
-		}));
-		
-		req.addEventListener('error', event => reject(event.error));
-		
-		req.send(opts.body);
-	});
-};
-
-request.resolve = input => {
-	if(!is_url(input.target))throw new TypeError('Target must be specified');
-	
-	var url = new URL(input.target);
-	
-	if(is_url(input.endpoint))url = new URL(input.endpoint, url);
-	
-	if(typeof input.query == 'object' && input.query != null)url.search = '?' + new URLSearchParams(Object.entries(input.query));
-	
-	return url;
-};
-
-module.exports = request;
-
-/***/ }),
-
 /***/ "./src/libs/Utils.js":
 /*!***************************!*\
   !*** ./src/libs/Utils.js ***!
@@ -1758,7 +1387,7 @@ module.exports = Utils;
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"game":{"fast_load":false,"f4_seek":true},"client":{"uncap_fps":false,"adblock":true,"fullscreen":false,"devtools":false},"rpc":{"enabled":true,"name":true},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}}}');
+module.exports = JSON.parse('{"game":{"f4_seek":true},"client":{"uncap_fps":false,"adblock":true,"fullscreen":false,"devtools":false},"rpc":{"enabled":true,"name":true},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}}}');
 
 /***/ })
 
@@ -1808,10 +1437,11 @@ var ExtendMenu = __webpack_require__(/*! ./libs/ExtendMenu */ "./src/libs/Extend
 	Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
 	Keybind = __webpack_require__(/*! ./libs/Keybind */ "./src/libs/Keybind.js"),
 	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
-	{ ipc, IM } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+	{ ipc, IM, RPCM } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+	console = {...window.console},
 	RPC = __webpack_require__(/*! ./RPC */ "./src/RPC.js"),
 	{ config: runtime_config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
-	{ site_location, meta } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
+	site_location = __webpack_require__(/*! ./SiteLocation */ "./src/SiteLocation.js");
 
 class Menu extends ExtendMenu {
 	rpc = new RPC();
@@ -1828,21 +1458,14 @@ class Menu extends ExtendMenu {
 		Client.control('Github', {
 			type: 'linkfunction',
 			value(){
-				ipc.send(IM.IM.shell_open, 'url', meta.github);
+				ipc.send(IM.shell_open, 'url', meta.github);
 			},
 		});
 		
 		Client.control('Discord', {
 			type: 'linkfunction',
 			value(){
-				ipc.send(IM.IM.shell_open, 'url', meta.discord);
-			},
-		});
-		
-		Client.control('Forum', {
-			type: 'linkfunction',
-			value(){
-				ipc.send(IM.IM.shell_open, 'url', meta.forum);
+				ipc.send(IM.shell_open, 'url', meta.discord);
 			},
 		});
 		
@@ -1851,25 +1474,25 @@ class Menu extends ExtendMenu {
 		/*Folder.control('Root', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send(IM.IM.shell_open, 'root'),
+			value: () => ipc.send(IM.shell_open, 'root'),
 		});*/
 		
 		Folder.control('Scripts', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send(IM.IM.shell_open, 'scripts'),
+			value: () => ipc.send(IM.shell_open, 'scripts'),
 		});
 		
 		Folder.control('Styles', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send(IM.IM.shell_open, 'styles'),
+			value: () => ipc.send(IM.shell_open, 'styles'),
 		});
 		
 		Folder.control('Resource Swapper', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send(IM.IM.shell_open, 'swapper'),
+			value: () => ipc.send(IM.shell_open, 'swapper'),
 		});
 		
 		var Render = this.category('Rendering');
@@ -1891,12 +1514,6 @@ class Menu extends ExtendMenu {
 		
 		var Game = this.category('Game');
 		
-		// loads krunker from api
-		Game.control('Fast Loading (Risky)', {
-			type: 'boolean',
-			walk: 'game.fast_load',
-		});
-		
 		Game.control('Seek new Lobby [F4]', {
 			type: 'boolean',
 			walk: 'game.f4_seek',
@@ -1909,9 +1526,9 @@ class Menu extends ExtendMenu {
 			walk: 'rpc.enabled',
 		}).on('change', (value, init) => {
 			if(init)return;
-			if(!value)ipc.send(IM.rpc_uninit);
+			if(!value)ipc.send(RPCM.clear);
 			else{
-				ipc.send(IM.rpc_init);
+				ipc.send(RPCM.init);
 				this.rpc.update(true);
 			}
 		});
@@ -1987,7 +1604,6 @@ __webpack_require__(/*! ./Resources */ "./src/Resources.js");
 
 if(site_location == 'game'){
 	__webpack_require__(/*! ./Fixes */ "./src/Fixes.js");
-	__webpack_require__(/*! ./FastLoad */ "./src/FastLoad.js");
 	new Menu();
 }
 

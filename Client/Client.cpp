@@ -82,20 +82,20 @@ void Client::rpc_loading() {
 }
 
 bool Client::game_message(JSMessage msg) {
-	switch (msg.event) {
-	case IM::rpc_init:
+	switch ((RPCM)msg.event) {
+	case RPCM::init:
 
 		if (!folder.config["rpc"]["enabled"]) break;
 
 		rpc_loading();
 
 		break;
-	case IM::rpc_uninit:
+	case RPCM::clear:
 
 		Discord_ClearPresence();
 
 		break;
-	case IM::rpc_update: {
+	case RPCM::update: {
 
 		if (!folder.config["rpc"]["enabled"]) break;
 

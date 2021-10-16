@@ -15,8 +15,8 @@ using namespace StringUtil;
 using Microsoft::WRL::Make;
 using Microsoft::WRL::Callback;
 
-JSMessage::JSMessage(IM e) : event(e) {}
-JSMessage::JSMessage(IM e, JSON p) : event(e), args(p) {}
+JSMessage::JSMessage(int e) : event(e) {}
+JSMessage::JSMessage(int e, JSON p) : event(e), args(p) {}
 JSMessage::JSMessage(std::wstring raw) {
 	JSON parsed = JSON::parse(Convert::string(raw));
 
@@ -30,7 +30,7 @@ JSMessage::JSMessage(std::wstring raw) {
 			if (!parsed[index].is_number()) {
 				clog::error << "Event was not a number" << clog::endl;
 				return;
-			}else event = (IM)parsed[index].get<int>();
+			}else event = parsed[index].get<int>();
 		}
 		else args.push_back(parsed[index]);
 	}
@@ -101,7 +101,7 @@ LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lP
 	if (wParam == WM_LBUTTONDOWN) {
 		POINT point = hook->pt;
 		if (awindow && ::IsWindow(awindow->m_hWnd) && awindow->ScreenToClient(&point)) {
-			JSMessage msg(IM::mousedown, { point.x, point.y });
+			JSMessage msg((int)IM::mousedown, { point.x, point.y });
 			if (!msg.send(awindow->webview.get()))clog::error << "Unable to send " << msg.dump() << clog::endl;
 		}
 
@@ -177,14 +177,14 @@ void KrunkerWindow::register_events() {
 		
 		JSMessage msg(mpt);
 		
-		switch (msg.event) {
+		switch ((IM)msg.event) {
 		case IM::send_webpack: {
 			std::string js_webpack = "throw Error('Failure loading Webpack.js');";
 			load_resource(JS_WEBPACK, js_webpack);
 			std::string js_webpack_map;
 			if (load_resource(JS_WEBPACK_MAP, js_webpack_map)) js_webpack += "\n//# sourceMappingURL=data:application/json;base64," + Base64::Encode(js_webpack_map);
 
-			JSMessage res(IM::eval_webpack, { js_webpack, runtime_data() });
+			JSMessage res((int)IM::eval_webpack, { js_webpack, runtime_data() });
 			if (!res.send(sender))clog::error << "Unable to send " << res.dump() << clog::endl;
 
 		} break;
@@ -306,7 +306,7 @@ void KrunkerWindow::register_events() {
 				ofn.lpstrTitle = title.c_str();
 				ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
 
-				JSMessage res((IM)msg.args[0].get<long double>());
+				JSMessage res(msg.args[0].get<int>());
 
 				if (GetOpenFileName(&ofn)) {
 					std::wstring fn;

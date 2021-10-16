@@ -16,7 +16,7 @@ class FilePicker extends Control.Types.TextBoxControl {
 			},
 			events: {
 				click: () => {
-					var id = Math.random().toString();
+					var id = (~~(Math.random() * 2147483647)).toString();
 					
 					ipc.once(id, (data, error) => {
 						if(error)return;

@@ -1,8 +1,8 @@
 'use strict';
 
-var { IM, ipc } = require('./IPC'),
+var { IM, RPCM, ipc } = require('./IPC'),
 	utils = require('./libs/Utils'),
-	{ site_location } = require('./Consts');
+	site_location = require('./SiteLocation');
 
 class RPC {
 	start = Date.now();
@@ -31,7 +31,7 @@ class RPC {
 			jargs = JSON.stringify(args);
 		
 		if(!force && jargs != this.last){
-			ipc.send(IM.rpc_update, this.start, ...args);
+			ipc.send(RPCM.update, this.start, ...args);
 			this.last = jargs;
 		}
 	}

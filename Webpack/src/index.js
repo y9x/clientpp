@@ -10,10 +10,11 @@ var ExtendMenu = require('./libs/ExtendMenu'),
 	Events = require('./libs/Events'),
 	Keybind = require('./libs/Keybind'),
 	utils = require('./libs/Utils'),
-	{ ipc, IM } = require('./IPC'),
+	{ ipc, IM, RPCM } = require('./IPC'),
+	console = {...window.console},
 	RPC = require('./RPC'),
 	{ config: runtime_config, js } = require('./Runtime'),
-	{ site_location, meta } = require('./Consts');
+	site_location = require('./SiteLocation');
 
 class Menu extends ExtendMenu {
 	rpc = new RPC();
@@ -30,21 +31,14 @@ class Menu extends ExtendMenu {
 		Client.control('Github', {
 			type: 'linkfunction',
 			value(){
-				ipc.send(IM.IM.shell_open, 'url', meta.github);
+				ipc.send(IM.shell_open, 'url', meta.github);
 			},
 		});
 		
 		Client.control('Discord', {
 			type: 'linkfunction',
 			value(){
-				ipc.send(IM.IM.shell_open, 'url', meta.discord);
-			},
-		});
-		
-		Client.control('Forum', {
-			type: 'linkfunction',
-			value(){
-				ipc.send(IM.IM.shell_open, 'url', meta.forum);
+				ipc.send(IM.shell_open, 'url', meta.discord);
 			},
 		});
 		
@@ -53,25 +47,25 @@ class Menu extends ExtendMenu {
 		/*Folder.control('Root', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send(IM.IM.shell_open, 'root'),
+			value: () => ipc.send(IM.shell_open, 'root'),
 		});*/
 		
 		Folder.control('Scripts', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send(IM.IM.shell_open, 'scripts'),
+			value: () => ipc.send(IM.shell_open, 'scripts'),
 		});
 		
 		Folder.control('Styles', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send(IM.IM.shell_open, 'styles'),
+			value: () => ipc.send(IM.shell_open, 'styles'),
 		});
 		
 		Folder.control('Resource Swapper', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send(IM.IM.shell_open, 'swapper'),
+			value: () => ipc.send(IM.shell_open, 'swapper'),
 		});
 		
 		var Render = this.category('Rendering');
@@ -93,12 +87,6 @@ class Menu extends ExtendMenu {
 		
 		var Game = this.category('Game');
 		
-		// loads krunker from api
-		Game.control('Fast Loading (Risky)', {
-			type: 'boolean',
-			walk: 'game.fast_load',
-		});
-		
 		Game.control('Seek new Lobby [F4]', {
 			type: 'boolean',
 			walk: 'game.f4_seek',
@@ -111,9 +99,9 @@ class Menu extends ExtendMenu {
 			walk: 'rpc.enabled',
 		}).on('change', (value, init) => {
 			if(init)return;
-			if(!value)ipc.send(IM.rpc_uninit);
+			if(!value)ipc.send(RPCM.clear);
 			else{
-				ipc.send(IM.rpc_init);
+				ipc.send(RPCM.init);
 				this.rpc.update(true);
 			}
 		});
@@ -189,7 +177,6 @@ require('./Resources');
 
 if(site_location == 'game'){
 	require('./Fixes');
-	require('./FastLoad');
 	new Menu();
 }
 

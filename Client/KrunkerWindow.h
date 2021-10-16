@@ -7,10 +7,10 @@
 
 class JSMessage {
 public:
-	IM event;
+	int event;
 	JSON args;
-	JSMessage(IM e);
-	JSMessage(IM e, JSON p);
+	JSMessage(int e);
+	JSMessage(int e, JSON p);
 	JSMessage(std::wstring raw);
 	std::string dump();
 	bool send(ICoreWebView2* target);

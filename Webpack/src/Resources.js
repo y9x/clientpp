@@ -1,7 +1,7 @@
 'use strict';
 
-var { site_location } = require('./Consts'),
-	{ css, js } = require('./Runtime'),
+var { css, js } = require('./Runtime'),
+	site_location = require('./SiteLocation'),
 	utils = require('./libs/Utils'),
 	ipc = require('./IPC'),
 	Userscript = require('./Userscript');

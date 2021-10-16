@@ -7,6 +7,12 @@ enum class LogType {
 	debug,
 };
 
+enum class RPCM {
+	update,
+	clear,
+	init,
+};
+
 // 0,1,2,3,4...
 enum class IM {
 	send_webpack,
@@ -22,9 +28,6 @@ enum class IM {
 	pointer,
 	mouse_locked,
 	open_devtools,
-	rpc_init,
-	rpc_uninit,
-	rpc_update,
 	log,
 	relaunch_webview,
 	close_window,

@@ -142,6 +142,7 @@ bool ClientFolder::load_config() {
 
 	try {
 		new_config = JSON::parse(config_buffer);
+		if (new_config.is_null()) new_config = default_config;
 	}
 	catch (JSON::exception err) {
 		used_default = true;

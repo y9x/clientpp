@@ -2,7 +2,7 @@
 
 // Legacy IDKR userscript
 
-var { site_location } = require('./Consts');
+var site_location = require('./SiteLocation');
 
 class Userscript {
 	#field(compare, value){
