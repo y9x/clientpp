@@ -110,20 +110,15 @@ bool ClientFolder::create() {
 
 JSON empty_param;
 
-JSON traverse_copy(JSON value, JSON match, bool& bad_key, JSON& obj_preset = empty_param) {
+JSON traverse_copy(JSON value, JSON match, JSON& obj_preset = empty_param) {
+	if (value.type() != match.type()) return match;
+
 	if (value.is_object()) {
 		JSON result = &obj_preset == &empty_param ? match : obj_preset;
 
-		for (auto [skey, svalue] : value.items()) {
-			if (match.contains(skey) && match[skey].type() == value[skey].type()) {
-				result[skey] = traverse_copy(svalue, match[skey], bad_key);
-			}
-			else {
-				bad_key = true;
-				// clog::warn << skey << " from " << value << " does not match " << match << clog::endl;
-			}
-		}
-
+		for (auto [skey, svalue] : value.items())
+			if (match.contains(skey)) result[skey] = traverse_copy(svalue, match[skey]);
+		
 		return result;
 	}
 	else {
@@ -142,15 +137,13 @@ bool ClientFolder::load_config() {
 
 	try {
 		new_config = JSON::parse(config_buffer);
-		if (new_config.is_null()) new_config = default_config;
 	}
 	catch (JSON::exception err) {
 		used_default = true;
 		new_config = default_config;
 	}
 
-	bool bad_key = false;
-	config = traverse_copy(new_config, default_config, bad_key, default_config);
+	config = traverse_copy(new_config, default_config, default_config);
 
 	clog::debug << "Config loaded" << clog::endl;
 	
@@ -160,6 +153,9 @@ bool ClientFolder::load_config() {
 }
 
 bool ClientFolder::save_config() {
-	clog::debug << "Config saved" << clog::endl;
-	return IOUtil::write_file(directory + p_config, config.dump(1, '\t'));
+	if (IOUtil::write_file(directory + p_config, config.dump(1, '\t'))) {
+		clog::debug << "Config saved" << clog::endl;
+		return true;
+	}
+	else return false;
 }
