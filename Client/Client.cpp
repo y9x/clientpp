@@ -22,19 +22,6 @@
 using namespace StringUtil;
 using Microsoft::WRL::Callback;
 
-GameInfo::GameInfo(JSON data)
-	: id(data[0])
-	, region(data[1])
-	, players(data[2])
-	, max_players(data[3])
-	, map(data[4]["i"])
-	, build(data[4]["v"])
-	, custom(data[4]["c"] == 1)
-	, kr(data[4]["g"])
-	, locked(data[4]["p"] == 1)
-	, thumbnail("https://krunker-user-assets.nyc3.digitaloceanspaces.com/m" + data[4]["m"].dump() + "/thumb.png")
-{}
-
 bool Client::navigation_cancelled(ICoreWebView2* sender, Uri uri) {
 	bool kru_owns = uri.host_owns(L"krunker.io");
 	bool cancel = false;
@@ -125,7 +112,7 @@ Client::Client(HINSTANCE h, int c)
 	, editor(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Editor").c_str(), krunker_editor, [this]() { listen_navigation(editor); })
 {
 	memset(&presence_events, 0, sizeof(presence_events));
-	Discord_Initialize("898655439300993045", &presence_events, 1, NULL);
+	Discord_Initialize(client_discord_rpc, &presence_events, 1, NULL);
 	
 	if (!folder.create()) {
 		clog::debug << "Error creating folder" << clog::endl;
