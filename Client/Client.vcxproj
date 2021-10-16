@@ -10,6 +10,11 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup Label="CopyDiscordDLLDebug" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Content Include="..\lib\Debug\discord-rpc.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -63,8 +68,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libz-static.lib;libcrypto-1_1-static.lib;libssl-1_1-static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libz-static.lib;libcrypto-1_1-static.lib;libssl-1_1-static.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -85,8 +90,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libz-static.lib;libcrypto-1_1-static.lib;libssl-1_1-static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libz-static.lib;libcrypto-1_1-static.lib;libssl-1_1-static.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -120,6 +125,7 @@
     <ClInclude Include="..\Utils\JSON.h" />
     <ClInclude Include="..\Utils\StringUtil.h" />
     <ClInclude Include="..\Utils\Uri.h" />
+    <ClInclude Include="Client.h" />
     <ClInclude Include="ClientFolder.h" />
     <ClInclude Include="KrunkerWindow.h" />
     <ClInclude Include="LoadRes.h" />

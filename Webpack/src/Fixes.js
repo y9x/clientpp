@@ -9,8 +9,6 @@ var { utils } = require('./Consts'),
 	},
 	is_game_canvas = node => node?.className == 'canvas' && !node.id;
 
-
-
 document.addEventListener('pointerlockchange', () => {
 	if(!document.pointerLockElement){
 		// locked_node?.removeEventListener('mousedown', listener);

@@ -109,6 +109,9 @@
     <ClInclude Include="KrunkerWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

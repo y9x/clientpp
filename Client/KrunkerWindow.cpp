@@ -41,13 +41,14 @@ bool JSMessage::send(ICoreWebView2* target) {
 
 KrunkerWindow* awindow;
 
-KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title, std::wstring p, std::function<void()> s)
+KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title, std::wstring p, std::function<void()> s, std::function<void(JSMessage)> d)
 	: WebView2Window(scale, title)
 	, folder(&f)
 	, og_title(title)
 	, pathname(p)
-	, webview2_startup(s)
 	, last_client_poll(now())
+	, on_webview2_startup(s)
+	, on_unknown_message(d)
 {}
 
 KrunkerWindow::~KrunkerWindow() {
@@ -294,6 +295,7 @@ void KrunkerWindow::register_events() {
 			post.push_back(res);
 			mtx.unlock();
 		}, msg);
+		else if (on_unknown_message) on_unknown_message(msg);
 		else clog::error << "Unknown message " << msg.json() << clog::endl;
 		
 		return S_OK;
@@ -439,7 +441,7 @@ void KrunkerWindow::call_create_webview(std::function<void()> callback) {
 
 		clog::debug << "KrunkerWindow created: " << Convert::string(pathname) << clog::endl;
 
-		if (webview2_startup) webview2_startup();
+		if (on_webview2_startup) on_webview2_startup();
 		if (callback) callback();
 	});
 }

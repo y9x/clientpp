@@ -6,7 +6,7 @@
 /enc_temp_folder
 /Release
 /Debug
-/libs/Release/libcrypto-1_1-static.lib
+/lib/Release/libcrypto-1_1-static.lib
 /Client/Debug
 /Client/Release
 /Client/MicrosoftEdgeWebview2Setup.exe

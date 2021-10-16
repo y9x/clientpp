@@ -10,7 +10,8 @@ var HTMLProxy = require('./libs/HTMLProxy'),
 	Keybind = require('./libs/Keybind'),
 	ipc = require('./IPC'),
 	{ config: runtime_config, js } = require('./Runtime'),
-	{ site_location, utils, meta } = require('./Consts');
+	{ site_location, utils, meta } = require('./Consts'),
+	update_rpc = require('./RPC');
 
 class FilePicker extends Control.Types.TextBoxControl {
 	static id = 'filepicker';
@@ -135,6 +136,20 @@ class Menu extends Events {
 			type: 'boolean',
 			walk: 'game.f4_seek',
 		});
+		
+		Game.control('Discord RPC', {
+			type: 'boolean',
+			walk: 'client.rpc',
+		}).on('change', (value, init) => {
+			if(init)return;
+			if(!value)ipc.send('rpc_uninit');
+			else update_rpc();
+		});
+		
+		Game.control('Show RPC name', {
+			type: 'boolean',
+			walk: 'client.rpc_name',
+		}).on('change', (value, init) => !init && update_rpc(true));
 		
 		var Window = this.category('Window');
 		

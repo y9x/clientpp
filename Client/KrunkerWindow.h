@@ -24,9 +24,11 @@ private:
 	void hook_mouse();
 	void unhook_mouse();
 	JSON runtime_data();
-	std::wstring cmdline();
 	void register_events();
 	void call_create_webview(std::function<void()> callback);
+	std::function<void(JSMessage)> on_unknown_message;
+	std::function<void()> on_webview2_startup;
+	std::wstring cmdline();
 	std::time_t now();
 public:
 	ClientFolder* folder;
@@ -48,7 +50,6 @@ public:
 	void get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr) override;
 	void on_dispatch() override;
 	bool seek_game();
-	std::function<void()> webview2_startup;
-	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr);
+	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr, std::function<void(JSMessage)> unknown_message = nullptr);
 	~KrunkerWindow();
 };

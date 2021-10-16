@@ -70,8 +70,6 @@ var { utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
 	},
 	is_game_canvas = node => node?.className == 'canvas' && !node.id;
 
-
-
 document.addEventListener('pointerlockchange', () => {
 	if(!document.pointerLockElement){
 		// locked_node?.removeEventListener('mousedown', listener);
@@ -191,6 +189,57 @@ var ipc = new IPC();
 webview.addEventListener('message', ({ data }) => ipc.emit(...data));
 
 module.exports = ipc;
+
+/***/ }),
+
+/***/ "./src/RPC.js":
+/*!********************!*\
+  !*** ./src/RPC.js ***!
+  \********************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+
+
+var ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+	{ utils, site_location } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
+	start = Date.now(),
+	last_args,
+	update_rpc = (force = false) => {
+		if(!window.getGameActivity)return;
+		
+		var activity;
+		
+		try{
+			activity = window.getGameActivity();
+		}catch(err){
+			return;
+		}
+
+		var { user, map, mode } = activity,
+			args = [ user, map, mode ],
+			jargs = JSON.stringify(args);
+		
+		if(!force && jargs != last_args){
+			ipc.send('rpc', start, ...args);
+			last_args = jargs;
+		}
+	};
+
+if(site_location == 'game'){
+	for(let method of ['pushState','replaceState']){
+		let original = history[method];
+		
+		history[method] = function(data, title, url){
+			var ret = original.call(this, data, title, url);
+			update_rpc();
+			return ret;
+		};
+	}
+	
+	setInterval(() => update_rpc(), 100);
+}
+
+module.exports = update_rpc;
 
 /***/ }),
 
@@ -1621,7 +1670,7 @@ module.exports = Utils;
   \*****************************/
 /***/ ((module) => {
 
-module.exports = JSON.parse('{"game":{"fast_load":false,"f4_seek":true},"client":{"uncap_fps":false,"adblock":true,"fullscreen":false,"devtools":false},"window":{"meta":{"replace":false,"title":"Client++","icon":""}}}');
+module.exports = JSON.parse('{"game":{"fast_load":false,"f4_seek":true},"client":{"uncap_fps":false,"adblock":true,"fullscreen":false,"devtools":false},"rpc":{"enabled":true,"name":true},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}}}');
 
 /***/ })
 
@@ -1670,7 +1719,8 @@ var HTMLProxy = __webpack_require__(/*! ./libs/HTMLProxy */ "./src/libs/HTMLProx
 	Keybind = __webpack_require__(/*! ./libs/Keybind */ "./src/libs/Keybind.js"),
 	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	{ config: runtime_config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
-	{ site_location, utils, meta } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
+	{ site_location, utils, meta } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
+	update_rpc = __webpack_require__(/*! ./RPC */ "./src/RPC.js");
 
 class FilePicker extends Control.Types.TextBoxControl {
 	static id = 'filepicker';
@@ -1796,6 +1846,20 @@ class Menu extends Events {
 			walk: 'game.f4_seek',
 		});
 		
+		Game.control('Discord RPC', {
+			type: 'boolean',
+			walk: 'client.rpc',
+		}).on('change', (value, init) => {
+			if(init)return;
+			if(!value)ipc.send('rpc_uninit');
+			else update_rpc();
+		});
+		
+		Game.control('Show RPC name', {
+			type: 'boolean',
+			walk: 'client.rpc_name',
+		}).on('change', (value, init) => !init && update_rpc(true));
+		
 		var Window = this.category('Window');
 		
 		Window.control('DevTools [F10]', {
@@ -1890,7 +1954,6 @@ if(site_location == 'game'){
 }
 
 new Keybind('F5', event => ipc.send('reload'));
-
 })();
 
 /******/ })()

@@ -7,7 +7,11 @@
 		"uncap_fps": false,
 		"adblock": true,
 		"fullscreen": false,
-		"devtools":  false
+		"devtools": false
+	},
+	"rpc": {
+		"enabled": true,
+		"name": true
 	},
 	"window": {
 		"meta": {
