@@ -89,7 +89,7 @@ setInterval(() => {
 	ipc.send(IM.mouse_locked, document.pointerLockElement != void[]);
 }, 1000);
 
-ipc.on(IM.mouse_down, (x, y) => {
+ipc.on(IM.mousedown, (x, y) => {
 	var event = new MouseEvent('mousedown', {
 		clientX: x,
 		clientY: y,
