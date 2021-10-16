@@ -53,6 +53,49 @@ if(config.game.fast_load && !Object.keys(js).length){
 
 /***/ }),
 
+/***/ "./src/FilePicker.js":
+/*!***************************!*\
+  !*** ./src/FilePicker.js ***!
+  \***************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+
+
+var { utils } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
+	Control = __webpack_require__(/*! ./libs/MenuUI/Control */ "./src/libs/MenuUI/Control.js"),
+	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js");
+
+class FilePicker extends Control.Types.TextBoxControl {
+	static id = 'filepicker';
+	create(...args){
+		super.create(...args);
+		this.browse = utils.add_ele('div', this.content, {
+			className: 'settingsBtn',
+			textContent: 'Browse',
+			style: {
+				width: '100px',
+			},
+			events: {
+				click: () => {
+					var id = Math.random().toString();
+					
+					ipc.once(id, (data, error) => {
+						if(error)return;
+						this.value = this.input.value = data;
+					});
+					
+					// send entries instead of an object, c++ json parser removes the order
+					ipc.send('browse file', id, this.data.title, Object.entries(this.data.filters));
+				},
+			},
+		});
+	}
+};
+
+module.exports = Control.Types.FilePicker = FilePicker;
+
+/***/ }),
+
 /***/ "./src/Fixes.js":
 /*!**********************!*\
   !*** ./src/Fixes.js ***!
@@ -201,10 +244,20 @@ module.exports = ipc;
 
 
 var ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
-	{ utils, site_location } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
-	start = Date.now(),
-	last_args,
-	update_rpc = (force = false) => {
+	{ utils, site_location } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
+
+class RPC {
+	start = Date.now();
+	listener(){
+		this.update();
+	}
+	constructor(){
+		this.interval = setInterval(this.update.bind(this), 1000);
+	}
+	delete(){
+		clearInterval(this.interval);
+	}
+	update(force = false){
 		if(!window.getGameActivity)return;
 		
 		var activity;
@@ -219,27 +272,14 @@ var ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 			args = [ user, map, mode ],
 			jargs = JSON.stringify(args);
 		
-		if(!force && jargs != last_args){
-			ipc.send('rpc', start, ...args);
-			last_args = jargs;
+		if(!force && jargs != this.last_args){
+			ipc.send('rpc', this.start, ...args);
+			this.last_args = jargs;
 		}
-	};
-
-if(site_location == 'game'){
-	for(let method of ['pushState','replaceState']){
-		let original = history[method];
-		
-		history[method] = function(data, title, url){
-			var ret = original.call(this, data, title, url);
-			update_rpc();
-			return ret;
-		};
 	}
-	
-	setInterval(() => update_rpc(), 100);
-}
+};
 
-module.exports = update_rpc;
+module.exports = RPC;
 
 /***/ }),
 
@@ -1712,46 +1752,19 @@ var __webpack_exports__ = {};
 window.onbeforeunload = () => {};
 Object.defineProperty(window, 'onbeforeunload', { writable: false, value(){} })
 
+__webpack_require__(/*! ./FilePicker */ "./src/FilePicker.js");
+
 var HTMLProxy = __webpack_require__(/*! ./libs/HTMLProxy */ "./src/libs/HTMLProxy.js"),
 	Category = __webpack_require__(/*! ./libs/MenuUI/Window/Category */ "./src/libs/MenuUI/Window/Category.js"),
-	Control = __webpack_require__(/*! ./libs/MenuUI/Control */ "./src/libs/MenuUI/Control.js"),
 	Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
 	Keybind = __webpack_require__(/*! ./libs/Keybind */ "./src/libs/Keybind.js"),
 	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	{ config: runtime_config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
 	{ site_location, utils, meta } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
-	update_rpc = __webpack_require__(/*! ./RPC */ "./src/RPC.js");
-
-class FilePicker extends Control.Types.TextBoxControl {
-	static id = 'filepicker';
-	create(...args){
-		super.create(...args);
-		this.browse = utils.add_ele('div', this.content, {
-			className: 'settingsBtn',
-			textContent: 'Browse',
-			style: {
-				width: '100px',
-			},
-			events: {
-				click: () => {
-					var id = Math.random().toString();
-					
-					ipc.once(id, (data, error) => {
-						if(error)return;
-						this.value = this.input.value = data;
-					});
-					
-					// send entries instead of an object, c++ json parser removes the order
-					ipc.send('browse file', id, this.data.title, Object.entries(this.data.filters));
-				},
-			},
-		});
-	}
-};
-
-Control.Types.FilePicker = FilePicker;
+	RPC = __webpack_require__(/*! ./RPC */ "./src/RPC.js");
 
 class Menu extends Events {
+	rpc = new RPC();
 	html = new HTMLProxy();
 	config = runtime_config;
 	default_config = __webpack_require__(/*! ../../Client/Config.json */ "../Client/Config.json");
@@ -1846,19 +1859,21 @@ class Menu extends Events {
 			walk: 'game.f4_seek',
 		});
 		
-		Game.control('Discord RPC', {
+		var RPC = this.category('Discord RPC');
+		
+		RPC.control('Enabled', {
 			type: 'boolean',
-			walk: 'client.rpc',
+			walk: 'rpc.enabled',
 		}).on('change', (value, init) => {
 			if(init)return;
 			if(!value)ipc.send('rpc_uninit');
 			else update_rpc();
 		});
 		
-		Game.control('Show RPC name', {
+		RPC.control('Show name', {
 			type: 'boolean',
-			walk: 'client.rpc_name',
-		}).on('change', (value, init) => !init && update_rpc(true));
+			walk: 'rpc.name',
+		}).on('change', (value, init) => !init && this.rpc.update(true));
 		
 		var Window = this.category('Window');
 		

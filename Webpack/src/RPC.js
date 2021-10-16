@@ -1,10 +1,20 @@
 'use strict';
 
 var ipc = require('./IPC'),
-	{ utils, site_location } = require('./Consts'),
-	start = Date.now(),
-	last_args,
-	update_rpc = (force = false) => {
+	{ utils, site_location } = require('./Consts');
+
+class RPC {
+	start = Date.now();
+	listener(){
+		this.update();
+	}
+	constructor(){
+		this.interval = setInterval(this.update.bind(this), 1000);
+	}
+	delete(){
+		clearInterval(this.interval);
+	}
+	update(force = false){
 		if(!window.getGameActivity)return;
 		
 		var activity;
@@ -19,24 +29,11 @@ var ipc = require('./IPC'),
 			args = [ user, map, mode ],
 			jargs = JSON.stringify(args);
 		
-		if(!force && jargs != last_args){
-			ipc.send('rpc', start, ...args);
-			last_args = jargs;
+		if(!force && jargs != this.last_args){
+			ipc.send('rpc', this.start, ...args);
+			this.last_args = jargs;
 		}
-	};
-
-if(site_location == 'game'){
-	for(let method of ['pushState','replaceState']){
-		let original = history[method];
-		
-		history[method] = function(data, title, url){
-			var ret = original.call(this, data, title, url);
-			update_rpc();
-			return ret;
-		};
 	}
-	
-	setInterval(() => update_rpc(), 100);
-}
+};
 
-module.exports = update_rpc;
+module.exports = RPC;

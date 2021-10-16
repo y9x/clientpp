@@ -3,46 +3,19 @@
 window.onbeforeunload = () => {};
 Object.defineProperty(window, 'onbeforeunload', { writable: false, value(){} })
 
+require('./FilePicker');
+
 var HTMLProxy = require('./libs/HTMLProxy'),
 	Category = require('./libs/MenuUI/Window/Category'),
-	Control = require('./libs/MenuUI/Control'),
 	Events = require('./libs/Events'),
 	Keybind = require('./libs/Keybind'),
 	ipc = require('./IPC'),
 	{ config: runtime_config, js } = require('./Runtime'),
 	{ site_location, utils, meta } = require('./Consts'),
-	update_rpc = require('./RPC');
-
-class FilePicker extends Control.Types.TextBoxControl {
-	static id = 'filepicker';
-	create(...args){
-		super.create(...args);
-		this.browse = utils.add_ele('div', this.content, {
-			className: 'settingsBtn',
-			textContent: 'Browse',
-			style: {
-				width: '100px',
-			},
-			events: {
-				click: () => {
-					var id = Math.random().toString();
-					
-					ipc.once(id, (data, error) => {
-						if(error)return;
-						this.value = this.input.value = data;
-					});
-					
-					// send entries instead of an object, c++ json parser removes the order
-					ipc.send('browse file', id, this.data.title, Object.entries(this.data.filters));
-				},
-			},
-		});
-	}
-};
-
-Control.Types.FilePicker = FilePicker;
+	RPC = require('./RPC');
 
 class Menu extends Events {
+	rpc = new RPC();
 	html = new HTMLProxy();
 	config = runtime_config;
 	default_config = require('../../Client/Config.json');
@@ -137,19 +110,21 @@ class Menu extends Events {
 			walk: 'game.f4_seek',
 		});
 		
-		Game.control('Discord RPC', {
+		var RPC = this.category('Discord RPC');
+		
+		RPC.control('Enabled', {
 			type: 'boolean',
-			walk: 'client.rpc',
+			walk: 'rpc.enabled',
 		}).on('change', (value, init) => {
 			if(init)return;
 			if(!value)ipc.send('rpc_uninit');
 			else update_rpc();
 		});
 		
-		Game.control('Show RPC name', {
+		RPC.control('Show name', {
 			type: 'boolean',
-			walk: 'client.rpc_name',
-		}).on('change', (value, init) => !init && update_rpc(true));
+			walk: 'rpc.name',
+		}).on('change', (value, init) => !init && this.rpc.update(true));
 		
 		var Window = this.category('Window');
 		
