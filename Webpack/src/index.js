@@ -10,8 +10,7 @@ var ExtendMenu = require('./libs/ExtendMenu'),
 	Events = require('./libs/Events'),
 	Keybind = require('./libs/Keybind'),
 	utils = require('./libs/Utils'),
-	{ ipc, IM, RPCM } = require('./IPC'),
-	console = {...window.console},
+	{ ipc, IM } = require('./IPC'),
 	RPC = require('./RPC'),
 	{ config: runtime_config, js } = require('./Runtime'),
 	site_location = require('./SiteLocation');
@@ -99,9 +98,9 @@ class Menu extends ExtendMenu {
 			walk: 'rpc.enabled',
 		}).on('change', (value, init) => {
 			if(init)return;
-			if(!value)ipc.send(RPCM.clear);
+			if(!value)ipc.send(IM.rpc_clear);
 			else{
-				ipc.send(RPCM.init);
+				ipc.send(IM.rpc_init);
 				this.rpc.update(true);
 			}
 		});

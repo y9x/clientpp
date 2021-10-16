@@ -7,7 +7,7 @@
   \*******************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-exports.LogType={info:0,error:1,warn:2,debug:3};exports.RPCM={update:0,clear:1,init:2};exports.IM={send_webpack:0,eval_webpack:1,save_config:2,shell_open:3,fullscreen:4,update_meta:5,revert_meta:6,reload_config:7,browse_file:8,mousedown:9,pointer:10,mouse_locked:11,open_devtools:12,log:13,relaunch_webview:14,close_window:15,reload_window:16,seek_game:17}
+exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={send_webpack:0,eval_webpack:1,rpc_update:2,rpc_clear:3,rpc_init:4,save_config:5,shell_open:6,fullscreen:7,update_meta:8,revert_meta:9,reload_config:10,browse_file:11,mousedown:12,pointer:13,mouse_locked:14,open_devtools:15,log:16,relaunch_webview:17,close_window:18,reload_window:19,seek_game:20}
 
 /***/ }),
 
@@ -210,7 +210,7 @@ exports.IM = IM;
 "use strict";
 
 
-var { IM, RPCM, ipc } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+var { IM, ipc } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	site_location = __webpack_require__(/*! ./SiteLocation */ "./src/SiteLocation.js");
 
@@ -241,7 +241,7 @@ class RPC {
 			jargs = JSON.stringify(args);
 		
 		if(!force && jargs != this.last){
-			ipc.send(RPCM.update, this.start, ...args);
+			ipc.send(IM.rpc_update, this.start, ...args);
 			this.last = jargs;
 		}
 	}
@@ -1437,8 +1437,7 @@ var ExtendMenu = __webpack_require__(/*! ./libs/ExtendMenu */ "./src/libs/Extend
 	Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
 	Keybind = __webpack_require__(/*! ./libs/Keybind */ "./src/libs/Keybind.js"),
 	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
-	{ ipc, IM, RPCM } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
-	console = {...window.console},
+	{ ipc, IM } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	RPC = __webpack_require__(/*! ./RPC */ "./src/RPC.js"),
 	{ config: runtime_config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
 	site_location = __webpack_require__(/*! ./SiteLocation */ "./src/SiteLocation.js");
@@ -1526,9 +1525,9 @@ class Menu extends ExtendMenu {
 			walk: 'rpc.enabled',
 		}).on('change', (value, init) => {
 			if(init)return;
-			if(!value)ipc.send(RPCM.clear);
+			if(!value)ipc.send(IM.rpc_clear);
 			else{
-				ipc.send(RPCM.init);
+				ipc.send(IM.rpc_init);
 				this.rpc.update(true);
 			}
 		});

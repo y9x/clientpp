@@ -3,7 +3,8 @@
 module.exports = code => {
 	var enums = {};
 	
-	code.replace(/enum class (\w+) {([^]*?)}/g, (match, label, data) => {
+	code.replace(/\/\/.*?$/gm, '').replace(/enum class (\w+) {([^]*?)}/g, (match, label, data) => {
+		// console.log(data);
 		var add = enums[label] = [];
 		
 		data.replace(/\w+/g, match => add.push(match + ':' + add.length));
