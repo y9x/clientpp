@@ -30,14 +30,14 @@ class Menu extends ExtendMenu {
 		Client.control('Github', {
 			type: 'linkfunction',
 			value(){
-				ipc.send(IM.shell_open, 'url', meta.github);
+				ipc.send(IM.shell_open, 'url', 'https://github.com/y9x/clientpp');
 			},
 		});
 		
 		Client.control('Discord', {
 			type: 'linkfunction',
 			value(){
-				ipc.send(IM.shell_open, 'url', meta.discord);
+				ipc.send(IM.shell_open, 'url', 'https://discord.gg/4r47ZwdSQj');
 			},
 		});
 		
