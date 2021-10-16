@@ -2,7 +2,7 @@
 
 var Control = require('./libs/MenuUI/Control'),
 	utils = require('./libs/Utils'),
-	ipc = require('./IPC');
+	{ IM, ipc } = require('./IPC');
 
 class FilePicker extends Control.Types.TextBoxControl {
 	static id = 'filepicker';
@@ -24,7 +24,7 @@ class FilePicker extends Control.Types.TextBoxControl {
 					});
 					
 					// send entries instead of an object, c++ json parser removes the order
-					ipc.send('browse file', id, this.data.title, Object.entries(this.data.filters));
+					ipc.send(IM.browse_file, id, this.data.title, Object.entries(this.data.filters));
 				},
 			},
 		});

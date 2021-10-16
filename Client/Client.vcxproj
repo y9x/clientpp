@@ -127,6 +127,7 @@
     <ClInclude Include="..\Utils\Uri.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="ClientFolder.h" />
+    <ClInclude Include="IPCMessages.h" />
     <ClInclude Include="KrunkerWindow.h" />
     <ClInclude Include="LoadRes.h" />
     <ClInclude Include="httplib.h" />

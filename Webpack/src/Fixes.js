@@ -1,7 +1,7 @@
 'use strict';
 
 var utils = require('./libs/Utils'),
-	ipc = require('./IPC'),
+	{ ipc, IM }  = require('./IPC'),
 	listening = new WeakSet(),
 	locked_node,
 	listener = event => {
@@ -13,19 +13,19 @@ document.addEventListener('pointerlockchange', () => {
 	if(!document.pointerLockElement){
 		// locked_node?.removeEventListener('mousedown', listener);
 		locked_node = null;
-		return ipc.send('pointer', 'unhook');
+		return ipc.send(IM.pointer, 'unhook');
 	}
 	
 	locked_node = document.pointerLockElement;
 	// locked_node.addEventListener('mousedown', listener)
-	ipc.send('pointer', 'hook');
+	ipc.send(IM.pointer, 'hook');
 });
 
 setInterval(() => {
-	ipc.send('mouse locked', document.pointerLockElement != void[]);
+	ipc.send(IM.mouse_locked, document.pointerLockElement != void[]);
 }, 1000);
 
-ipc.on('mousedown', (x, y) => {
+ipc.on(IM.mouse_down, (x, y) => {
 	var event = new MouseEvent('mousedown', {
 		clientX: x,
 		clientY: y,

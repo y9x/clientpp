@@ -2,16 +2,17 @@
 #include "../Utils/IOUtil.h"
 #include "./ClientFolder.h"
 #include "./WebView2Window.h"
+#include "./IPCMessages.h"
 #include <mutex>
 
 class JSMessage {
 public:
-	std::string event;
+	IM event;
 	JSON args;
-	JSMessage(std::string e);
-	JSMessage(std::string e, JSON p);
+	JSMessage(IM e);
+	JSMessage(IM e, JSON p);
 	JSMessage(std::wstring raw);
-	JSON json();
+	std::string dump();
 	bool send(ICoreWebView2* target);
 };
 
@@ -26,7 +27,7 @@ private:
 	JSON runtime_data();
 	void register_events();
 	void call_create_webview(std::function<void()> callback);
-	std::function<void(JSMessage)> on_unknown_message;
+	std::function<bool(JSMessage)> on_unknown_message;
 	std::function<void()> on_webview2_startup;
 	std::wstring cmdline();
 	std::time_t now();
@@ -50,6 +51,6 @@ public:
 	void get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr) override;
 	void on_dispatch() override;
 	bool seek_game();
-	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr, std::function<void(JSMessage)> unknown_message = nullptr);
+	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr);
 	~KrunkerWindow();
 };

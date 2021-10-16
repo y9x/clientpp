@@ -10,7 +10,7 @@ var ExtendMenu = require('./libs/ExtendMenu'),
 	Events = require('./libs/Events'),
 	Keybind = require('./libs/Keybind'),
 	utils = require('./libs/Utils'),
-	ipc = require('./IPC'),
+	{ ipc, IM } = require('./IPC'),
 	RPC = require('./RPC'),
 	{ config: runtime_config, js } = require('./Runtime'),
 	{ site_location, meta } = require('./Consts');
@@ -18,7 +18,7 @@ var ExtendMenu = require('./libs/ExtendMenu'),
 class Menu extends ExtendMenu {
 	rpc = new RPC();
 	save_config(){
-		ipc.send('save config', this.config);
+		ipc.send(IM.save_config, this.config);
 	}
 	config = runtime_config;
 	default_config = require('../../Client/Config.json');
@@ -30,21 +30,21 @@ class Menu extends ExtendMenu {
 		Client.control('Github', {
 			type: 'linkfunction',
 			value(){
-				ipc.send('open', 'url', meta.github);
+				ipc.send(IM.IM.shell_open, 'url', meta.github);
 			},
 		});
 		
 		Client.control('Discord', {
 			type: 'linkfunction',
 			value(){
-				ipc.send('open', 'url', meta.discord);
+				ipc.send(IM.IM.shell_open, 'url', meta.discord);
 			},
 		});
 		
 		Client.control('Forum', {
 			type: 'linkfunction',
 			value(){
-				ipc.send('open', 'url', meta.forum);
+				ipc.send(IM.IM.shell_open, 'url', meta.forum);
 			},
 		});
 		
@@ -53,25 +53,25 @@ class Menu extends ExtendMenu {
 		/*Folder.control('Root', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send('open', 'root'),
+			value: () => ipc.send(IM.IM.shell_open, 'root'),
 		});*/
 		
 		Folder.control('Scripts', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send('open', 'scripts'),
+			value: () => ipc.send(IM.IM.shell_open, 'scripts'),
 		});
 		
 		Folder.control('Styles', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send('open', 'styles'),
+			value: () => ipc.send(IM.IM.shell_open, 'styles'),
 		});
 		
 		Folder.control('Resource Swapper', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send('open', 'swapper'),
+			value: () => ipc.send(IM.IM.shell_open, 'swapper'),
 		});
 		
 		var Render = this.category('Rendering');
@@ -84,12 +84,12 @@ class Menu extends ExtendMenu {
 		Render.control('Uncap FPS', {
 			type: 'boolean',
 			walk: 'client.uncap_fps',
-		}).on('change', (value, init) => !init && this.relaunch());
+		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));
 		
 		Render.control('Fullscreen', {
 			type: 'boolean',
 			walk: 'client.fullscreen',
-		}).on('change', (value, init) => !init && ipc.send('fullscreen'));
+		}).on('change', (value, init) => !init && ipc.send(IM.fullscreen));
 		
 		var Game = this.category('Game');
 		
@@ -111,8 +111,11 @@ class Menu extends ExtendMenu {
 			walk: 'rpc.enabled',
 		}).on('change', (value, init) => {
 			if(init)return;
-			if(!value)ipc.send('rpc_uninit');
-			else this.rpc.update(true);
+			if(!value)ipc.send(IM.rpc_uninit);
+			else{
+				ipc.send(IM.rpc_init);
+				this.rpc.update(true);
+			}
 		});
 		
 		RPC.control('Show name', {
@@ -133,8 +136,8 @@ class Menu extends ExtendMenu {
 		}).on('change', (value, init) => {
 			if(init)return;
 			
-			if(value)ipc.send('update meta');
-			else ipc.send('revert meta');
+			if(value)ipc.send(IM.update_meta);
+			else ipc.send(IM.revert_meta);
 		});
 		
 		Window.control('New Title', {
@@ -142,7 +145,7 @@ class Menu extends ExtendMenu {
 			walk: 'window.meta.title',
 		}).on('change', (value, init) => {
 			if(!init && this.config.window.meta.replace)
-				ipc.send('update meta');
+				ipc.send(IM.update_meta);
 		});
 		
 		Window.control('New Icon', {
@@ -155,7 +158,7 @@ class Menu extends ExtendMenu {
 			},
 		}).on('change', (value, init) => {
 			if(!init && this.config.window.meta.replace)
-				ipc.send('update meta');
+				ipc.send(IM.update_meta);
 		});
 		
 		this.keybinds();
@@ -166,22 +169,19 @@ class Menu extends ExtendMenu {
 	}
 	keybinds(){
 		new Keybind('F4', event => {
-			if(event.altKey)ipc.send('close window');
-			else if(this.config.game.f4_seek)ipc.send('seek game');
+			if(event.altKey)ipc.send(IM.close_window);
+			else if(this.config.game.f4_seek)ipc.send(IM.seek_game);
 		});
 		
 		new Keybind('F10', event => {
-			ipc.send('open devtools');
+			ipc.send(IM.open_devtools);
 		});
 		
 		new Keybind('F11', () => {
 			this.config.client.fullscreen = !this.config.client.fullscreen;
 			this.save_config();
-			ipc.send('fullscreen');
+			ipc.send(IM.fullscreen);
 		});
-	}
-	relaunch(){
-		ipc.send('relaunch');
 	}
 };
 
@@ -193,4 +193,4 @@ if(site_location == 'game'){
 	new Menu();
 }
 
-new Keybind('F5', event => ipc.send('reload'));
+new Keybind('F5', event => ipc.send(IM.reload_window));

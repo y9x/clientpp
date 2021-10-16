@@ -1,6 +1,15 @@
 /******/ (() => { // webpackBootstrap
-/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
+
+/***/ "../Client/IPCMessages.h":
+/*!*******************************!*\
+  !*** ../Client/IPCMessages.h ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={send_webpack:0,eval_webpack:1,save_config:2,shell_open:3,fullscreen:4,update_meta:5,revert_meta:6,reload_config:7,browse_file:8,mousedown:9,pointer:10,mouse_locked:11,open_devtools:12,rpc_init:13,rpc_uninit:14,rpc_update:15,log:16,relaunch_webview:17,close_window:18,reload_window:19,seek_game:20}
+
+/***/ }),
 
 /***/ "./src/Consts.js":
 /*!***********************!*\
@@ -8,6 +17,7 @@
   \***********************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 exports.meta = {
@@ -30,6 +40,7 @@ exports.site_location = {
   \*************************/
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
 
 
 var { config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
@@ -54,11 +65,12 @@ if(config.game.fast_load && !Object.keys(js).length){
   \***************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
 
 
 var Control = __webpack_require__(/*! ./libs/MenuUI/Control */ "./src/libs/MenuUI/Control.js"),
 	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
-	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js");
+	{ IM, ipc } = __webpack_require__(/*! ./IPC */ "./src/IPC.js");
 
 class FilePicker extends Control.Types.TextBoxControl {
 	static id = 'filepicker';
@@ -80,7 +92,7 @@ class FilePicker extends Control.Types.TextBoxControl {
 					});
 					
 					// send entries instead of an object, c++ json parser removes the order
-					ipc.send('browse file', id, this.data.title, Object.entries(this.data.filters));
+					ipc.send(IM.browse_file, id, this.data.title, Object.entries(this.data.filters));
 				},
 			},
 		});
@@ -97,10 +109,11 @@ module.exports = Control.Types.FilePicker = FilePicker;
   \**********************/
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
 
 
 var utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
-	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+	{ ipc, IM }  = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	listening = new WeakSet(),
 	locked_node,
 	listener = event => {
@@ -112,19 +125,19 @@ document.addEventListener('pointerlockchange', () => {
 	if(!document.pointerLockElement){
 		// locked_node?.removeEventListener('mousedown', listener);
 		locked_node = null;
-		return ipc.send('pointer', 'unhook');
+		return ipc.send(IM.pointer, 'unhook');
 	}
 	
 	locked_node = document.pointerLockElement;
 	// locked_node.addEventListener('mousedown', listener)
-	ipc.send('pointer', 'hook');
+	ipc.send(IM.pointer, 'hook');
 });
 
 setInterval(() => {
-	ipc.send('mouse locked', document.pointerLockElement != void[]);
+	ipc.send(IM.mouse_locked, document.pointerLockElement != void[]);
 }, 1000);
 
-ipc.on('mousedown', (x, y) => {
+ipc.on(IM.mouse_down, (x, y) => {
 	var event = new MouseEvent('mousedown', {
 		clientX: x,
 		clientY: y,
@@ -180,13 +193,16 @@ ipc.on('mousedown', (x, y) => {
 /*!********************!*\
   !*** ./src/IPC.js ***!
   \********************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
+"use strict";
 
 
 // webview is chrome.webview but captured by bootstrap.js
 
-var Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js");
+var Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),	
+	messages = __webpack_require__(/*! ../../Client/IPCMessages.h */ "../Client/IPCMessages.h"),
+	{ IM, LogType } = messages;
 
 class IPCConsole {
 	constructor(ipc, prefix){
@@ -195,19 +211,19 @@ class IPCConsole {
 		if(typeof prefix == 'string')this.prefix.push(prefix);
 	}
 	log(...args){
-		this.ipc.send('log', 'info', args.join(' '));
+		this.ipc.send(IM.log, LogType.info, args.join(' '));
 	}
 	info(...args){
-		this.ipc.send('log', 'info', args.join(' '));
+		this.ipc.send(IM.log, LogType.info, args.join(' '));
 	}
 	warn(...args){
-		this.ipc.send('log', 'warn', args.join(' '));
+		this.ipc.send(IM.log, LogType.warn, args.join(' '));
 	}
 	error(...args){
-		this.ipc.send('log', 'error', args.join(' '));
+		this.ipc.send(IM.log, LogType.error, args.join(' '));
 	}
 	debug(...args){
-		this.ipc.send('log', 'debug', args.join(' '));
+		this.ipc.send(IM.log, LogType.debug, args.join(' '));
 	}
 };
 
@@ -217,6 +233,7 @@ class IPC extends Events {
 	}
 	console = new IPCConsole();
 	send(event, ...data){
+		if(typeof event != 'number')throw new TypeError(`Event must be a number. Recieved '${event}'`);
 		webview.postMessage(JSON.stringify([ event, ...data ]));
 		return true;
 	}
@@ -226,7 +243,9 @@ var ipc = new IPC();
 
 webview.addEventListener('message', ({ data }) => ipc.emit(...data));
 
-module.exports = ipc;
+Object.assign(exports, messages);
+exports.ipc = ipc;
+exports.IM = IM;
 
 /***/ }),
 
@@ -236,9 +255,10 @@ module.exports = ipc;
   \********************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
 
 
-var ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+var { IM, ipc } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	{ site_location } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
 
@@ -268,9 +288,9 @@ class RPC {
 			args = [ user, map, mode ],
 			jargs = JSON.stringify(args);
 		
-		if(!force && jargs != this.last_args){
-			ipc.send('rpc', this.start, ...args);
-			this.last_args = jargs;
+		if(!force && jargs != this.last){
+			ipc.send(IM.rpc_update, this.start, ...args);
+			this.last = jargs;
 		}
 	}
 };
@@ -285,6 +305,7 @@ module.exports = RPC;
   \**************************/
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
 
 
 var { site_location } = __webpack_require__(/*! ./Consts */ "./src/Consts.js"),
@@ -327,7 +348,6 @@ for(let [ name, data ] of Object.entries(js)){
 		func = eval(`(function(${Object.keys(context)}){${data}//# sourceURL=${name}\n})`);
 	}catch(err){
 		console.error('Error parsing UserScript:', name, '\n', err);
-		// ipc.send('log', 'error', `Error parsing UserScript ${name}:\n${err}`);
 	}
 	
 	
@@ -339,7 +359,6 @@ for(let [ name, data ] of Object.entries(js)){
 		userscript.run();
 	}catch(err){
 		console.warn('Error executing UserScript:', name, '\n', err);
-		// ipc.send('log', 'warn', `Error executing UserScript ${name}:\n${err}`);
 	}
 }
 
@@ -351,6 +370,7 @@ for(let [ name, data ] of Object.entries(js)){
   \************************/
 /***/ ((module) => {
 
+"use strict";
 
 module.exports = _RUNTIME_DATA_;
 
@@ -362,6 +382,7 @@ module.exports = _RUNTIME_DATA_;
   \***************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
 
 
 // Legacy IDKR userscript
@@ -419,6 +440,7 @@ module.exports = Userscript;
   \***********************/
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 exports.meta = {
@@ -441,6 +463,7 @@ exports.site_location = {
   \****************************/
 /***/ ((module) => {
 
+"use strict";
 
 
 class Events {
@@ -506,6 +529,7 @@ module.exports = Events;
   \********************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
 
 
 var utils = __webpack_require__(/*! ../libs/utils */ "./src/libs/utils.js"),
@@ -564,6 +588,7 @@ module.exports = ExtendMenu;
   \*******************************/
 /***/ ((module) => {
 
+"use strict";
 
 
 class HTMLProxy {
@@ -608,6 +633,7 @@ module.exports = HTMLProxy;
   \*****************************/
 /***/ ((module) => {
 
+"use strict";
 
 
 class Keybind {
@@ -664,6 +690,7 @@ module.exports = Keybind;
   \****************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
 
 
 var utils = __webpack_require__(/*! ./Utils */ "./src/libs/Utils.js"),
@@ -874,6 +901,7 @@ module.exports = Loader;
   \************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
 
 
 var utils = __webpack_require__(/*! ../Utils */ "./src/libs/Utils.js"),
@@ -1178,6 +1206,7 @@ module.exports = Control;
   \********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
+"use strict";
 
 
 var utils = __webpack_require__(/*! ../../Utils */ "./src/libs/Utils.js"),
@@ -1266,6 +1295,7 @@ module.exports = Category;
   \*****************************/
 /***/ ((module) => {
 
+"use strict";
 
 
 var is_obj = data => typeof data == 'object' && data != null,
@@ -1371,6 +1401,7 @@ module.exports = request;
   \***************************/
 /***/ ((module) => {
 
+"use strict";
 
 
 class Utils {
@@ -1548,6 +1579,7 @@ module.exports = Utils;
   \***************************/
 /***/ ((module) => {
 
+"use strict";
 
 
 class Utils {
@@ -1725,6 +1757,7 @@ module.exports = Utils;
   \*****************************/
 /***/ ((module) => {
 
+"use strict";
 module.exports = JSON.parse('{"game":{"fast_load":false,"f4_seek":true},"client":{"uncap_fps":false,"adblock":true,"fullscreen":false,"devtools":false},"rpc":{"enabled":true,"name":true},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}}}');
 
 /***/ })
@@ -1757,8 +1790,9 @@ module.exports = JSON.parse('{"game":{"fast_load":false,"f4_seek":true},"client"
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
+"use strict";
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
@@ -1774,7 +1808,7 @@ var ExtendMenu = __webpack_require__(/*! ./libs/ExtendMenu */ "./src/libs/Extend
 	Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
 	Keybind = __webpack_require__(/*! ./libs/Keybind */ "./src/libs/Keybind.js"),
 	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
-	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+	{ ipc, IM } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	RPC = __webpack_require__(/*! ./RPC */ "./src/RPC.js"),
 	{ config: runtime_config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
 	{ site_location, meta } = __webpack_require__(/*! ./Consts */ "./src/Consts.js");
@@ -1782,7 +1816,7 @@ var ExtendMenu = __webpack_require__(/*! ./libs/ExtendMenu */ "./src/libs/Extend
 class Menu extends ExtendMenu {
 	rpc = new RPC();
 	save_config(){
-		ipc.send('save config', this.config);
+		ipc.send(IM.save_config, this.config);
 	}
 	config = runtime_config;
 	default_config = __webpack_require__(/*! ../../Client/Config.json */ "../Client/Config.json");
@@ -1794,21 +1828,21 @@ class Menu extends ExtendMenu {
 		Client.control('Github', {
 			type: 'linkfunction',
 			value(){
-				ipc.send('open', 'url', meta.github);
+				ipc.send(IM.IM.shell_open, 'url', meta.github);
 			},
 		});
 		
 		Client.control('Discord', {
 			type: 'linkfunction',
 			value(){
-				ipc.send('open', 'url', meta.discord);
+				ipc.send(IM.IM.shell_open, 'url', meta.discord);
 			},
 		});
 		
 		Client.control('Forum', {
 			type: 'linkfunction',
 			value(){
-				ipc.send('open', 'url', meta.forum);
+				ipc.send(IM.IM.shell_open, 'url', meta.forum);
 			},
 		});
 		
@@ -1817,25 +1851,25 @@ class Menu extends ExtendMenu {
 		/*Folder.control('Root', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send('open', 'root'),
+			value: () => ipc.send(IM.IM.shell_open, 'root'),
 		});*/
 		
 		Folder.control('Scripts', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send('open', 'scripts'),
+			value: () => ipc.send(IM.IM.shell_open, 'scripts'),
 		});
 		
 		Folder.control('Styles', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send('open', 'styles'),
+			value: () => ipc.send(IM.IM.shell_open, 'styles'),
 		});
 		
 		Folder.control('Resource Swapper', {
 			type: 'function',
 			text: 'Open',
-			value: () => ipc.send('open', 'swapper'),
+			value: () => ipc.send(IM.IM.shell_open, 'swapper'),
 		});
 		
 		var Render = this.category('Rendering');
@@ -1848,12 +1882,12 @@ class Menu extends ExtendMenu {
 		Render.control('Uncap FPS', {
 			type: 'boolean',
 			walk: 'client.uncap_fps',
-		}).on('change', (value, init) => !init && this.relaunch());
+		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));
 		
 		Render.control('Fullscreen', {
 			type: 'boolean',
 			walk: 'client.fullscreen',
-		}).on('change', (value, init) => !init && ipc.send('fullscreen'));
+		}).on('change', (value, init) => !init && ipc.send(IM.fullscreen));
 		
 		var Game = this.category('Game');
 		
@@ -1875,8 +1909,11 @@ class Menu extends ExtendMenu {
 			walk: 'rpc.enabled',
 		}).on('change', (value, init) => {
 			if(init)return;
-			if(!value)ipc.send('rpc_uninit');
-			else this.rpc.update(true);
+			if(!value)ipc.send(IM.rpc_uninit);
+			else{
+				ipc.send(IM.rpc_init);
+				this.rpc.update(true);
+			}
 		});
 		
 		RPC.control('Show name', {
@@ -1897,8 +1934,8 @@ class Menu extends ExtendMenu {
 		}).on('change', (value, init) => {
 			if(init)return;
 			
-			if(value)ipc.send('update meta');
-			else ipc.send('revert meta');
+			if(value)ipc.send(IM.update_meta);
+			else ipc.send(IM.revert_meta);
 		});
 		
 		Window.control('New Title', {
@@ -1906,7 +1943,7 @@ class Menu extends ExtendMenu {
 			walk: 'window.meta.title',
 		}).on('change', (value, init) => {
 			if(!init && this.config.window.meta.replace)
-				ipc.send('update meta');
+				ipc.send(IM.update_meta);
 		});
 		
 		Window.control('New Icon', {
@@ -1919,7 +1956,7 @@ class Menu extends ExtendMenu {
 			},
 		}).on('change', (value, init) => {
 			if(!init && this.config.window.meta.replace)
-				ipc.send('update meta');
+				ipc.send(IM.update_meta);
 		});
 		
 		this.keybinds();
@@ -1930,22 +1967,19 @@ class Menu extends ExtendMenu {
 	}
 	keybinds(){
 		new Keybind('F4', event => {
-			if(event.altKey)ipc.send('close window');
-			else if(this.config.game.f4_seek)ipc.send('seek game');
+			if(event.altKey)ipc.send(IM.close_window);
+			else if(this.config.game.f4_seek)ipc.send(IM.seek_game);
 		});
 		
 		new Keybind('F10', event => {
-			ipc.send('open devtools');
+			ipc.send(IM.open_devtools);
 		});
 		
 		new Keybind('F11', () => {
 			this.config.client.fullscreen = !this.config.client.fullscreen;
 			this.save_config();
-			ipc.send('fullscreen');
+			ipc.send(IM.fullscreen);
 		});
-	}
-	relaunch(){
-		ipc.send('relaunch');
 	}
 };
 
@@ -1957,7 +1991,7 @@ if(site_location == 'game'){
 	new Menu();
 }
 
-new Keybind('F5', event => ipc.send('reload'));
+new Keybind('F5', event => ipc.send(IM.reload_window));
 })();
 
 /******/ })()

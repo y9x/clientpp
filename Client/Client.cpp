@@ -69,36 +69,65 @@ void Client::listen_navigation(WebView2Window& window) {
 	}).Get(), &token);
 }
 
-void Client::game_message(JSMessage msg) {
-	if (msg.event == "rpc_uninit") {
+void Client::rpc_loading() {
+	DiscordRichPresence presence;
+	memset(&presence, 0, sizeof(presence));
+
+	presence.startTimestamp = time(0);
+	presence.largeImageKey = "icon";
+
+	presence.state = "Loading";
+
+	Discord_UpdatePresence(&presence);
+}
+
+bool Client::game_message(JSMessage msg) {
+	switch (msg.event) {
+	case IM::rpc_init:
+
+		if (!folder.config["rpc"]["enabled"]) break;
+
+		rpc_loading();
+
+		break;
+	case IM::rpc_uninit:
+
 		Discord_ClearPresence();
-		// Discord_Shutdown();
-	}else if (msg.event == "rpc") {
-		if (folder.config["rpc"]["enabled"]) {
-			DiscordRichPresence presence;
-			memset(&presence, 0, sizeof(presence));
-			
-			int64_t start = msg.args[0];
 
-			std::string
-				user = msg.args[1],
-				map = msg.args[2],
-				mode = msg.args[3];
-			
-			presence.startTimestamp = start;
-			presence.largeImageKey = "icon";
+		break;
+	case IM::rpc_update: {
 
-			presence.state = mode.c_str();
-			presence.details = map.c_str();
+		if (!folder.config["rpc"]["enabled"]) break;
 
-			if (folder.config["rpc"]["name"]) presence.largeImageText = user.c_str();
-			else presence.state = "In game";
+		DiscordRichPresence presence;
+		memset(&presence, 0, sizeof(presence));
 
-			clog::info << "Set presence" << clog::endl;
+		int64_t start = msg.args[0];
 
-			Discord_UpdatePresence(&presence);
-		}
+		std::string
+			user = msg.args[1],
+			map = msg.args[2],
+			mode = msg.args[3];
+
+		presence.startTimestamp = start;
+		presence.largeImageKey = "icon";
+
+		presence.state = mode.c_str();
+		presence.details = map.c_str();
+
+		if (folder.config["rpc"]["name"]) presence.largeImageText = user.c_str();
+		else presence.state = "In game";
+
+		clog::info << "Set presence" << clog::endl;
+
+		Discord_UpdatePresence(&presence);
+
+	} break;
+	default:
+		return false;
 	}
+
+	return true;
 }
 
 Client::Client(HINSTANCE h, int c)
@@ -107,7 +136,7 @@ Client::Client(HINSTANCE h, int c)
 	, updater(client_version, "https://y9x.github.io", "/userscripts/serve.json")
 	, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 	, folder(L"GC++")
-	, game(folder, { 0.8, 0.8 }, client_title, krunker_game, [this]() { listen_navigation(game); }, [this](JSMessage msg) { game_message(msg); })
+	, game(folder, { 0.8, 0.8 }, client_title, krunker_game, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return game_message(msg); })
 	, social(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Social").c_str(), krunker_social, [this]() { listen_navigation(social); })
 	, editor(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Editor").c_str(), krunker_editor, [this]() { listen_navigation(editor); })
 {
@@ -122,17 +151,7 @@ Client::Client(HINSTANCE h, int c)
 	
 	folder.load_config();
 
-	if (folder.config["rpc"]["enabled"]) {
-		DiscordRichPresence presence;
-		memset(&presence, 0, sizeof(presence));
-
-		presence.startTimestamp = time(0);
-		presence.largeImageKey = "icon";
-
-		presence.state = "Loading";
-
-		Discord_UpdatePresence(&presence);
-	}
+	if (folder.config["rpc"]["enabled"]) rpc_loading();
 
 	HRESULT coinit = CoInitialize(NULL);
 	if (!SUCCEEDED(coinit)) MessageBox(NULL, (L"COM could not be initialized. CoInitialize returned " + Convert::wstring(std::to_string(coinit))).c_str(), client_title, MB_OK);

@@ -40,7 +40,6 @@ for(let [ name, data ] of Object.entries(js)){
 		func = eval(`(function(${Object.keys(context)}){${data}//# sourceURL=${name}\n})`);
 	}catch(err){
 		console.error('Error parsing UserScript:', name, '\n', err);
-		// ipc.send('log', 'error', `Error parsing UserScript ${name}:\n${err}`);
 	}
 	
 	
@@ -52,6 +51,5 @@ for(let [ name, data ] of Object.entries(js)){
 		userscript.run();
 	}catch(err){
 		console.warn('Error executing UserScript:', name, '\n', err);
-		// ipc.send('log', 'warn', `Error executing UserScript ${name}:\n${err}`);
 	}
 }

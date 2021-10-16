@@ -17,6 +17,7 @@ class ModifyPlugin {
 		return had;
 	}
 	stages = {
+		load: webpack.Compilation.PROCESS_ASSETS_STAGE_PRE_PROCESS,
 		raw: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
 		process: webpack.Compilation.PROCESS_ASSETS_STAGE_PRE_DERIVED,
 		optimize: webpack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE,
@@ -51,6 +52,7 @@ class ModifyPlugin {
 				stage: this.stages[this.stage],
 			}, () => {
 				for(let file of compilation.getAssets()){
+					console.log(file.name);
 					if(!file.name.match(this.file))continue;
 					
 					var source = file.source.source().replace(/^/, this.prefix).replace(/$/, this.suffix);

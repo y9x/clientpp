@@ -7,7 +7,7 @@ var path = require('path'),
 	TerserPlugin = require('terser-webpack-plugin'),
 	dist = path.join(__dirname, 'dist'),
 	serve = path.join(dist, 'serve'),
-	{ errors } = require('./ModifyPlugin'),
+	{ ModifyPlugin, errors } = require('./ModifyPlugin'),
 	folder = path.join(__dirname, 'src'),
 	callback = (err, stats) => {
 		if(errors(err, stats))return console.error('Build of bootstrapper failed');
@@ -36,6 +36,11 @@ var path = require('path'),
 					},
 				},
 			}) ],
+		},
+		module: {
+			rules: [
+				{ test: /IPCMessages\.h$/, use: path.join(__dirname, 'EnumLoader.js') },
+			],
 		},
 	});
 

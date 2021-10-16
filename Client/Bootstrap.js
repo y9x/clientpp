@@ -2,14 +2,15 @@ if(location.host == 'krunker.io' || location.host.endsWith('.krunker.io')){
 	let { log } = console,
 		{ webview } = chrome;
 
-	webview.postMessage('["send webpack"]');
+	webview.postMessage("[0]");
+
 	// first message should ALWAYS be evaluate data
 	webview.addEventListener('message', ({ data }) => {
-		var [event] = data.slice(0, 1);
+		var [ event, ...args ] = data;
 
-		if (event != 'eval webpack') throw Error('Invalid message recieved: ' + JSON.stringify(data));
+		if (event != 1) throw Error('Invalid message recieved: ' + JSON.stringify(data));
 
-		var [, webpack, runtime_data] = data;
+		var [webpack, runtime_data] = args;
 		new Function('webview', 'webpack', '_RUNTIME_DATA_', 'eval(webpack)')(webview, webpack, runtime_data);
 
 		log('Guru Client++ Webpack Initialized');
