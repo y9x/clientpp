@@ -94,7 +94,7 @@ void Client::game_message(JSMessage msg) {
 			if (folder.config["rpc"]["name"]) presence.largeImageText = user.c_str();
 			else presence.state = "In game";
 
-			std::cout << "Set presence" << std::endl;
+			clog::info << "Set presence" << clog::endl;
 
 			Discord_UpdatePresence(&presence);
 		}
@@ -121,6 +121,18 @@ Client::Client(HINSTANCE h, int c)
 	}
 	
 	folder.load_config();
+
+	if (folder.config["rpc"]["enabled"]) {
+		DiscordRichPresence presence;
+		memset(&presence, 0, sizeof(presence));
+
+		presence.startTimestamp = time(0);
+		presence.largeImageKey = "icon";
+
+		presence.state = "Loading";
+
+		Discord_UpdatePresence(&presence);
+	}
 
 	HRESULT coinit = CoInitialize(NULL);
 	if (!SUCCEEDED(coinit)) MessageBox(NULL, (L"COM could not be initialized. CoInitialize returned " + Convert::wstring(std::to_string(coinit))).c_str(), client_title, MB_OK);
