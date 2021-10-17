@@ -19,6 +19,14 @@
 #include <discord_register.h>
 #include "./Client.h"
 
+constexpr const long double client_version = 0.06;
+constexpr const char* client_discord_rpc = "898655439300993045";
+constexpr const wchar_t* client_title = L"Guru Client++";
+constexpr const wchar_t* krunker_game = L"/";
+constexpr const wchar_t* krunker_games = L"/games";
+constexpr const wchar_t* krunker_editor = L"/editor.html";
+constexpr const wchar_t* krunker_social = L"/social.html";
+
 using namespace StringUtil;
 using Microsoft::WRL::Callback;
 
@@ -28,7 +36,7 @@ bool Client::navigation_cancelled(ICoreWebView2* sender, Uri uri) {
 	std::wstring uhost = uri.host();
 	WebView2Window* send = 0;
 
-	if (kru_owns && uri.pathname() == krunker_game) send = &game;
+	if (kru_owns && uri.pathname() == krunker_game || uri.pathname() == krunker_games || uri.pathname() == (std::wstring(krunker_games) + L".html")) send = &game;
 	else if (kru_owns && uri.pathname() == krunker_social) send = &social;
 	else if (kru_owns && uri.pathname() == krunker_editor) send = &editor;
 	else {

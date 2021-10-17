@@ -130,7 +130,9 @@ std::wstring KrunkerWindow::cmdline() {
 		L"--disable-background-timer-throttling",
 
 		// ws:
-		// L"--allow-running-insecure-content",
+#if _DEBUG == 1
+		L"--allow-running-insecure-content",
+#endif
 		L"--disable-features=msSmartScreenProtection",
 		L"--force-dark-mode",
 		L"--high-dpi-support=1",
