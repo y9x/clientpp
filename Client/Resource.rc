@@ -47,10 +47,18 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// RCDATA
+// Icon
 //
 
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
 MAINICON                ICON                    "..\\Images\\Icon.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RCDATA
+//
 
 ICON_CHIEF              RCDATA                  "..\\Images\\Icon.ico"
 
@@ -89,13 +97,13 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "The Gaming Gurus"
-            VALUE "FileDescription", "Modern C++ WebView2 Krunker Client"
+            VALUE "CompanyName", "Chief Technologies"
+            VALUE "FileDescription", "Krunker Client"
             VALUE "FileVersion", "0.0.4.0"
             VALUE "InternalName", "Client.exe"
-            VALUE "LegalCopyright", "Copyright (C) 2021 The Gaming Gurus"
+            VALUE "LegalCopyright", "Copyright (C) 2021 Chief Client++"
             VALUE "OriginalFilename", "Client.exe"
-            VALUE "ProductName", "Guru Client++"
+            VALUE "ProductName", "Chief Client++"
             VALUE "ProductVersion", "0.0.4.0"
         END
     END
