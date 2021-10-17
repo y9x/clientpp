@@ -1,5 +1,5 @@
 {
-	"name": "Guru Client++ Webpacker",
+	"name": "Chief Client++ Webpacker",
 	"dependencies": {
 		"webpack": "^5.54.0"
 	},

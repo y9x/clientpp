@@ -47,18 +47,12 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-MAINICON                ICON                    "..\\Images\\Icon.ico"
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // RCDATA
 //
+
+MAINICON                ICON                    "..\\Images\\Icon.ico"
+
+ICON_CHIEF              RCDATA                  "..\\Images\\Icon.ico"
 
 JS_WEBPACK              RCDATA                  "..\\Webpack\\dist\\Webpack.js"
 
@@ -69,8 +63,6 @@ CSS_CLIENT              RCDATA                  "Client.css"
 JS_BOOTSTRAP            RCDATA                  "Bootstrap.js"
 
 JS_WEBPACK_MAP          RCDATA                  "..\\Webpack\\dist\\Webpack.js.map"
-
-ICON_GURU               RCDATA                  "..\\Images\\Icon.ico"
 
 ICON_KRUNKER            RCDATA                  "..\\Images\\Krunker.ico"
 

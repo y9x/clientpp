@@ -13,6 +13,6 @@ if(location.host == 'krunker.io' || location.host.endsWith('.krunker.io')){
 		var [webpack, runtime_data] = args;
 		new Function('webview', 'webpack', '_RUNTIME_DATA_', 'eval(webpack)')(webview, webpack, runtime_data);
 
-		log('Guru Client++ Webpack Initialized');
+		log('Chief Client++ Webpack Initialized');
 	}, { once: true });
 }

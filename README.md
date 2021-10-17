@@ -1,6 +1,6 @@
-# <img src="./Images/Icon.ico" style="height:1em"> Guru Client++
+# <img src="./Images/Icon.ico" style="height:1em"> Chief Client++
 
-Guru Client++ is a modern Krunker client written in C++ and powered by WebView2
+Chief Client++ is a modern Krunker client written in C++ and powered by WebView2
 
 Join the [Discord](https://discord.gg/4r47ZwdSQj) server for release announcements
 

@@ -7,21 +7,15 @@
 #define MAINICON                        101
 #define JSON_CONFIG                     110
 #define CSS_CLIENT                      111
-#define IDR_RCDATA1                     113
 #define JS_WEBPACK_MAP                  113
-#define IDR_RCDATA2                     116
-#define B64_ICON_GURU                   116
-#define IC                              117
-#define ICON_GURU                       117
-#define IDR_RCDATA3                     121
-#define ICON_CLIENTPP                   121
+#define ICON_CHIEF                      117
 #define ICON_KRUNKER                    121
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        122
+#define _APS_NEXT_RESOURCE_VALUE        123
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101

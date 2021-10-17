@@ -89,7 +89,7 @@ bool ClientFolder::create() {
 	directory += L"\\Documents\\" + name;
 
 	if (create_directory(directory)) {
-		if (write_resource(directory + p_guru, ICON_GURU)) clog::info << "Created " << Convert::string(directory + p_guru) << clog::endl;
+		if (write_resource(directory + p_chief, ICON_CHIEF)) clog::info << "Created " << Convert::string(directory + p_chief) << clog::endl;
 		if (write_resource(directory + p_krunker, ICON_KRUNKER)) clog::info << "Created " << Convert::string(directory + p_krunker) << clog::endl;
 		
 		for (std::wstring sdir : directories) {
