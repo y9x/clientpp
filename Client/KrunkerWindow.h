@@ -8,10 +8,10 @@
 class JSMessage {
 public:
 	IM event;
-	JSON args;
-	JSMessage(IM e);
-	JSMessage(IM e, JSON p);
-	JSMessage(std::wstring raw);
+	nlohmann::json args;
+	JSMessage(IM event);
+	JSMessage(IM event, nlohmann::json args);
+	JSMessage(LPWSTR raw);
 	std::string dump();
 	bool send(ICoreWebView2* target);
 };
@@ -21,11 +21,12 @@ private:
 	static LRESULT CALLBACK mouse_message(int code, WPARAM wParam, LPARAM lParam);
 	HHOOK mouse_hook = 0;
 	bool mouse_hooked = false;
-	std::time_t last_client_poll;
+	std::time_t last_pointer_poll;
+	nlohmann::json runtime_data();
 	void hook_mouse();
 	void unhook_mouse();
-	JSON runtime_data();
 	void register_events();
+	void handle_message(JSMessage msg);
 	void call_create_webview(std::function<void()> callback = nullptr);
 	std::function<bool(JSMessage)> on_unknown_message;
 	std::function<void()> on_webview2_startup;

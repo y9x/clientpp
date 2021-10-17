@@ -7,6 +7,7 @@
 #include "./LoadRes.h"
 #include "resource.h"
 
+using JSON = nlohmann::json;
 using namespace StringUtil;
 
 // true if the result of CreateDirectory is nonzero or if GetLastError equals ERROR_ALREADY_EXISTS, otherwise false

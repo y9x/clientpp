@@ -122,7 +122,6 @@
   <ItemGroup>
     <ClInclude Include="..\Utils\Base64.h" />
     <ClInclude Include="..\Utils\IOUtil.h" />
-    <ClInclude Include="..\Utils\JSON.h" />
     <ClInclude Include="..\Utils\StringUtil.h" />
     <ClInclude Include="..\Utils\Uri.h" />
     <ClInclude Include="Client.h" />
@@ -130,7 +129,6 @@
     <ClInclude Include="IPCMessages.h" />
     <ClInclude Include="KrunkerWindow.h" />
     <ClInclude Include="LoadRes.h" />
-    <ClInclude Include="httplib.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="WebView2Installer.h" />

@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "../Utils/JSON.h"
+#include <json.hpp>
 
 class ClientFolder {
 public:
@@ -13,8 +13,8 @@ public:
 	std::wstring p_chief = L"\\Chief.ico";
 	std::wstring p_krunker = L"\\Krunker.ico";
 	std::wstring p_logs = L"\\Logs";
-	JSON default_config = JSON::object();
-	JSON config = JSON::object();
+	nlohmann::json default_config = nlohmann::json::object();
+	nlohmann::json config = nlohmann::json::object();
 	ClientFolder(std::wstring name);
 	bool create();
 	bool create_directory(std::wstring directory);

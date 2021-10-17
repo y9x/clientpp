@@ -9,14 +9,14 @@
 #include <stdlib.h>
 #include <tchar.h>
 #include <thread>
+#include <discord_rpc.h>
+#include <discord_register.h>
 #include "../Utils/StringUtil.h"
 #include "../Utils/Uri.h"
 #include "./Log.h"
 #include "./Updater.h"
 #include "./WebView2Installer.h"
 #include "./KrunkerWindow.h"
-#include <discord_rpc.h>
-#include <discord_register.h>
 #include "./Client.h"
 
 constexpr const long double client_version = 0.1;
@@ -33,13 +33,16 @@ using Microsoft::WRL::Callback;
 bool Client::navigation_cancelled(ICoreWebView2* sender, Uri uri) {
 	bool kru_owns = uri.host_owns(L"krunker.io");
 	bool cancel = false;
-	std::wstring uhost = uri.host();
+	std::wstring pathname = uri.pathname();
+	
 	WebView2Window* send = 0;
 
-	if (kru_owns && uri.pathname() == krunker_game || uri.pathname() == krunker_games || uri.pathname() == (std::wstring(krunker_games) + L".html")) send = &game;
-	else if (kru_owns && uri.pathname() == krunker_social) send = &social;
-	else if (kru_owns && uri.pathname() == krunker_editor) send = &editor;
-	else {
+	if (kru_owns) {
+		if (pathname == krunker_game || pathname == krunker_games || pathname == (std::wstring(krunker_games) + L".html")) send = &game;
+		else if (pathname == krunker_social) send = &social;
+		else if (pathname == krunker_editor) send = &editor;
+	}
+	if (!send) {
 		cancel = true;
 		ShellExecute(NULL, L"open", uri.href.c_str(), L"", L"", SW_SHOW);
 	}

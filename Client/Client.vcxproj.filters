@@ -79,13 +79,7 @@
     <ClInclude Include="..\Utils\IOUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Utils\JSON.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\Utils\Base64.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="httplib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Log.h">

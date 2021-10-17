@@ -1,7 +1,9 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
-#include "./httplib.h"
+#include <httplib.hpp>
 #include "./Updater.h"
 #include "./Log.h"
+
+using JSON = nlohmann::json;
 
 JSON Updater::GetServing() {
 	httplib::Client cli(host);

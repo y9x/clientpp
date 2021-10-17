@@ -1,5 +1,5 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
-#include "./httplib.h"
+#include <httplib.hpp>
 #include "./WebView2Installer.h"
 #include "../Utils/StringUtil.h"
 #include <WebView2.h>
