@@ -105,7 +105,7 @@ class Menu extends ExtendMenu {
 			}
 		});
 		
-		RPC.control('Show name', {
+		RPC.control('Show username', {
 			type: 'boolean',
 			walk: 'rpc.name',
 		}).on('change', (value, init) => !init && this.rpc.update(true));
