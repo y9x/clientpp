@@ -19,7 +19,7 @@
 #include <discord_register.h>
 #include "./Client.h"
 
-constexpr const long double client_version = 0.06;
+constexpr const long double client_version = 0.1;
 constexpr const char* client_discord_rpc = "898655439300993045";
 constexpr const wchar_t* client_title = L"Chief Client++";
 constexpr const wchar_t* krunker_game = L"/";
@@ -144,7 +144,7 @@ bool Client::game_message(JSMessage msg) {
 Client::Client(HINSTANCE h, int c)
 	: inst(h)
 	, cmdshow(c)
-	, updater(client_version, "https://y9x.github.io", "/userscripts/serve.json")
+	, updater(client_version, "https://6ct.github.io", "/serve/updates.json")
 	, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 	, folder(L"GC++")
 	, game(folder, { 0.8, 0.8 }, client_title, krunker_game, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return game_message(msg); })
