@@ -356,40 +356,42 @@ void KrunkerWindow::register_events() {
 		request->Release();
 
 		if (uri.host_owns(L"krunker.io")) {
-			if (uri.pathname().starts_with(L"/pkg/")) {
+			/*if (uri.pathname().starts_with(L"/pkg/")) {
 				IStream* stream = nullptr;
 				// request resource manually because webview2 fails to cache
-				if (CreateStreamOnHGlobal(NULL, TRUE, (LPSTREAM*)&stream) == S_OK) {
-					httplib::Client cli(Convert::string(uri.origin()));
-					auto res = cli.Get(Convert::string(uri.pathname()).c_str());
+				new std::thread([stream](Uri uri) {
+					if (CreateStreamOnHGlobal(NULL, TRUE, (LPSTREAM*)&stream) == S_OK) {
+						httplib::Client cli(Convert::string(uri.origin()));
+						auto res = cli.Get(Convert::string(uri.pathname()).c_str());
 
-					ULONG written = 0;
+						ULONG written = 0;
 
-					if (stream->Write(res->body.data(), res->body.length(), &written) == S_OK) {
-						wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-						env->CreateWebResourceResponse(stream, 200, L"Swapped", L"", &response);
-						args->put_Response(response.get());
-					}
-					else clog::error << "Error writing to IStream" << clog::endl;
+						if (stream->Write(res->body.data(), res->body.length(), &written) == S_OK) {
+							// stream->l
+							clog::info << "Wrote to IStream" << clog::endl;
+							
+						}
+						else clog::error << "Error writing to IStream" << clog::endl;
+					}else clog::error << "Error creating IStream on HGlobal" << clog::endl;
+				}, uri);
+				
+				wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+				env->CreateWebResourceResponse(stream, 200, L"Swapped", L"", &response);
+				args->put_Response(response.get());
+			}*/
+			std::wstring swap = folder->directory + folder->p_swapper + uri.pathname();
 
+			if (IOUtil::file_exists(swap)) {
+				clog::info << "Swapping " << Convert::string(uri.pathname()) << clog::endl;
+				// Create an empty IStream:
+				IStream* stream;
+
+				if (SHCreateStreamOnFileEx(swap.c_str(), STGM_READ | STGM_SHARE_DENY_WRITE, 0, false, 0, &stream) == S_OK) {
+					wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+					env->CreateWebResourceResponse(stream, 200, L"OK", L"access-control-allow-origin: https://krunker.io\naccess-control-expose-headers: Content-Length, Content-Type, Date, Server, Transfer-Encoding, X-GUploader-UploadID, X-Google-Trace", &response);
+					args->put_Response(response.get());
 				}
-				else clog::error << "Error creating IStream on HGlobal" << clog::endl;
-			}
-			else {
-				std::wstring swap = folder->directory + folder->p_swapper + uri.pathname();
-
-				if (IOUtil::file_exists(swap)) {
-					clog::info << "Swapping " << Convert::string(uri.pathname()) << clog::endl;
-					// Create an empty IStream:
-					IStream* stream;
-
-					if (SHCreateStreamOnFileEx(swap.c_str(), STGM_READ | STGM_SHARE_DENY_WRITE, 0, false, 0, &stream) == S_OK) {
-						wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-						env->CreateWebResourceResponse(stream, 200, L"OK", L"access-control-allow-origin: https://krunker.io\naccess-control-expose-headers: Content-Length, Content-Type, Date, Server, Transfer-Encoding, X-GUploader-UploadID, X-Google-Trace", &response);
-						args->put_Response(response.get());
-					}
-					else clog::error << "Error creating IStream on swap: " << Convert::string(swap) << clog::endl;
-				}
+				else clog::error << "Error creating IStream on swap: " << Convert::string(swap) << clog::endl;
 			}
 		}
 		else if (folder->config["client"]["adblock"].get<bool>()) for (std::wstring test : ad_hosts) if (uri.host_owns(test)) {
