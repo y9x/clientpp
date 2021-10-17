@@ -150,9 +150,9 @@ Client::Client(HINSTANCE h, int c)
 	, updater(client_version, "https://6ct.github.io", "/serve/updates.json")
 	, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 	, folder(L"GC++")
-	, game(folder, { 0.8, 0.8 }, client_title, krunker_game, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return game_message(msg); })
-	, social(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Social").c_str(), krunker_social, [this]() { listen_navigation(social); })
-	, editor(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Editor").c_str(), krunker_editor, [this]() { listen_navigation(editor); })
+	, game(folder, { 0.8, 0.8 }, client_title, krunker_game, true, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return game_message(msg); })
+	, social(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Social").c_str(), krunker_social, false, [this]() { listen_navigation(social); })
+	, editor(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Editor").c_str(), krunker_editor, false, [this]() { listen_navigation(editor); })
 {
 	memset(&presence_events, 0, sizeof(presence_events));
 	Discord_Initialize(client_discord_rpc, &presence_events, 1, NULL);

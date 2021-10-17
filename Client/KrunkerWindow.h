@@ -21,6 +21,7 @@ private:
 	static LRESULT CALLBACK mouse_message(int code, WPARAM wParam, LPARAM lParam);
 	HHOOK mouse_hook = 0;
 	bool mouse_hooked = false;
+	bool can_fullscreen;
 	std::time_t last_pointer_poll;
 	nlohmann::json runtime_data();
 	void hook_mouse();
@@ -52,6 +53,6 @@ public:
 	void get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr) override;
 	void on_dispatch() override;
 	bool seek_game();
-	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr);
+	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, bool can_fullscreen, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr);
 	~KrunkerWindow();
 };
