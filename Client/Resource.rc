@@ -97,11 +97,11 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "Chief Technologies"
+            VALUE "CompanyName", "Chief Software"
             VALUE "FileDescription", "Krunker Client"
             VALUE "FileVersion", "0.0.4.0"
             VALUE "InternalName", "Client.exe"
-            VALUE "LegalCopyright", "Copyright (C) 2021 Chief Technologies"
+            VALUE "LegalCopyright", "Copyright (C) 2021 Chief Software"
             VALUE "OriginalFilename", "Client.exe"
             VALUE "ProductName", "Chief Client++"
             VALUE "ProductVersion", "0.0.4.0"
