@@ -128,6 +128,9 @@ std::wstring KrunkerWindow::cmdline() {
 		// L"--js-flags=--experimental-wasm-threads",
 		// bad for cpu
 		L"--disable-background-timer-throttling",
+
+		// ws:
+		// L"--allow-running-insecure-content",
 		L"--disable-features=msSmartScreenProtection",
 		L"--force-dark-mode",
 		L"--high-dpi-support=1",
