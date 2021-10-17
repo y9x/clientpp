@@ -1,6 +1,6 @@
 #pragma once
 
-constexpr const long double client_version = 0.05;
+constexpr const long double client_version = 0.06;
 constexpr const char* client_discord_rpc = "898655439300993045";
 constexpr const wchar_t* client_title = L"Guru Client++";
 constexpr const wchar_t* krunker_game = L"/";

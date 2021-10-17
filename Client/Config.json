@@ -10,7 +10,7 @@
 	},
 	"rpc": {
 		"enabled": true,
-		"name": true
+		"name": false
 	},
 	"window": {
 		"meta": {
