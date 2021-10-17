@@ -63,7 +63,10 @@ void Client::listen_navigation(WebView2Window& window) {
 		LPWSTR urip;
 		args->get_Uri(&urip);
 		if (navigation_cancelled(sender, urip)) args->put_Handled(true);
-		else args->put_NewWindow(sender);
+		else {
+			args->put_Handled(true);
+			sender->Navigate(urip);
+		}
 
 		return S_OK;
 	}).Get(), &token);
