@@ -53,7 +53,7 @@ bool JSMessage::send(ICoreWebView2* target) {
 
 KrunkerWindow* awindow;
 
-KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title, std::wstring p, bool fullsrc, std::function<void()> s, std::function<bool(JSMessage)> u)
+KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title, std::wstring p, std::function<void()> s, std::function<bool(JSMessage)> u)
 	: WebView2Window(scale, title)
 	, folder(&f)
 	, og_title(title)
@@ -61,7 +61,6 @@ KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title,
 	, last_pointer_poll(now())
 	, on_webview2_startup(s)
 	, on_unknown_message(u)
-	, can_fullscreen(fullsrc)
 {}
 
 KrunkerWindow::~KrunkerWindow() {
@@ -413,7 +412,7 @@ void KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> ca
 
 	create_window(inst, cmdshow);
 	
-	SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(RGB(0, 0, 0)));
+	SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(background));
 
 	if (can_fullscreen && folder->config["client"]["fullscreen"]) enter_fullscreen();
 
@@ -444,7 +443,7 @@ void KrunkerWindow::call_create_webview(std::function<void()> callback) {
 		wil::com_ptr<ICoreWebView2Controller2> control2;
 		control2 = control.query<ICoreWebView2Controller2>();
 		if (control2) {
-			control2->put_DefaultBackgroundColor(ColorRef(RGB(0, 0, 0)));
+			control2->put_DefaultBackgroundColor(ColorRef(background));
 		}
 		
 		wil::com_ptr<ICoreWebView2Controller3> control3;

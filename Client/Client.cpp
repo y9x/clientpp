@@ -22,10 +22,15 @@
 constexpr const long double client_version = 0.1;
 constexpr const char* client_discord_rpc = "898655439300993045";
 constexpr const wchar_t* client_title = L"Chief Client++";
-constexpr const wchar_t* krunker_game = L"/";
-constexpr const wchar_t* krunker_games = L"/games";
-constexpr const wchar_t* krunker_editor = L"/editor.html";
-constexpr const wchar_t* krunker_social = L"/social.html";
+
+namespace krunker {
+	constexpr const wchar_t* game = L"/";
+	constexpr const wchar_t* games = L"/games";
+	constexpr const wchar_t* editor = L"/editor.html";
+	constexpr const wchar_t* social = L"/social.html";
+	constexpr const wchar_t* docs = L"/docs/";
+	constexpr const wchar_t* tos = L"/docs/tos.html";
+};
 
 using namespace StringUtil;
 using Microsoft::WRL::Callback;
@@ -38,9 +43,10 @@ bool Client::navigation_cancelled(ICoreWebView2* sender, Uri uri) {
 	WebView2Window* send = 0;
 
 	if (kru_owns) {
-		if (pathname == krunker_game || pathname == krunker_games || pathname == (std::wstring(krunker_games) + L".html")) send = &game;
-		else if (pathname == krunker_social) send = &social;
-		else if (pathname == krunker_editor) send = &editor;
+		if (pathname == krunker::game || pathname.starts_with(krunker::games)) send = &game;
+		else if (pathname.starts_with(krunker::docs)) send = &documents;
+		else if (pathname == krunker::social) send = &social;
+		else if (pathname == krunker::editor) send = &editor;
 	}
 	if (!send) {
 		cancel = true;
@@ -150,9 +156,10 @@ Client::Client(HINSTANCE h, int c)
 	, updater(client_version, "https://6ct.github.io", "/serve/updates.json")
 	, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 	, folder(L"GC++")
-	, game(folder, { 0.8, 0.8 }, client_title, krunker_game, true, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return game_message(msg); })
-	, social(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Social").c_str(), krunker_social, false, [this]() { listen_navigation(social); })
-	, editor(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Editor").c_str(), krunker_editor, false, [this]() { listen_navigation(editor); })
+	, game(folder, { 0.8, 0.8 }, client_title, krunker::game, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return game_message(msg); })
+	, social(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Social").c_str(), krunker::social, [this]() { listen_navigation(social); })
+	, editor(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Editor").c_str(), krunker::editor, [this]() { listen_navigation(editor); })
+	, documents(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Documents").c_str(), krunker::tos, [this]() { listen_navigation(documents); })
 {
 	memset(&presence_events, 0, sizeof(presence_events));
 	Discord_Initialize(client_discord_rpc, &presence_events, 1, NULL);
@@ -195,6 +202,9 @@ Client::Client(HINSTANCE h, int c)
 		else MessageBox(NULL, L"Cannot continue without runtimes. Client will now exit.", client_title, MB_OK);
 		return;
 	}
+
+	game.can_fullscreen = true;
+	documents.background = RGB(0xFF, 0xFF, 0xFF);
 
 	game.create(inst, cmdshow);
 
