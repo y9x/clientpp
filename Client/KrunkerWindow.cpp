@@ -470,9 +470,9 @@ void KrunkerWindow::call_create_webview(std::function<void()> callback) {
 			webview->OpenDevToolsWindow();
 #endif
 
-			wil::com_ptr<ICoreWebView2Settings3> settings3;
+			wil::com_ptr<ICoreWebView2Settings3> settings3 = settings.query<ICoreWebView2Settings3>();
 
-			if (settings3 = settings.query<ICoreWebView2Settings3>()) {
+			if (settings3) {
 				settings3->put_AreBrowserAcceleratorKeysEnabled(false);
 			}
 		}
