@@ -264,25 +264,37 @@ var { css, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
 	site_location = __webpack_require__(/*! ./SiteLocation */ "./src/SiteLocation.js"),
 	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
-	Userscript = __webpack_require__(/*! ./Userscript */ "./src/Userscript.js");
+	Userscript = __webpack_require__(/*! ./Userscript */ "./src/Userscript.js"),
+	add_css = () => {
+		for(let [ name, data ] of Object.entries(css)){
+			let url = URL.createObjectURL(new Blob([ data ], { type: 'text/css' }));
+			
+			let link = document.head.appendChild(Object.assign(document.createElement('link'), {
+				rel: 'stylesheet',
+				href: url,
+			}));
 
-// wait for krunker css
-// utils.wait_for(() => document.querySelector(`link[href*='/css/main_custom.css']`))
+			link.addEventListener('load', () => {
+				URL.revokeObjectURL(url);
+			});
+			
+			document.head.appendChild(link);
+		}
+	};
 
-for(let [ name, data ] of Object.entries(css)){
-	let url = URL.createObjectURL(new Blob([ data ], { type: 'text/css' }));
-	
-	let link = document.head.appendChild(Object.assign(document.createElement('link'), {
-		rel: 'stylesheet',
-		href: url,
-	}));
-
-	link.addEventListener('load', () => {
-		URL.revokeObjectURL(url);
-	});
-	
-	document.head.appendChild(link);
-}
+new MutationObserver((mutations, observer) => {
+	for(let mutation of mutations){
+		for(let node of mutation.addedNodes){
+			if(node.nodeName == 'LINK' && new URL(node.href || '/', location).pathname == '/css/main_custom.css'){
+				add_css();
+				observer.disconnect();
+			}
+		}
+	}
+}).observe(document, {
+	subtree: true,
+	childList: true,
+});
 
 for(let [ name, data ] of Object.entries(js)){
 	// quick fix
@@ -1387,7 +1399,7 @@ module.exports = Utils;
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"game":{"f4_seek":true},"client":{"uncap_fps":false,"adblock":true,"fullscreen":false,"devtools":false},"rpc":{"enabled":true,"name":true},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}}}');
+module.exports = JSON.parse('{"game":{"f4_seek":true},"client":{"uncap_fps":false,"adblock":true,"fullscreen":false,"devtools":false},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}}}');
 
 /***/ })
 
@@ -1532,7 +1544,7 @@ class Menu extends ExtendMenu {
 			}
 		});
 		
-		RPC.control('Show name', {
+		RPC.control('Show username', {
 			type: 'boolean',
 			walk: 'rpc.name',
 		}).on('change', (value, init) => !init && this.rpc.update(true));
