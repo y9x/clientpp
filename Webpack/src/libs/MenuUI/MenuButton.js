@@ -2,8 +2,7 @@
 
 var { tick, select } = require('./consts'),
 	utils = require('../Utils'),
-	Events = require('../Events'),
-	EventLite  = require('event-lite');
+	Events = require('../Events');
 
 class MenuButton extends Events {
 	constructor(label, icon){

@@ -30,7 +30,7 @@ class Control extends Events {
 			last_state,
 			last_key;
 		
-		data.split('.').forEach(key => state = ((last_state = state)[last_key = key] || {}));
+		for(let key of data.split('.'))state = (last_state = state)[last_key = key] || {};
 		
 		return [ last_state, last_key ];
 	}
@@ -109,6 +109,33 @@ class SelectControl extends Control {
 		super.update(init);
 		
 		if(init)this.select.value = this.value;
+	}
+};
+
+class DropdownControl extends Control {
+	static id = 'dropdown';
+	create(){
+		this.select = utils.add_ele('select', this.content, { className: 'inputGrey2' });
+		
+		this.select.addEventListener('change', () => {
+			this.key = this.select.value;
+			this.value = this.data.value[this.select.value];
+		});
+		
+		for(let key in this.data.value)utils.add_ele('option', this.select, {
+			textContent: key,
+			value: key,
+		});
+	}
+	update(init){
+		super.update(init);
+		
+		if(init)for(let [ key, value ] of Object.entries(this.data.value)){
+			if(value == this.value){
+				this.select.value = key;
+				this.key = key;
+			}
+		}
 	}
 };
 
@@ -282,6 +309,7 @@ class ColorControl extends Control {
 Control.Types = {
 	KeybindControl,
 	SelectControl,
+	DropdownControl,
 	BooleanControl,
 	FunctionControl,
 	LinkControl,
