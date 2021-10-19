@@ -6,12 +6,10 @@ Object.defineProperty(window, 'onbeforeunload', { writable: false, value(){} })
 require('./FilePicker');
 
 var ExtendMenu = require('./libs/ExtendMenu'),
-	Category = require('./libs/MenuUI/Window/Category'),
-	Events = require('./libs/Events'),
 	Keybind = require('./libs/Keybind'),
 	utils = require('./libs/Utils'),
-	{ ipc, IM } = require('./IPC'),
 	RPC = require('./RPC'),
+	{ ipc, IM } = require('./IPC'),
 	{ config: runtime_config, js } = require('./Runtime'),
 	site_location = require('./SiteLocation');
 
