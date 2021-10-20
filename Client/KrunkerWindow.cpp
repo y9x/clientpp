@@ -87,9 +87,10 @@ JSON KrunkerWindow::runtime_data() {
 				search.obj[Convert::string(it.file()).c_str()] = buffer;
 		}
 
-	std::string css_client;
-	if (load_resource(CSS_CLIENT, css_client)) data["css"]["Client/Client.css"] = css_client;
-
+	std::string hide = "img[src='./img/client.png']";
+	if (folder->config["client"]["adblock"]) hide += ", *[id*='aHider']";
+	data["css"]["client/hide.css"] = hide + "{ display: none !IMPORTANT; }";
+	
 	data["config"] = folder->config;
 
 	return data;

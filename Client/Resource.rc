@@ -66,8 +66,6 @@ JS_WEBPACK              RCDATA                  "..\\Webpack\\dist\\Webpack.js"
 
 JSON_CONFIG             RCDATA                  "Config.json"
 
-CSS_CLIENT              RCDATA                  "Client.css"
-
 JS_BOOTSTRAP            RCDATA                  "Bootstrap.js"
 
 JS_WEBPACK_MAP          RCDATA                  "..\\Webpack\\dist\\Webpack.js.map"
