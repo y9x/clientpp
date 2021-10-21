@@ -12,7 +12,6 @@ Join the [Discord](https://discord.gg/4r47ZwdSQj) server for release announcemen
 - Resource Swapper
 - User Styles
 - User Scripts
-- Blocks Ads
 
 ## Requirements
 

@@ -7,7 +7,7 @@
   \*******************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={send_webpack:0,eval_webpack:1,rpc_update:2,rpc_clear:3,rpc_init:4,save_config:5,shell_open:6,fullscreen:7,update_meta:8,revert_meta:9,reload_config:10,browse_file:11,mousedown:12,pointer:13,mouse_locked:14,open_devtools:15,log:16,relaunch_webview:17,close_window:18,reload_window:19,seek_game:20}
+exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_clear:1,rpc_init:2,save_config:3,shell_open:4,fullscreen:5,update_meta:6,revert_meta:7,reload_config:8,browse_file:9,mousedown:10,pointer:11,mouse_locked:12,open_devtools:13,log:14,relaunch_webview:15,close_window:16,reload_window:17,seek_game:18}
 
 /***/ }),
 
@@ -282,19 +282,6 @@ var { css, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
 		}
 	};
 
-new MutationObserver((mutations, observer) => {
-	for(let mutation of mutations){
-		for(let node of mutation.addedNodes){
-			if(node.nodeName == 'LINK' && new URL(node.href || '/', location).pathname == '/css/main_custom.css'){
-				add_css();
-				observer.disconnect();
-			}
-		}
-	}
-}).observe(document.head, {
-	childList: true,
-});
-
 for(let [ name, data ] of Object.entries(js)){
 	// quick fix
 	if(data.includes('// ==UserScript==') && site_location != 'game')continue;
@@ -313,6 +300,9 @@ for(let [ name, data ] of Object.entries(js)){
 		console.error('Error parsing UserScript:', name, '\n', err);
 	}
 	
+	// try{...}catch(err){...} doesnt provide: line, column
+	
+	
 	
 	try{
 		func(...Object.values(context));
@@ -324,6 +314,20 @@ for(let [ name, data ] of Object.entries(js)){
 		console.warn('Error executing UserScript:', name, '\n', err);
 	}
 }
+
+new MutationObserver((mutations, observer) => {
+	for(let mutation of mutations){
+		for(let node of mutation.addedNodes){
+			if(node.nodeName == 'LINK' && new URL(node.href || '/', location).pathname == '/css/main_custom.css'){
+				add_css();
+				observer.disconnect();
+			}
+		}
+	}
+}).observe(document, {
+	childList: true,
+	subtree: true,
+});
 
 /***/ }),
 
@@ -440,6 +444,8 @@ class Events {
 		if(typeof callback != 'function')throw new TypeError('Callback is not a function.');
 		
 		this.#resolve(event).add(callback);
+		
+		return this;
 	}
 	once(event, callback){
 		var cb = function(...data){
@@ -680,7 +686,7 @@ class Control extends Events {
 			last_state,
 			last_key;
 		
-		data.split('.').forEach(key => state = ((last_state = state)[last_key = key] || {}));
+		for(let key of data.split('.'))state = (last_state = state)[last_key = key] || {};
 		
 		return [ last_state, last_key ];
 	}
@@ -759,6 +765,33 @@ class SelectControl extends Control {
 		super.update(init);
 		
 		if(init)this.select.value = this.value;
+	}
+};
+
+class DropdownControl extends Control {
+	static id = 'dropdown';
+	create(){
+		this.select = utils.add_ele('select', this.content, { className: 'inputGrey2' });
+		
+		this.select.addEventListener('change', () => {
+			this.key = this.select.value;
+			this.value = this.data.value[this.select.value];
+		});
+		
+		for(let key in this.data.value)utils.add_ele('option', this.select, {
+			textContent: key,
+			value: key,
+		});
+	}
+	update(init){
+		super.update(init);
+		
+		if(init)for(let [ key, value ] of Object.entries(this.data.value)){
+			if(value == this.value){
+				this.select.value = key;
+				this.key = key;
+			}
+		}
 	}
 };
 
@@ -932,6 +965,7 @@ class ColorControl extends Control {
 Control.Types = {
 	KeybindControl,
 	SelectControl,
+	DropdownControl,
 	BooleanControl,
 	FunctionControl,
 	LinkControl,
@@ -1398,7 +1432,7 @@ module.exports = Utils;
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"game":{"f4_seek":true},"client":{"uncap_fps":false,"adblock":true,"fullscreen":false,"devtools":false},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}}}');
+module.exports = JSON.parse('{"game":{"f4_seek":true},"client":{"uncap_fps":false,"fullscreen":false,"devtools":false},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}}}');
 
 /***/ })
 
@@ -1444,12 +1478,10 @@ Object.defineProperty(window, 'onbeforeunload', { writable: false, value(){} })
 __webpack_require__(/*! ./FilePicker */ "./src/FilePicker.js");
 
 var ExtendMenu = __webpack_require__(/*! ./libs/ExtendMenu */ "./src/libs/ExtendMenu.js"),
-	Category = __webpack_require__(/*! ./libs/MenuUI/Window/Category */ "./src/libs/MenuUI/Window/Category.js"),
-	Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
 	Keybind = __webpack_require__(/*! ./libs/Keybind */ "./src/libs/Keybind.js"),
 	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
-	{ ipc, IM } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	RPC = __webpack_require__(/*! ./RPC */ "./src/RPC.js"),
+	{ ipc, IM } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	{ config: runtime_config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
 	site_location = __webpack_require__(/*! ./SiteLocation */ "./src/SiteLocation.js");
 
@@ -1506,11 +1538,6 @@ class Menu extends ExtendMenu {
 		});
 		
 		var Render = this.category('Rendering');
-		
-		Render.control('Adblock', {
-			type: 'boolean',
-			walk: 'client.adblock',
-		}).on('change', (value, init) => !init && location.assign('/'));
 		
 		Render.control('Uncap FPS', {
 			type: 'boolean',

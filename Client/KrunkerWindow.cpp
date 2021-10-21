@@ -74,6 +74,8 @@ KrunkerWindow::~KrunkerWindow() {
 	if(awindow == this)awindow = NULL;
 }
 
+std::regex pblock(R"!(\/\*cc\s[\s\S]*?#blockhosts (\[(?:\s*?"[^,"]*?",?)*?\])[\s\S]*?\*\/)!");
+
 JSON KrunkerWindow::runtime_data() {
 	JSON data = JSON::object();
 
@@ -83,6 +85,8 @@ JSON KrunkerWindow::runtime_data() {
 		JSON& obj;
 	};
 
+	block_hosts.clear();
+
 	for (Search search : std::vector<Search>{
 		{folder->p_styles, L"*.css", data["css"] = JSON::object()},
 		{folder->p_scripts, L"*.js", data["js"] = JSON::object()},
@@ -90,13 +94,36 @@ JSON KrunkerWindow::runtime_data() {
 		for (IOUtil::WDirectoryIterator it(folder->directory + search.dir, search.filter); ++it;) {
 			std::string buffer;
 
-			if (IOUtil::read_file(it.path().c_str(), buffer))
+			if (IOUtil::read_file(it.path().c_str(), buffer)) {
+				for (std::sregex_iterator next(buffer.begin(), buffer.end(), pblock), end; next != end; ++next) {
+					std::string match = next->str(1);
+
+					// clog::info << "match: " << match << clog::endl;
+
+					try {
+						for (JSON value : JSON::parse(match)) {
+							std::wstring hostw = Convert::wstring(value);
+							bool blocked = false;
+
+							for (std::wstring h : block_hosts) if (h == hostw) {
+								blocked = true;
+								clog::info << "duplicate" << clog::endl;
+								break;
+							}
+
+							if (!blocked) block_hosts.push_back(hostw);
+						}
+					}
+					catch (JSON::parse_error err) {
+						clog::error << "Unable to process blocked hosts: " << err.what() << clog::endl;
+					}
+				}
+
 				search.obj[Convert::string(it.file()).c_str()] = buffer;
+			}
 		}
 
-	std::string hide = "img[src='./img/client.png']";
-	if (folder->config["client"]["adblock"]) hide += ", *[id*='aHider']";
-	data["css"]["client/hide.css"] = hide + "{ display: none !IMPORTANT; }";
+	data["css"]["client/hide.css"] = "img[src='./img/client.png'] { display: none !IMPORTANT; }";
 	
 	data["config"] = folder->config;
 
@@ -179,16 +206,6 @@ std::time_t KrunkerWindow::now() {
 
 void KrunkerWindow::handle_message(JSMessage msg) {
 	switch ((IM)msg.event) {
-	case IM::send_webpack: {
-		std::string js_webpack = "throw Error('Failure loading Webpack.js');";
-		load_resource(JS_WEBPACK, js_webpack);
-		std::string js_webpack_map;
-		if (load_resource(JS_WEBPACK_MAP, js_webpack_map)) js_webpack += "\n//# sourceMappingURL=data:application/json;base64," + Base64::Encode(js_webpack_map);
-
-		JSMessage res(IM::eval_webpack, { js_webpack, runtime_data() });
-		if (!res.send(webview.get()))clog::error << "Unable to send " << res.dump() << clog::endl;
-
-	} break;
 	case IM::save_config:
 		folder->config = msg.args[0];
 		folder->save_config();
@@ -336,10 +353,6 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 void KrunkerWindow::register_events() {
 	EventRegistrationToken token;
 
-	std::string bootstrap;
-	if (load_resource(JS_BOOTSTRAP, bootstrap)) webview->AddScriptToExecuteOnDocumentCreated(Convert::wstring(bootstrap).c_str(), nullptr);
-	else clog::error << "Error loading bootstrapper" << clog::endl;
-
 	webview->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) {
 		LPWSTR mpt;
 		args->TryGetWebMessageAsString(&mpt);
@@ -351,6 +364,33 @@ void KrunkerWindow::register_events() {
 	}).Get(), &token);
 
 	webview->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
+
+	webview->add_NavigationStarting(Callback<ICoreWebView2NavigationStartingEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+		LPWSTR uriptr;
+		args->get_Uri(&uriptr);
+		Uri uri(uriptr);
+
+		if (uri.host_owns(L"krunker.io")) {
+			std::string js_webpack = "throw Error('Failure loading Webpack.js');";
+			load_resource(JS_WEBPACK, js_webpack);
+			std::string js_webpack_map;
+			if (load_resource(JS_WEBPACK_MAP, js_webpack_map)) js_webpack += "\n//# sourceMappingURL=data:application/json;base64," + Base64::Encode(js_webpack_map);
+
+			std::string bootstrap;
+			if (load_resource(JS_BOOTSTRAP, bootstrap)) {
+				bootstrap = Manipulate::replace_all(bootstrap, "$WEBPACK", JSON(js_webpack).dump());
+				bootstrap = Manipulate::replace_all(bootstrap, "$RUNTIME", runtime_data().dump());
+
+				webview->ExecuteScript(Convert::wstring(bootstrap).c_str(), Callback<ICoreWebView2ExecuteScriptCompletedHandler>([this](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
+					clog::info << errorCode << " : " << Convert::string(resultObjectAsJson) << clog::endl;
+					return S_OK;
+					}).Get());
+			}
+			else clog::error << "Error loading bootstrapper" << clog::endl;
+		}
+
+		return S_OK;
+	}).Get(), &token);
 
 	webview->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
 		LPWSTR sender_uriptr;
@@ -378,10 +418,9 @@ void KrunkerWindow::register_events() {
 				}
 				else clog::error << "Error creating IStream on swap: " << Convert::string(swap) << clog::endl;
 			}
-		}
-		else if (folder->config["client"]["adblock"].get<bool>()) for (std::wstring test : ad_hosts) if (uri.host_owns(test)) {
+		}else for (std::wstring test : block_hosts) if (uri.host_owns(test)) {
 			wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-			env->CreateWebResourceResponse(nullptr, 403, L"Ad", L"", &response);
+			env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"", &response);
 			args->put_Response(response.get());
 			break;
 		}

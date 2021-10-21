@@ -9,11 +9,6 @@ enum class LogType {
 
 // 0,1,2,3,4...
 enum class IM {
-	// fixed
-	send_webpack,
-	eval_webpack,
-	// end fixed
-	
 	rpc_update,
 	rpc_clear,
 	rpc_init,

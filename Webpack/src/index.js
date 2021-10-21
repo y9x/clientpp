@@ -67,11 +67,6 @@ class Menu extends ExtendMenu {
 		
 		var Render = this.category('Rendering');
 		
-		Render.control('Adblock', {
-			type: 'boolean',
-			walk: 'client.adblock',
-		}).on('change', (value, init) => !init && location.assign('/'));
-		
 		Render.control('Uncap FPS', {
 			type: 'boolean',
 			walk: 'client.uncap_fps',

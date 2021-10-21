@@ -22,19 +22,6 @@ var { css, js } = require('./Runtime'),
 		}
 	};
 
-new MutationObserver((mutations, observer) => {
-	for(let mutation of mutations){
-		for(let node of mutation.addedNodes){
-			if(node.nodeName == 'LINK' && new URL(node.href || '/', location).pathname == '/css/main_custom.css'){
-				add_css();
-				observer.disconnect();
-			}
-		}
-	}
-}).observe(document.head, {
-	childList: true,
-});
-
 for(let [ name, data ] of Object.entries(js)){
 	// quick fix
 	if(data.includes('// ==UserScript==') && site_location != 'game')continue;
@@ -53,6 +40,9 @@ for(let [ name, data ] of Object.entries(js)){
 		console.error('Error parsing UserScript:', name, '\n', err);
 	}
 	
+	// try{...}catch(err){...} doesnt provide: line, column
+	
+	
 	
 	try{
 		func(...Object.values(context));
@@ -64,3 +54,17 @@ for(let [ name, data ] of Object.entries(js)){
 		console.warn('Error executing UserScript:', name, '\n', err);
 	}
 }
+
+new MutationObserver((mutations, observer) => {
+	for(let mutation of mutations){
+		for(let node of mutation.addedNodes){
+			if(node.nodeName == 'LINK' && new URL(node.href || '/', location).pathname == '/css/main_custom.css'){
+				add_css();
+				observer.disconnect();
+			}
+		}
+	}
+}).observe(document, {
+	childList: true,
+	subtree: true,
+});

@@ -1,18 +1,15 @@
-if(location.host == 'krunker.io' || location.host.endsWith('.krunker.io')){
-	let { log } = console,
-		{ webview } = chrome;
+{
+	let { log, error } = console;
 
-	webview.postMessage("[0]");
+	
+	let run = new Function('webview', 'webpack', '_RUNTIME_DATA_', 'eval(webpack)');
 
-	// first message should ALWAYS be evaluate data
-	webview.addEventListener('message', ({ data }) => {
-		var [ event, ...args ] = data;
-
-		if (event != 1) throw Error('Invalid message recieved: ' + JSON.stringify(data));
-
-		var [webpack, runtime_data] = args;
-		new Function('webview', 'webpack', '_RUNTIME_DATA_', 'eval(webpack)')(webview, webpack, runtime_data);
-
+	try {
+		run(chrome.webview, $WEBPACK, $RUNTIME);
 		log('Chief Client++ Webpack Initialized');
-	}, { once: true });
+	} catch (err) {
+		error('Unable to initialize Chief Client++ Webpack:');
+		error(err);
+		debugger;
+	}
 }

@@ -40,16 +40,7 @@ public:
 	std::mutex mtx;
 	std::wstring og_title;
 	std::wstring pathname;
-	std::vector<std::wstring> ad_hosts {
-		L"cookie-cdn.cookiepro.com",
-		L"googletagmanager.com",
-		L"googlesyndication.com",
-		L"pub.network",
-		L"paypalobjects.com",
-		L"doubleclick.net",
-		L"adinplay.com",
-		L"syndication.twitter.com"
-	};
+	std::vector<std::wstring> block_hosts;
 	void create(HINSTANCE inst, int cmdshow, std::function<void()> callback = nullptr) override;
 	void get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr) override;
 	void on_dispatch() override;
