@@ -71,7 +71,7 @@ KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title,
 {}
 
 KrunkerWindow::~KrunkerWindow() {
-	if(awindow == this)awindow = NULL;
+	if (awindow == this) awindow = NULL;
 }
 
 std::regex pblock(R"!(\/\*cc\s[\s\S]*?#blockhosts (\[(?:\s*?"[^,"]*?",?)*?\])[\s\S]*?\*\/)!");

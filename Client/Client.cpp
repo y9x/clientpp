@@ -19,7 +19,7 @@
 #include "./KrunkerWindow.h"
 #include "./Client.h"
 
-constexpr const long double client_version = 0.1;
+constexpr const long double client_version = 0.11;
 constexpr const char* client_discord_rpc = "";
 // 899137303182716968
 constexpr const wchar_t* client_title = L"Chief Client++";
