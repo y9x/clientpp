@@ -7,7 +7,7 @@
 
 class JSMessage {
 public:
-	IM event;
+	IM event = (IM)0;
 	nlohmann::json args;
 	JSMessage(IM event);
 	JSMessage(IM event, nlohmann::json args);

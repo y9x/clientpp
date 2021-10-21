@@ -23,7 +23,6 @@
     <None Include="Points.h">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="Client.css" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">

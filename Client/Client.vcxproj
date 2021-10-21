@@ -98,7 +98,6 @@
     <None Include="..\Webpack\dist\Webpack.js" />
     <None Include="..\Webpack\dist\Webpack.js.map" />
     <None Include="Bootstrap.js" />
-    <None Include="Client.css" />
     <None Include="Config.json" />
     <None Include="packages.config" />
     <None Include="Points.h" />

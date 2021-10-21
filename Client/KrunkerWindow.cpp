@@ -17,8 +17,15 @@ using Microsoft::WRL::Callback;
 
 using JSON = nlohmann::json;
 
-JSMessage::JSMessage(IM e) : event(e) {}
-JSMessage::JSMessage(IM e, JSON p) : event(e), args(p) {}
+JSMessage::JSMessage(IM e) {
+	event = e;
+}
+
+JSMessage::JSMessage(IM e, JSON p) {
+	event = e;
+	args = p;
+}
+
 JSMessage::JSMessage(LPWSTR raw) {
 	JSON parsed = JSON::parse(Convert::string(raw));
 
