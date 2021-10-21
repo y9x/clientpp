@@ -98,8 +98,6 @@ JSON KrunkerWindow::runtime_data() {
 				for (std::sregex_iterator next(buffer.begin(), buffer.end(), pblock), end; next != end; ++next) {
 					std::string match = next->str(1);
 
-					// clog::info << "match: " << match << clog::endl;
-
 					try {
 						for (JSON value : JSON::parse(match)) {
 							std::wstring hostw = Convert::wstring(value);
@@ -107,7 +105,6 @@ JSON KrunkerWindow::runtime_data() {
 
 							for (std::wstring h : block_hosts) if (h == hostw) {
 								blocked = true;
-								clog::info << "duplicate" << clog::endl;
 								break;
 							}
 
@@ -381,10 +378,7 @@ void KrunkerWindow::register_events() {
 				bootstrap = Manipulate::replace_all(bootstrap, "$WEBPACK", JSON(js_webpack).dump());
 				bootstrap = Manipulate::replace_all(bootstrap, "$RUNTIME", runtime_data().dump());
 
-				webview->ExecuteScript(Convert::wstring(bootstrap).c_str(), Callback<ICoreWebView2ExecuteScriptCompletedHandler>([this](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
-					clog::info << errorCode << " : " << Convert::string(resultObjectAsJson) << clog::endl;
-					return S_OK;
-					}).Get());
+				webview->ExecuteScript(Convert::wstring(bootstrap).c_str(), nullptr);
 			}
 			else clog::error << "Error loading bootstrapper" << clog::endl;
 		}
