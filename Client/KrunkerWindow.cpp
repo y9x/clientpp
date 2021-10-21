@@ -316,7 +316,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 			mtx.lock();
 			post.push_back(res);
 			mtx.unlock();
-			}, msg);
+		}, msg);
 
 		break;
 	default:
@@ -333,7 +333,6 @@ void KrunkerWindow::register_events() {
 	if (load_resource(JS_BOOTSTRAP, bootstrap)) webview->AddScriptToExecuteOnDocumentCreated(Convert::wstring(bootstrap).c_str(), nullptr);
 	else clog::error << "Error loading bootstrapper" << clog::endl;
 
-	webview->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
 	webview->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) {
 		LPWSTR mpt;
 		args->TryGetWebMessageAsString(&mpt);
@@ -343,6 +342,8 @@ void KrunkerWindow::register_events() {
 
 		return S_OK;
 	}).Get(), &token);
+
+	webview->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
 
 	webview->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
 		LPWSTR sender_uriptr;
@@ -356,29 +357,6 @@ void KrunkerWindow::register_events() {
 		request->Release();
 
 		if (uri.host_owns(L"krunker.io")) {
-			/*if (uri.pathname().starts_with(L"/pkg/")) {
-				IStream* stream = nullptr;
-				// request resource manually because webview2 fails to cache
-				new std::thread([stream](Uri uri) {
-					if (CreateStreamOnHGlobal(NULL, TRUE, (LPSTREAM*)&stream) == S_OK) {
-						httplib::Client cli(Convert::string(uri.origin()));
-						auto res = cli.Get(Convert::string(uri.pathname()).c_str());
-
-						ULONG written = 0;
-
-						if (stream->Write(res->body.data(), res->body.length(), &written) == S_OK) {
-							// stream->l
-							clog::info << "Wrote to IStream" << clog::endl;
-							
-						}
-						else clog::error << "Error writing to IStream" << clog::endl;
-					}else clog::error << "Error creating IStream on HGlobal" << clog::endl;
-				}, uri);
-				
-				wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-				env->CreateWebResourceResponse(stream, 200, L"Swapped", L"", &response);
-				args->put_Response(response.get());
-			}*/
 			std::wstring swap = folder->directory + folder->p_swapper + uri.pathname();
 
 			if (IOUtil::file_exists(swap)) {
@@ -441,16 +419,14 @@ bool KrunkerWindow::seek_game() {
 
 void KrunkerWindow::call_create_webview(std::function<void()> callback) {
 	create_webview(cmdline(), folder->directory + folder->p_profile, [this, callback]() {
-		wil::com_ptr<ICoreWebView2Controller2> control2;
-		control2 = control.query<ICoreWebView2Controller2>();
+		wil::com_ptr<ICoreWebView2Controller2> control2 = control.query<ICoreWebView2Controller2>();
 		if (control2) {
 			control2->put_DefaultBackgroundColor(ColorRef(background));
 		}
 		
-		wil::com_ptr<ICoreWebView2Controller3> control3;
-		control3 = control.query<ICoreWebView2Controller3>();
+		wil::com_ptr<ICoreWebView2Controller3> control3 = control.query<ICoreWebView2Controller3>();
 		if (control3) {
-			control3->put_ShouldDetectMonitorScaleChanges(true);
+			control3->put_ShouldDetectMonitorScaleChanges(false);
 		}
 
 		wil::com_ptr<ICoreWebView2Settings> settings;
