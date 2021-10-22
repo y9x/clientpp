@@ -3,6 +3,7 @@
 #include "./WebView2Installer.h"
 #include "../Utils/StringUtil.h"
 #include "Log.h"
+#include <WebView2EnvironmentOptions.h>
 
 #define X64_webview LR"(SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5})"
 #define X86_webview LR"(SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5})"
@@ -60,17 +61,10 @@ bool WebView2Installer::Install(Error& error) {
 	}
 }
 
-
 bool WebView2Installer::Installed() {
-	HKEY key;
-	HRESULT x64 = RegOpenKeyEx(HKEY_LOCAL_MACHINE, X64_webview, 0, KEY_READ, &key);
-	RegCloseKey(key);
-	HRESULT x86 = RegOpenKeyEx(HKEY_LOCAL_MACHINE, X86_webview, 0, KEY_READ, &key);
-	RegCloseKey(key); 
-	
-	/*LOG_INFO("ERROR_SUCCESS = " << ERROR_SUCCESS);
-	LOG_INFO("x64 WebView: " << x64);
-	LOG_INFO("x86 WebView: " << x86);*/
+	wchar_t* version;
+	HRESULT result = GetAvailableCoreWebView2BrowserVersionString(nullptr, &version);
 
-	return x64 == ERROR_SUCCESS || x86 == ERROR_SUCCESS;
+	if (!SUCCEEDED(result) && HRESULT_CODE(result) == ERROR_FILE_NOT_FOUND) return false;
+	else return true;
 }

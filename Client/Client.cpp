@@ -152,6 +152,28 @@ bool Client::game_message(JSMessage msg) {
 	return true;
 }
 
+void Client::install_runtimes() {
+	if (MessageBox(NULL, L"You are missing runtimes. Install the WebView2 Runtime?", client_title, MB_YESNO) == IDYES) {
+		WebView2Installer::Error error;
+		MessageBox(NULL, L"Relaunch the client after installation is complete.", client_title, MB_OK);
+		if (!installer.Install(error)) switch (error) {
+		case WebView2Installer::Error::CantOpenProcess:
+			clog::error << "CantOpenProcess during WebView2 installation" << clog::endl;
+			MessageBox(NULL, (L"Unable to open " + installer.bin + L". You will need to run the exe manually.").c_str(), client_title, MB_OK);
+			break;
+		case WebView2Installer::Error::NoBytesDownloaded:
+			clog::error << "NoBytesDownloaded during WebView2 installation" << clog::endl;
+			MessageBox(NULL, L"Unable to download MicrosoftEdgeWebview2Setup. Relaunch the client then try again.", client_title, MB_OK);
+			break;
+		default:
+			clog::error << "Unknown error " << (int)error << " during WebView2 installation" << clog::endl;
+			MessageBox(NULL, L"An unknown error occurred.", client_title, MB_OK);
+			break;
+		}
+	}
+	else MessageBox(NULL, L"Cannot continue without runtimes. Client will now exit.", client_title, MB_OK);
+}
+
 Client::Client(HINSTANCE h, int c)
 	: inst(h)
 	, cmdshow(c)
@@ -162,14 +184,16 @@ Client::Client(HINSTANCE h, int c)
 	, social(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Social").c_str(), krunker::social, [this]() { listen_navigation(social); })
 	, editor(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Editor").c_str(), krunker::editor, [this]() { listen_navigation(editor); })
 	, documents(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Documents").c_str(), krunker::tos, [this]() { listen_navigation(documents); })
-{
+{}
+
+bool Client::create() {
 	memset(&presence_events, 0, sizeof(presence_events));
 	Discord_Initialize(client_discord_rpc, &presence_events, 1, NULL);
 	
 	if (!folder.create()) {
 		clog::debug << "Error creating folder" << clog::endl;
 		MessageBox(NULL, L"Error creating folder. See Error.log.", client_title, MB_OK);
-		return;
+		return false;
 	}
 	
 	folder.load_config();
@@ -182,33 +206,30 @@ Client::Client(HINSTANCE h, int c)
 	clog::info << "Main initialized" << clog::endl;
 
 	if (!installer.Installed()) {
-		clog::warn << "WebView2 Runtime not installed, prompting installation" << clog::endl;
-		if (MessageBox(NULL, L"You are missing runtimes. Install the WebView2 Runtime?", client_title, MB_YESNO) == IDYES) {
-			WebView2Installer::Error error;
-			MessageBox(NULL, L"Relaunch the client after installation is complete.", client_title, MB_OK);
-			if (!installer.Install(error)) switch (error) {
-			case WebView2Installer::Error::CantOpenProcess:
-				clog::error << "CantOpenProcess during WebView2 installation" << clog::endl;
-				MessageBox(NULL, (L"Unable to open " + installer.bin + L". You will need to run the exe manually.").c_str(), client_title, MB_OK);
-				break;
-			case WebView2Installer::Error::NoBytesDownloaded:
-				clog::error << "NoBytesDownloaded during WebView2 installation" << clog::endl;
-				MessageBox(NULL, L"Unable to download MicrosoftEdgeWebview2Setup. Relaunch the client then try again.", client_title, MB_OK);
-				break;
-			default:
-				clog::error << "Unknown error " << (int)error << " during WebView2 installation" << clog::endl;
-				MessageBox(NULL, L"An unknown error occurred.", client_title, MB_OK);
-				break;
-			}
-		}
-		else MessageBox(NULL, L"Cannot continue without runtimes. Client will now exit.", client_title, MB_OK);
-		return;
+		install_runtimes();
+		return false;
 	}
 
 	game.can_fullscreen = true;
 	documents.background = RGB(0xFF, 0xFF, 0xFF);
+	
+	switch (game.create(inst, cmdshow)) {
+	case KrunkerWindow::Status::MissingRuntime:
+		clog::error << "WebView2 installation check failed. Unable to create game window." << clog::endl;
+		install_runtimes();
+		return false;
+		break;
+	case KrunkerWindow::Status::UnknownError:
+		std::wstringstream sstream;
+		sstream << std::hex << game.last_herror;
+		
+		game.MessageBox(
+			(std::wstring(L"An unknown error ocurred during game creation. Create a issue on GitHub ( https://github.com/6ct/clientpp/issues ) and provide the following error details:\n") +
+			L"Error code: 0x" + sstream.str()).c_str(), client_title, MB_ICONERROR);
 
-	game.create(inst, cmdshow);
+		return false;
+		break;
+	};
 
 	// checking updates causes delay
 	new std::thread([this]() {
@@ -219,7 +240,10 @@ Client::Client(HINSTANCE h, int c)
 			return;
 		}
 	});
+
+	return true;
 }
+
 int Client::messages() {
 	MSG msg;
 	BOOL ret;
@@ -236,5 +260,6 @@ int Client::messages() {
 
 int APIENTRY WinMain(HINSTANCE _In_ hInstance, HINSTANCE _In_opt_ hPrevInstance, _In_ LPSTR cmdline, _In_ int nCmdShow) {
 	Client client(hInstance, nCmdShow);
-	return client.messages();
+	if (client.create()) return client.messages();
+	else return false;
 }

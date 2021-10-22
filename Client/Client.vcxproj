@@ -19,7 +19,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{8597fb48-ce9e-49c8-9b7f-6a3c570000e2}</ProjectGuid>
-    <RootNamespace>Client</RootNamespace> 
+    <RootNamespace>Client</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>Client</ProjectName>
   </PropertyGroup>

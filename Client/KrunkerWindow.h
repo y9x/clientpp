@@ -27,7 +27,7 @@ private:
 	void unhook_mouse();
 	void register_events();
 	void handle_message(JSMessage msg);
-	void call_create_webview(std::function<void()> callback = nullptr);
+	Status call_create_webview(std::function<void()> callback = nullptr);
 	std::function<bool(JSMessage)> on_unknown_message;
 	std::function<void()> on_webview2_startup;
 	std::wstring cmdline();
@@ -41,8 +41,8 @@ public:
 	std::wstring og_title;
 	std::wstring pathname;
 	std::vector<std::wstring> block_hosts;
-	void create(HINSTANCE inst, int cmdshow, std::function<void()> callback = nullptr) override;
-	void get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr) override;
+	Status create(HINSTANCE inst, int cmdshow, std::function<void()> callback = nullptr) override;
+	Status get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr) override;
 	void on_dispatch() override;
 	bool seek_game();
 	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr);

@@ -427,7 +427,7 @@ void KrunkerWindow::register_events() {
 
 HMODULE shcore = LoadLibrary(L"api-ms-win-shcore-scaling-l1-1-1.dll");
 
-void KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {
+KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {
 	if (folder->config["window"]["meta"]["replace"].get<bool>())
 		title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
 
@@ -452,15 +452,15 @@ void KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> ca
 		SetIcon((HICON)LoadImage(inst, folder->resolve_path(Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
 	else SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));
 
-	call_create_webview(callback);
+	return call_create_webview(callback);
 }
 
 bool KrunkerWindow::seek_game() {
 	return SUCCEEDED(webview->Navigate((L"https://krunker.io" + pathname).c_str()));
 }
 
-void KrunkerWindow::call_create_webview(std::function<void()> callback) {
-	create_webview(cmdline(), folder->directory + folder->p_profile, [this, callback]() {
+KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> callback) {
+	return create_webview(cmdline(), folder->directory + folder->p_profile, [this, callback]() {
 		wil::com_ptr<ICoreWebView2Controller2> control2 = control.query<ICoreWebView2Controller2>();
 		if (control2) {
 			control2->put_DefaultBackgroundColor(ColorRef(background));
@@ -509,11 +509,14 @@ void KrunkerWindow::call_create_webview(std::function<void()> callback) {
 	});
 }
 
-void KrunkerWindow::get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) {
-	if (!open) create(inst, cmdshow, [this, callback]() {
+KrunkerWindow::Status KrunkerWindow::get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) {
+	if (!open) return create(inst, cmdshow, [this, callback]() {
 		callback(true);
 	});
-	else callback(false);
+	else {
+		callback(false);
+		return Status::AlreadyOpen;
+	}
 }
 
 void KrunkerWindow::on_dispatch() {

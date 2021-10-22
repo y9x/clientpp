@@ -23,9 +23,6 @@
     <None Include="..\Webpack\dist\Webpack.js" />
     <None Include="..\Webpack\dist\Webpack.js.map" />
     <None Include="packages.config" />
-    <None Include="Points.h">
-      <Filter>Header Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -243,7 +240,7 @@
     <ClInclude Include="IPCMessages.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\OpenSSL\e_os.h">
+    <ClInclude Include="Points.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

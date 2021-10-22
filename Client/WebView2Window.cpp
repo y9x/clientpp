@@ -37,12 +37,13 @@ bool WebView2Window::create_window(HINSTANCE inst, int cmdshow) {
 	return true;
 }
 
-void WebView2Window::create_webview(std::wstring cmdline, std::wstring directory, std::function<void()> callback) {
+WebView2Window::Status WebView2Window::create_webview(std::wstring cmdline, std::wstring directory, std::function<void()> callback) {
 	auto options = Make<CoreWebView2EnvironmentOptions>();
 
 	options->put_AdditionalBrowserArguments(cmdline.c_str());
 
-	CreateCoreWebView2EnvironmentWithOptions(nullptr, directory.c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Environment* envp) -> HRESULT {
+	HRESULT create = CreateCoreWebView2EnvironmentWithOptions(nullptr, directory.c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Environment* envp) -> HRESULT {
+		clog::info << "test" << clog::endl;
 		if (envp == nullptr) {
 			clog::error << "Env was nullptr" << clog::endl;
 			return S_FALSE;
@@ -63,6 +64,19 @@ void WebView2Window::create_webview(std::wstring cmdline, std::wstring directory
 
 		return S_OK;
 	}).Get());
+
+	if (!SUCCEEDED(create)) {
+		last_herror = create;
+
+		switch (HRESULT_CODE(create)) {
+		case ERROR_FILE_NOT_FOUND:
+			return Status::MissingRuntime;
+			break;
+		default:
+			return Status::UnknownError;
+			break;
+		}
+	}else return Status::Ok;
 }
 
 COREWEBVIEW2_COLOR WebView2Window::ColorRef(COLORREF color) {
@@ -151,6 +165,12 @@ LRESULT WebView2Window::on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 	return true;
 }
 
-void WebView2Window::get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) {}
-void WebView2Window::create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {}
+WebView2Window::Status WebView2Window::get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) {
+	return Status::NotImplemented;
+}
+
+WebView2Window::Status WebView2Window::create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {
+	return Status::NotImplemented;
+}
+
 void WebView2Window::on_dispatch() {}
