@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\OpenSSL\ssl\bio_ssl.c" />
+    <ClCompile Include="..\OpenSSL\ssl\d1_lib.c" />
+    <ClCompile Include="..\OpenSSL\ssl\d1_msg.c" />
+    <ClCompile Include="..\OpenSSL\ssl\d1_srtp.c" />
+    <ClCompile Include="..\OpenSSL\ssl\methods.c" />
+    <ClCompile Include="..\OpenSSL\ssl\packet.c" />
+    <ClCompile Include="..\OpenSSL\ssl\pqueue.c" />
+    <ClCompile Include="..\OpenSSL\ssl\record\dtls1_bitmap.c" />
+    <ClCompile Include="..\OpenSSL\ssl\record\rec_layer_d1.c" />
+    <ClCompile Include="..\OpenSSL\ssl\record\rec_layer_s3.c" />
+    <ClCompile Include="..\OpenSSL\ssl\record\ssl3_buffer.c" />
+    <ClCompile Include="..\OpenSSL\ssl\record\ssl3_record.c" />
+    <ClCompile Include="..\OpenSSL\ssl\record\ssl3_record_tls13.c" />
+    <ClCompile Include="..\OpenSSL\ssl\s3_cbc.c" />
+    <ClCompile Include="..\OpenSSL\ssl\s3_enc.c" />
+    <ClCompile Include="..\OpenSSL\ssl\s3_lib.c" />
+    <ClCompile Include="..\OpenSSL\ssl\s3_msg.c" />
+    <ClCompile Include="..\OpenSSL\ssl\ssl_asn1.c" />
+    <ClCompile Include="..\OpenSSL\ssl\ssl_cert.c" />
+    <ClCompile Include="..\OpenSSL\ssl\ssl_ciph.c" />
+    <ClCompile Include="..\OpenSSL\ssl\ssl_conf.c" />
+    <ClCompile Include="..\OpenSSL\ssl\ssl_err.c" />
+    <ClCompile Include="..\OpenSSL\ssl\ssl_init.c" />
+    <ClCompile Include="..\OpenSSL\ssl\ssl_lib.c" />
+    <ClCompile Include="..\OpenSSL\ssl\ssl_mcnf.c" />
+    <ClCompile Include="..\OpenSSL\ssl\ssl_rsa.c" />
+    <ClCompile Include="..\OpenSSL\ssl\ssl_sess.c" />
+    <ClCompile Include="..\OpenSSL\ssl\ssl_stat.c" />
+    <ClCompile Include="..\OpenSSL\ssl\ssl_txt.c" />
+    <ClCompile Include="..\OpenSSL\ssl\ssl_utst.c" />
+    <ClCompile Include="..\OpenSSL\ssl\statem\extensions.c" />
+    <ClCompile Include="..\OpenSSL\ssl\statem\extensions_clnt.c" />
+    <ClCompile Include="..\OpenSSL\ssl\statem\extensions_cust.c" />
+    <ClCompile Include="..\OpenSSL\ssl\statem\extensions_srvr.c" />
+    <ClCompile Include="..\OpenSSL\ssl\statem\statem.c" />
+    <ClCompile Include="..\OpenSSL\ssl\statem\statem_clnt.c" />
+    <ClCompile Include="..\OpenSSL\ssl\statem\statem_dtls.c" />
+    <ClCompile Include="..\OpenSSL\ssl\statem\statem_lib.c" />
+    <ClCompile Include="..\OpenSSL\ssl\statem\statem_srvr.c" />
+    <ClCompile Include="..\OpenSSL\ssl\t1_enc.c" />
+    <ClCompile Include="..\OpenSSL\ssl\t1_lib.c" />
+    <ClCompile Include="..\OpenSSL\ssl\t1_trce.c" />
+    <ClCompile Include="..\OpenSSL\ssl\tls13_enc.c" />
+    <ClCompile Include="..\OpenSSL\ssl\tls_srp.c" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(Platform)'=='Win32'" Label="UserMacros">
+    <OPENSSL_WIN_BUILD_PF_DIR>C:\Program Files (x86)\</OPENSSL_WIN_BUILD_PF_DIR>
+    <OPENSSL_WIN_BUILD_PF_DIR_CSTR>C:\\Program Files (x86)\\</OPENSSL_WIN_BUILD_PF_DIR_CSTR>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)'=='x64'" Label="UserMacros">
+    <OPENSSL_WIN_BUILD_PF_DIR>C:\Program Files\</OPENSSL_WIN_BUILD_PF_DIR>
+    <OPENSSL_WIN_BUILD_PF_DIR_CSTR>C:\\Program Files\\</OPENSSL_WIN_BUILD_PF_DIR_CSTR>
+  </PropertyGroup>
+  <PropertyGroup Label="UserMacros">
+    <OPENSSL_WIN_BUILD_VERSION_MAJOR>1</OPENSSL_WIN_BUILD_VERSION_MAJOR>
+    <OPENSSL_WIN_BUILD_VERSION_MINOR>1</OPENSSL_WIN_BUILD_VERSION_MINOR>
+    <OPENSSL_WIN_BUILD_DIR_SUFFIX>$(OPENSSL_WIN_BUILD_VERSION_MAJOR)_$(OPENSSL_WIN_BUILD_VERSION_MINOR)</OPENSSL_WIN_BUILD_DIR_SUFFIX>
+    <OPENSSLDIR>$(OPENSSL_WIN_BUILD_PF_DIR)Common Files\SSL\</OPENSSLDIR>
+    <OPENSSLDIR_CSTR>$(OPENSSL_WIN_BUILD_PF_DIR_CSTR)Common Files\\SSL</OPENSSLDIR_CSTR>
+    <ENGINESDIR>$(OPENSSL_WIN_BUILD_PF_DIR)OpenSSL-$(OPENSSL_WIN_BUILD_DIR_SUFFIX)\lib\engines-$(OPENSSL_WIN_BUILD_DIR_SUFFIX)\</ENGINESDIR>
+    <ENGINESDIR_CSTR>$(OPENSSL_WIN_BUILD_PF_DIR_CSTR)OpenSSL-$(OPENSSL_WIN_BUILD_DIR_SUFFIX)\\lib\\engines-$(OPENSSL_WIN_BUILD_DIR_SUFFIX)</ENGINESDIR_CSTR>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;OPENSSLDIR="$(OPENSSLDIR_CSTR)";ENGINESDIR="$(ENGINESDIR_CSTR)";L_ENDIAN;UNICODE;_UNICODE;_CRT_SECURE_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;OPENSSL_SYS_WIN32;OPENSSL_PIC;OPENSSL_IA32_SSE2;OPENSSL_BN_ASM_MONT;OPENSSL_BN_ASM_MONT5;OPENSSL_BN_ASM_GF2m;RC4_ASM;SHA1_ASM;SHA256_ASM;SHA512_ASM;MD5_ASM;AESNI_ASM;VPAES_ASM;GHASH_ASM;ECP_NISTZ256_ASM;POLY1305_ASM;KECCAK1600_ASM;X25519_ASM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+
+</Project>

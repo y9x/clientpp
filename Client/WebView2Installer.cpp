@@ -2,7 +2,6 @@
 #include <httplib.hpp>
 #include "./WebView2Installer.h"
 #include "../Utils/StringUtil.h"
-#include <WebView2.h>
 #include "Log.h"
 
 #define X64_webview LR"(SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5})"

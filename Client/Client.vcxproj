@@ -19,7 +19,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{8597fb48-ce9e-49c8-9b7f-6a3c570000e2}</ProjectGuid>
-    <RootNamespace>Client</RootNamespace>
+    <RootNamespace>Client</RootNamespace> 
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>Client</ProjectName>
   </PropertyGroup>
@@ -69,7 +69,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libz-static.lib;libcrypto-1_1-static.lib;libssl-1_1-static.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz-static.lib;libcrypto-1_1-static.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -91,7 +91,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libz-static.lib;libcrypto-1_1-static.lib;libssl-1_1-static.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz-static.lib;libcrypto-1_1-static.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -100,7 +100,6 @@
     <None Include="Bootstrap.js" />
     <None Include="Config.json" />
     <None Include="packages.config" />
-    <None Include="Points.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Utils\Base64.cpp" />
@@ -119,6 +118,7 @@
     <ClCompile Include="WebView2Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Points.h" />
     <ClInclude Include="..\Utils\Base64.h" />
     <ClInclude Include="..\Utils\IOUtil.h" />
     <ClInclude Include="..\Utils\StringUtil.h" />
@@ -137,6 +137,7 @@
     <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="..\OpenSSL\OpenSSL.props" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\Microsoft.Web.WebView2.1.0.992.28\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.992.28\build\native\Microsoft.Web.WebView2.targets')" />
     <Import Project="..\packages\Microsoft.Windows.ImplementationLibrary.1.0.211019.2\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.211019.2\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />

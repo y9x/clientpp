@@ -1,7 +1,7 @@
+#include <WebView2EnvironmentOptions.h>
+#include <wrl.h>
 #include "./WebView2Window.h"
 #include "./Log.h"
-#include <wrl.h>
-#include <WebView2EnvironmentOptions.h>
 
 using Microsoft::WRL::Make;
 using Microsoft::WRL::Callback;

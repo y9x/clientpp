@@ -18,6 +18,7 @@
 #include "./WebView2Installer.h"
 #include "./KrunkerWindow.h"
 #include "./Client.h"
+#include <shellapi.h>
 
 constexpr const long double client_version = 0.11;
 constexpr const char* client_discord_rpc = "";

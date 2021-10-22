@@ -8,6 +8,8 @@
 #include "../Utils/Base64.h"
 #include "./Log.h"
 #include <ShellScalingApi.h>
+#include <shellapi.h>
+#include <commdlg.h>
 
 #pragma comment(lib, "Shcore.lib")
 
