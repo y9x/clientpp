@@ -20,18 +20,19 @@ class ChiefUserscript {
 	async run(script, site, menu){
 		if(!this.metadata.locations.includes(site))return false;
 		
-		var func;
+		var exports = {},
+			func;
 		
 		try{
 			// cannot use import/export, fix soon
-			func = new Function('_metadata', script);
+			func = new Function('_exports', '_metadata', script);
 		}catch(err){
 			console.error(`Error parsing userscript ${this.name}:\n`, err);
 			return false;
 		}
 		
 		try{
-			func.call(window, this.metadata);
+			func.call(window, exports, this.metadata);
 		}catch(err){
 			console.error(`Error executing userscript ${this.name}:\n`, err);
 			return false;
@@ -39,20 +40,23 @@ class ChiefUserscript {
 		
 		var { gui } = this.metadata.features;
 		
-		if(menu){
-			// this.metadata.features.config
-			// menu.config.userscripts[this.metadata.author]
-			for(let [ labelct, controls ] of Object.entries(gui)){
-				let category = menu.category(labelct);
+		if(menu)for(let [ labelct, controls ] of Object.entries(gui)){
+			let category = menu.category(labelct);
+			
+			for(let [ labelco, data ] of Object.entries(controls)){
+				let change_callback = data.change;
 				
-				for(let [ labelco, data ] of Object.entries(controls)){
-					let control = category.control(labelco, data);
+				delete data.change;
+				
+				if(typeof data.walk == 'string')data.walk = `userscripts.${this.metadata.author}.${data.walk}`;
+				
+				let control = category.control(labelco, data);
+				
+				if(change_callback)control.on('change', (value, init) => {
+					var func = exports[change_callback];
 					
-					control.on('change', (value, init) => {
-						// send to module export
-						// data.
-					});
-				}
+					if(func)func(value, init);
+				});
 			}
 		}
 		

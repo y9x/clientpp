@@ -24,6 +24,8 @@ std::regex meta_const(R"(const metadata\s*=\s*(\{[\s\S]+?\});)");
 
 std::regex meta_comment(R"(\/{2}.*?\n|$|\/\*[\s\S]*?\*\/)");
 
+std::regex us_export(R"(export function (\w+))");
+
 // userscript struct?
 
 void KrunkerWindow::load_userscripts(JSON* data) {
@@ -41,6 +43,8 @@ void KrunkerWindow::load_userscripts(JSON* data) {
 		if (IOUtil::read_file(it.path().c_str(), buffer)) {
 			JSON put = JSON::array();
 			std::smatch match;
+			
+			buffer = std::regex_replace(buffer, us_export, "_exports.$1 = function $1");
 
 			if (std::regex_search(buffer, match, meta_const)) {
 				try {

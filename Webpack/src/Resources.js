@@ -56,6 +56,7 @@ module.exports = menu => {
 				userscript.run();
 			}catch(err){
 				console.warn('Error executing UserScript:', name, '\n', err);
+				break;
 			}
 		}
 	}
