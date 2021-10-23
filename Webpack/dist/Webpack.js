@@ -206,24 +206,18 @@ ipc.on(IM.mousedown, (x, y) => {
 	locked_node?.dispatchEvent(event);
 });
 
-// document.addEventListener('click', event => event.target.nodeName == 'A' && event.target.requestPointerLock());
+if(localStorage.kro_setngss_scaleUI == void[])localStorage.kro_setngss_scaleUI = 0.7;
 
-(async () => {
-	if(localStorage.kro_setngss_scaleUI == void[])
-		localStorage.kro_setngss_scaleUI = 1;
+var MIN_WIDTH = 1700,
+	MIN_HEIGHT = 900;
 	
-	var ui_base = await utils.wait_for(() => document.querySelector('#uiBase')),
-		MIN_WIDTH = 1700,
-		MIN_HEIGHT = 900;
-		
-	if(localStorage.kro_setngss_uiScaling === 'false')return;
-	
+if(localStorage.kro_setngss_uiScaling !== 'false'){
 	var ls = localStorage.kro_setngss_scaleUI,
 		scale_ui = ls != void[] ? parseInt(ls) : 0.7;
-	
+
 	scale_ui = Math.min(1, Math.max(0.1, Number(scale_ui)));
 	scale_ui = 1 + (1 - scale_ui);
-	
+
 	var height = window.innerHeight,
 		width = window.innerWidth,
 		min_width = MIN_WIDTH * scale_ui,
@@ -240,11 +234,14 @@ ipc.on(IM.mousedown, (x, y) => {
 			width: min_width,
 			height: height / width_scale,
 		};
-	
-	ui_base.style.transform = 'scale(' + style.transform.toFixed(3) + ')';
-	ui_base.style.width = style.width.toFixed(3) + 'px';
-	ui_base.style.height = style.height.toFixed(3) + 'px';
-})();
+
+
+	utils.wait_for(() => document.querySelector('#uiBase')).then(ui_base => {
+		ui_base.style.transform = 'scale(' + style.transform.toFixed(3) + ')';
+		ui_base.style.width = style.width.toFixed(3) + 'px';
+		ui_base.style.height = style.height.toFixed(3) + 'px';
+	});
+}
 
 /***/ }),
 
