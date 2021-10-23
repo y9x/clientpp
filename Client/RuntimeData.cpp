@@ -45,8 +45,7 @@ void KrunkerWindow::load_userscripts(JSON* data) {
 			if (std::regex_search(buffer, match, meta_const)) {
 				try {
 					std::string raw = std::regex_replace(match.str(1), meta_comment, "");
-					clog::info << raw << clog::endl;
-
+					
 					// keep raw for loading ui controls and config
 					JSON raw_metadata = JSON::parse(raw);
 					JSON metadata = TraverseCopy(raw_metadata, default_userscript, &default_userscript);
@@ -55,11 +54,7 @@ void KrunkerWindow::load_userscripts(JSON* data) {
 					JSON raw_features = JSON::object();
 
 					if (raw_metadata.contains("features")) raw_features = raw_metadata["features"];
-
-					clog::info << metadata << clog::endl;
-
 					if (raw_features.contains("gui")) features["gui"] = raw_features["gui"];
-						
 					if (raw_features.contains("config")) features["config"] = raw_features["config"];
 					
 					for (std::string cmd : metadata["block_hosts"])
