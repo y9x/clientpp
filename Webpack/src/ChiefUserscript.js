@@ -1,6 +1,7 @@
 'use strict';
 
-var utils = require('./libs/Utils');
+var console = require('./Console'),
+	utils = require('./libs/Utils');
 
 class ChiefUserscript {
 	constructor(name, metadata){
@@ -18,14 +19,16 @@ class ChiefUserscript {
 	}
 	// returns false if the script failed to execute, otherwise true
 	async run(script, site, menu){
-		if(!this.metadata.locations.includes(site))return false;
+		if(!this.metadata.locations.some(s => s == site || s == 'all'))return false;
 		
 		var exports = {},
-			func;
+			func,
+			context = { _metadata: this.metadata, exports, console };
+			
 		
 		try{
 			// cannot use import/export, fix soon
-			func = new Function('_exports', '_metadata', script);
+			func = eval(`(function(${Object.keys(context)}){${script}\n//# sourceURL=https://krunker.io/userscripts:/${this.name}\n})`);
 		}catch(err){
 			console.error(`Error parsing userscript ${this.name}:\n`, err);
 			return false;
@@ -47,13 +50,15 @@ class ChiefUserscript {
 		}
 		
 		try{
-			func.call(window, exports, this.metadata);
+			func(...Object.values(context));
 		}catch(err){
 			console.error(`Error executing userscript ${this.name}:\n`, err);
 			return false;
 		}
 		
 		var { gui } = this.metadata.features;
+		
+		console.log('shees', gui);
 		
 		if(menu)for(let [ labelct, controls ] of Object.entries(gui)){
 			let category = menu.category(labelct);

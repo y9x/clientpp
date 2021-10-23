@@ -20,7 +20,8 @@ exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_cle
 "use strict";
 
 
-var utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js");
+var console = __webpack_require__(/*! ./Console */ "./src/Console.js"),
+	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js");
 
 class ChiefUserscript {
 	constructor(name, metadata){
@@ -38,14 +39,16 @@ class ChiefUserscript {
 	}
 	// returns false if the script failed to execute, otherwise true
 	async run(script, site, menu){
-		if(!this.metadata.locations.includes(site))return false;
+		if(!this.metadata.locations.some(s => s == site || s == 'all'))return false;
 		
 		var exports = {},
-			func;
+			func,
+			context = { _metadata: this.metadata, exports, console };
+			
 		
 		try{
 			// cannot use import/export, fix soon
-			func = new Function('_exports', '_metadata', script);
+			func = eval(`(function(${Object.keys(context)}){${script}\n//# sourceURL=https://krunker.io/userscripts:/${this.name}\n})`);
 		}catch(err){
 			console.error(`Error parsing userscript ${this.name}:\n`, err);
 			return false;
@@ -67,13 +70,15 @@ class ChiefUserscript {
 		}
 		
 		try{
-			func.call(window, exports, this.metadata);
+			func(...Object.values(context));
 		}catch(err){
 			console.error(`Error executing userscript ${this.name}:\n`, err);
 			return false;
 		}
 		
 		var { gui } = this.metadata.features;
+		
+		console.log('shees', gui);
 		
 		if(menu)for(let [ labelct, controls ] of Object.entries(gui)){
 			let category = menu.category(labelct);
@@ -100,6 +105,24 @@ class ChiefUserscript {
 };
 
 module.exports = ChiefUserscript;
+
+/***/ }),
+
+/***/ "./src/Console.js":
+/*!************************!*\
+  !*** ./src/Console.js ***!
+  \************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.log = console.log.bind(console);
+exports.info = console.info.bind(console);
+exports.warn = console.warn.bind(console);
+exports.error = console.error.bind(console);
+exports.debug = console.debug.bind(console);
+exports.trace = console.trace.bind(console);
 
 /***/ }),
 
@@ -432,9 +455,10 @@ var { css, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
 	};
 
 module.exports = menu => {
-	for(let [ name, [ data, metadata ] ] of Object.entries(js)){
+	for(let [ name, [ data, metadata, errors ] ] of Object.entries(js)){
 		if(metadata){
-			new ChiefUserscript(name, metadata).run(data, site, menu);
+			if(errors)for(let error of errors)console.error(error);
+			else new ChiefUserscript(name, metadata).run(data, site, menu);
 		}else{ // legacy idkr, unknown
 			// quick fix
 			if(data.includes('// ==UserScript==') && site != 'game')continue;

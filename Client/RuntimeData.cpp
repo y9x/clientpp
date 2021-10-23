@@ -47,15 +47,18 @@ additional_block_hosts.clear();
 			JSON put = JSON::array();
 			std::smatch match;
 			
-			buffer = std::regex_replace(buffer, us_export, "_exports.$1 = function $1");
+			buffer = std::regex_replace(buffer, us_export, "exports.$1 = function $1");
 
 			if (std::regex_search(buffer, match, meta_const)) {
+				JSON metadata = default_userscript;
+				std::vector<std::string> errors;
+				
 				try {
 					std::string raw = std::regex_replace(match.str(1), meta_comment, "");
 					
 					// keep raw for loading ui controls and config
 					JSON raw_metadata = JSON::parse(raw);
-					JSON metadata = TraverseCopy(raw_metadata, default_userscript, &default_userscript);
+					metadata = TraverseCopy(raw_metadata, default_userscript, &default_userscript);
 
 					JSON features = metadata["features"];
 					JSON raw_features = JSON::object();
@@ -74,14 +77,19 @@ additional_block_hosts.clear();
 					buffer.replace(match[0].first, match[0].second, "const metadata = _metadata;");
 
 					metadata["features"] = features;
-
-					put[1] = metadata;
 				}
 				catch (JSON::type_error err) {
-					clog::error << "Error reading data from UserScript " << Convert::string(it.file()) << ": " << err.what() << clog::endl;
+					errors.push_back("Unable to read metadata from userscript " + Convert::string(it.file()) + ": " + err.what());
 				}
 				catch (JSON::parse_error err) {
-					clog::error << "Error parsing UserScript " << Convert::string(it.file()) << ": " << err.what() << clog::endl;
+					errors.push_back("Unable to parse metadata from userscript " + Convert::string(it.file()) + ": " + err.what());
+				}
+
+				put[1] = metadata;
+
+				if (errors.size()) {
+					for (std::string error : errors)std::cout << error << std::endl;
+					put[2] = errors;
 				}
 			}
 

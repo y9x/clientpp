@@ -24,9 +24,10 @@ var { css, js } = require('./Runtime'),
 	};
 
 module.exports = menu => {
-	for(let [ name, [ data, metadata ] ] of Object.entries(js)){
+	for(let [ name, [ data, metadata, errors ] ] of Object.entries(js)){
 		if(metadata){
-			new ChiefUserscript(name, metadata).run(data, site, menu);
+			if(errors)for(let error of errors)console.error(error);
+			else new ChiefUserscript(name, metadata).run(data, site, menu);
 		}else{ // legacy idkr, unknown
 			// quick fix
 			if(data.includes('// ==UserScript==') && site != 'game')continue;
