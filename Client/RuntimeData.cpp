@@ -85,19 +85,12 @@ void KrunkerWindow::load_userscripts(JSON* data) {
 						userscripts[author] = config;
 						changed = true;
 					}
-					else {
-						clog::info << Convert::string(it.file()) << clog::endl;
-						clog::info << "Predata: " <<  userscripts[author] << ", "  << config << clog::endl;
-						TraverseCopy(userscripts[author], config, &config, true, &changed);
-						clog::info << "Changed: " << (changed ? "True" : "False") << clog::endl;
-					}
+					else userscripts[author] = TraverseCopy(userscripts[author], config, &config, true, &changed);
 					if (changed) {
 						folder->save_config();
 					}
 
 					buffer.replace(match[0].first, match[0].second, "const metadata = _metadata;");
-
-					// metadata["features"] = features;
 				}
 				catch (JSON::type_error err) {
 					errors.push_back("Unable to read metadata from userscript " + Convert::string(it.file()) + ": " + err.what());
