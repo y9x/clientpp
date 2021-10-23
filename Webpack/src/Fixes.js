@@ -65,9 +65,9 @@ if(localStorage.kro_setngss_uiScaling !== 'false'){
 		};
 
 
-	utils.wait_for(() => document.querySelector('#uiBase')).then(ui_base => {
+	utils.wait_for(() => document.querySelector('#uiBase')).then(ui_base => setTimeout(() => {
 		ui_base.style.transform = 'scale(' + style.transform.toFixed(3) + ')';
 		ui_base.style.width = style.width.toFixed(3) + 'px';
 		ui_base.style.height = style.height.toFixed(3) + 'px';
-	});
+	}, 10));
 }
