@@ -30,17 +30,19 @@ private:
 	Status call_create_webview(std::function<void()> callback = nullptr);
 	std::function<bool(JSMessage)> on_unknown_message;
 	std::function<void()> on_webview2_startup;
+	std::vector<std::wstring> additional_command_line;
+	std::vector<std::wstring> additional_block_hosts;
 	std::wstring cmdline();
 	std::time_t now();
+	void load_userscripts(nlohmann::json* data = nullptr);
 public:
+	std::vector<JSMessage> post;
 	bool can_fullscreen = false;
 	COLORREF background = RGB(0, 0, 0);
 	ClientFolder* folder;
-	std::vector<JSMessage> post;
 	std::mutex mtx;
 	std::wstring og_title;
 	std::wstring pathname;
-	std::vector<std::wstring> block_hosts;
 	Status create(HINSTANCE inst, int cmdshow, std::function<void()> callback = nullptr) override;
 	Status get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr) override;
 	void on_dispatch() override;

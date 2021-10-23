@@ -41,7 +41,8 @@ JSMessage::JSMessage(LPWSTR raw) {
 			if (!parsed[index].is_number()) {
 				clog::error << "Event was not a number" << clog::endl;
 				return;
-			}else event = (IM)parsed[index].get<int>();
+			}
+			else event = (IM)parsed[index].get<int>();
 		}
 		else args.push_back(parsed[index]);
 	}
@@ -76,51 +77,73 @@ KrunkerWindow::~KrunkerWindow() {
 	if (awindow == this) awindow = NULL;
 }
 
-std::regex pblock(R"!(\/\*cc\s[\s\S]*?#blockhosts (\[(?:\s*?"[^,"]*?",?)*?\])[\s\S]*?\*\/)!");
+// adds an element to the string vector if not present
+// returns false if the element is present, true if the element was pushed
+template<class Element>
+bool add_back(std::vector<Element>& vector, Element element) {
+	for (Element search : vector)
+		if (search == element) return false;
+
+	vector.push_back(element);
+	return true;
+}
+
+std::regex rmetadata(R"(const metadata\s*=\s*(\{[\s\S]+?\});)");
+
+void KrunkerWindow::load_userscripts(JSON* data) {
+	for (IOUtil::WDirectoryIterator it(folder->directory + folder->p_scripts, L"*.js"); ++it;) {
+		std::string buffer;
+
+		if (IOUtil::read_file(it.path().c_str(), buffer)) {
+			std::smatch match;
+			if (std::regex_search(buffer, match, rmetadata)) {
+				// clog::info << "matched " << match.str(1) << clog::endl;
+				try {
+					JSON metadata = JSON::parse(match.str(1));
+
+					clog::info << metadata << clog::endl;
+
+					JSON features;
+					if (metadata.contains("features"))features = metadata["features"];
+					else features = JSON::object();
+
+					if (metadata.contains("block_hosts")) for (std::string cmd : metadata["block_hosts"])
+						add_back<std::wstring>(additional_block_hosts, Convert::wstring(cmd));
+
+					if (metadata.contains("command_line")) for (std::string cmd : metadata["command_line"])
+						add_back<std::wstring>(additional_command_line, Convert::wstring(cmd));
+
+				}
+				catch (JSON::type_error err) {
+					clog::error << "Error reading data from userscript " << Convert::string(it.file()) << ": " << err.what() << clog::endl;
+				}
+				catch (JSON::parse_error err) {
+					clog::error << "Error parsing userscript " << Convert::string(it.file()) << ": " << err.what() << clog::endl;
+				}
+			}
+			// else clog::info << "no match" << clog::endl;
+		}
+
+		if (data)(*data)[Convert::string(it.file()).c_str()] = buffer;
+	}
+}
 
 JSON KrunkerWindow::runtime_data() {
 	JSON data = JSON::object();
 
-	struct Search {
-		std::wstring dir;
-		std::wstring filter;
-		JSON& obj;
-	};
+	data["css"] = JSON::object();
+	data["js"] = JSON::object();
 
-	block_hosts.clear();
+	additional_block_hosts.clear();
+	additional_command_line.clear();
 
-	for (Search search : std::vector<Search>{
-		{folder->p_styles, L"*.css", data["css"] = JSON::object()},
-		{folder->p_scripts, L"*.js", data["js"] = JSON::object()},
-	})
-		for (IOUtil::WDirectoryIterator it(folder->directory + search.dir, search.filter); ++it;) {
-			std::string buffer;
+	load_userscripts(&data["js"]);
 
-			if (IOUtil::read_file(it.path().c_str(), buffer)) {
-				for (std::sregex_iterator next(buffer.begin(), buffer.end(), pblock), end; next != end; ++next) {
-					std::string match = next->str(1);
-
-					try {
-						for (JSON value : JSON::parse(match)) {
-							std::wstring hostw = Convert::wstring(value);
-							bool blocked = false;
-
-							for (std::wstring h : block_hosts) if (h == hostw) {
-								blocked = true;
-								break;
-							}
-
-							if (!blocked) block_hosts.push_back(hostw);
-						}
-					}
-					catch (JSON::parse_error err) {
-						clog::error << "Unable to process blocked hosts: " << err.what() << clog::endl;
-					}
-				}
-
-				search.obj[Convert::string(it.file()).c_str()] = buffer;
-			}
-		}
+	for (IOUtil::WDirectoryIterator it(folder->directory + folder->p_styles, L"*.js"); ++it;) {
+		std::string buffer;
+		if (IOUtil::read_file(it.path().c_str(), buffer))
+			data["css"][Convert::string(it.file()).c_str()] = buffer;
+	}
 
 	data["css"]["client/hide.css"] = "img[src='./img/client.png'] { display: none !IMPORTANT; }";
 	
@@ -158,6 +181,8 @@ void KrunkerWindow::unhook_mouse() {
 
 // https://peter.sh/experiments/chromium-command-line-switches/
 std::wstring KrunkerWindow::cmdline() {
+	load_userscripts();
+
 	std::vector<std::wstring> cmds = {
 		// on chrome 86
 		// L"--enable-features=WebAssembly,SharedArrayBuffer",
@@ -180,6 +205,8 @@ std::wstring KrunkerWindow::cmdline() {
 		L"--disable-ipc-flooding-protection",
 		// L"--profile-directory=Profile",
 	};
+
+	for (std::wstring cmd : additional_command_line) cmds.push_back(cmd);
 
 	if (folder->config["client"]["uncap_fps"].get<bool>()) {
 		cmds.push_back(L"--disable-frame-rate-limit");
@@ -414,7 +441,7 @@ void KrunkerWindow::register_events() {
 				}
 				else clog::error << "Error creating IStream on swap: " << Convert::string(swap) << clog::endl;
 			}
-		}else for (std::wstring test : block_hosts) if (uri.host_owns(test)) {
+		}else for (std::wstring test : additional_block_hosts) if (uri.host_owns(test)) {
 			wil::com_ptr<ICoreWebView2WebResourceResponse> response;
 			env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"", &response);
 			args->put_Response(response.get());
