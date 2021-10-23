@@ -38,8 +38,6 @@ void KrunkerWindow::load_userscripts(JSON* data) {
 		return;
 	}
 
-	clog::info << "===Loading userscripts" << clog::endl;
-
 	JSON default_userscript = JSON::parse(sdefault_userscript);
 
 	for (IOUtil::WDirectoryIterator it(folder->directory + folder->p_scripts, L"*.js"); ++it;) {
