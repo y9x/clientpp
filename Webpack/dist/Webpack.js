@@ -56,11 +56,7 @@ class ChiefUserscript {
 			let { userscripts } = menu.config,
 				{ author, features } = this.metadata;
 			
-			if(!userscripts[author])userscripts[author] = {};
-			
-			userscripts[author] = utils.assign_deep(utils.clone_obj(features.config), menu.config.userscripts[author]);
-			
-			Object.defineProperty(this.metadata.features, 'config', {
+			Object.defineProperty(features, 'config', {
 				get(){
 					return userscripts[author];
 				}

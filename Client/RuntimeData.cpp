@@ -29,7 +29,7 @@ std::regex us_export(R"(export function (\w+))");
 // userscript struct?
 
 void KrunkerWindow::load_userscripts(JSON* data) {
-additional_block_hosts.clear();
+	additional_block_hosts.clear();
 	additional_command_line.clear();
 	
 	std::string sdefault_userscript;
@@ -37,6 +37,8 @@ additional_block_hosts.clear();
 		clog::error << "Error loading default userscript" << clog::endl;
 		return;
 	}
+
+	clog::info << "===Loading userscripts" << clog::endl;
 
 	JSON default_userscript = JSON::parse(sdefault_userscript);
 
@@ -60,23 +62,42 @@ additional_block_hosts.clear();
 					JSON raw_metadata = JSON::parse(raw);
 					metadata = TraverseCopy(raw_metadata, default_userscript, &default_userscript);
 
-					JSON features = metadata["features"];
+					std::string author = metadata["author"];
+					JSON& features = metadata["features"];
+					JSON& userscripts = folder->config["userscripts"];
 					JSON raw_features = JSON::object();
 
 					if (raw_metadata.contains("features")) raw_features = raw_metadata["features"];
 					if (raw_features.contains("gui")) features["gui"] = raw_features["gui"];
 					if (raw_features.contains("config")) features["config"] = raw_features["config"];
-					
+
+					JSON config = features["config"];
+
 					for (std::string host : features["block_hosts"])
 						add_back<std::wstring>(additional_block_hosts, Convert::wstring(host));
 
 					for (std::string cmd : features["command_line"])
 						add_back<std::wstring>(additional_command_line, Convert::wstring(cmd));
 					
+					bool changed = false;
+
+					if (!userscripts.contains(author)) {
+						userscripts[author] = config;
+						changed = true;
+					}
+					else {
+						clog::info << Convert::string(it.file()) << clog::endl;
+						clog::info << "Predata: " <<  userscripts[author] << ", "  << config << clog::endl;
+						TraverseCopy(userscripts[author], config, &config, true, &changed);
+						clog::info << "Changed: " << (changed ? "True" : "False") << clog::endl;
+					}
+					if (changed) {
+						folder->save_config();
+					}
 
 					buffer.replace(match[0].first, match[0].second, "const metadata = _metadata;");
 
-					metadata["features"] = features;
+					// metadata["features"] = features;
 				}
 				catch (JSON::type_error err) {
 					errors.push_back("Unable to read metadata from userscript " + Convert::string(it.file()) + ": " + err.what());

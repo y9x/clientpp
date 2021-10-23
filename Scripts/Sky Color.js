@@ -5,7 +5,7 @@ const metadata = {
 	"author": "Chief Software",
 	"description": "Adds a sky color picker to your client's settings.",
 	"version": 0.2,
-	"locations": ["all"],
+	"locations": ["game"],
 	"features": {
 		"gui": {
 			"Sky Color": {
