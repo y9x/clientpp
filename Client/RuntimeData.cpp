@@ -60,7 +60,7 @@ void KrunkerWindow::load_userscripts(JSON* data) {
 					
 					// keep raw for loading ui controls and config
 					JSON raw_metadata = JSON::parse(raw);
-					metadata = TraverseCopy(raw_metadata, default_userscript, &default_userscript);
+					metadata = TraverseCopy(raw_metadata, default_userscript);
 
 					std::string author = metadata["author"];
 					JSON& features = metadata["features"];
@@ -85,8 +85,9 @@ void KrunkerWindow::load_userscripts(JSON* data) {
 						userscripts[author] = config;
 						changed = true;
 					}
-					else userscripts[author] = TraverseCopy(userscripts[author], config, &config, true, &changed);
+					else userscripts[author] = TraverseCopy(userscripts[author], config, true, &changed);
 					if (changed) {
+						clog::info << "Changed" << clog::endl;
 						folder->save_config();
 					}
 
