@@ -4,7 +4,7 @@ const metadata = {
 	"name": "Adblock",
 	"author": "Chief Software",
 	"description": "Adblocking script",
-	"version": 0.2,
+	"version": 0.1,
 	"locations": ["all"],
 	"features": {
 		"block_hosts": [
@@ -17,14 +17,31 @@ const metadata = {
 			"adinplay.com",
 			"syndication.twitter.com"
 		],
+		"gui": {
+			"Adblock": {
+				"Enabled": {
+					"type": "boolean",
+					"walk": "adblock",
+					"change": "adblock_change"
+				}
+			}
+		},
 		"libs": {
 			"utils": true
+		},
+		"config": {
+			"adblock": true
 		}
 	}
 };
 
-const { libs } = metadata.features;
+// destructure
+const { config, libs } = metadata.features;
 
-libs.utils.add_ele('style', () => document.documentElement, {
+if(config.adblock)libs.utils.add_ele('style', () => document.documentElement, {
 	textContent: `*[id*='aHider'] { display: none !IMPORTANT; }`,
 });
+
+export function adblock_change(value, init){
+	if(!init)location.reload();
+}

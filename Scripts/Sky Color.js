@@ -30,14 +30,18 @@ const metadata = {
 	}
 };
 
-var { config } = metadata.features,
-	color;
+var color,
+	{ config } = metadata.features;
 
 Object.defineProperty(Object.prototype, 'skyCol', {
 	get(){
-		return config.skycolor.color;
+		if(config.skycolor.enabled)return config.skycolor.color;
 	},
 	set(value){
 		return color = value;
 	},
 });
+
+export function skycolor_change(value, init){
+	if(!init)location.reload();
+}

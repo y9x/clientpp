@@ -1,7 +1,11 @@
 'use strict';
 
-window.onbeforeunload = () => {};
-Object.defineProperty(window, 'onbeforeunload', { writable: false, value(){} })
+try{
+	window.onbeforeunload = () => {};
+	Object.defineProperty(window, 'onbeforeunload', { writable: false, value(){} })
+}catch(err){
+	
+}
 
 require('./FilePicker');
 

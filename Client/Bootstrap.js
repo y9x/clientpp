@@ -1,8 +1,6 @@
 {
-	let { log, error } = console;
-
-	
-	let run = new Function('webview', 'webpack', '_RUNTIME_DATA_', 'eval(webpack)');
+	let { log, error } = console,
+		run = new Function('webview', 'webpack', '_RUNTIME_DATA_', 'eval(webpack)');
 
 	try {
 		run(chrome.webview, $WEBPACK, $RUNTIME);
@@ -10,6 +8,5 @@
 	} catch (err) {
 		error('Unable to initialize Chief Client++ Webpack:');
 		error(err);
-		debugger;
 	}
 }
