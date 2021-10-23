@@ -129,6 +129,9 @@ bool ClientFolder::load_config() {
 
 	config = TraverseCopy(new_config, default_config, &default_config);
 
+	if (new_config.is_object() && new_config["userscripts"].is_object())
+		config["userscripts"] = new_config["userscripts"];
+
 	clog::debug << "Config loaded" << clog::endl;
 	
 	save_config();

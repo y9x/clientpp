@@ -23,7 +23,7 @@ exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_cle
 var utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js");
 
 class ChiefUserscript {
-	constructor(name, metadata, menu){
+	constructor(name, metadata){
 		this.name = name;
 		this.metadata = metadata;
 		
@@ -49,6 +49,21 @@ class ChiefUserscript {
 		}catch(err){
 			console.error(`Error parsing userscript ${this.name}:\n`, err);
 			return false;
+		}
+		
+		if(menu){
+			let { userscripts } = menu.config,
+				{ author, features } = this.metadata;
+			
+			if(!userscripts[author])userscripts[author] = {};
+			
+			userscripts[author] = utils.assign_deep(utils.clone_obj(features.config), menu.config.userscripts[author]);
+			
+			Object.defineProperty(this.metadata.features, 'config', {
+				get(){
+					return userscripts[author];
+				}
+			});
 		}
 		
 		try{
@@ -1514,7 +1529,7 @@ module.exports = Utils;
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"game":{"f4_seek":true},"client":{"uncap_fps":false,"fullscreen":false,"devtools":false},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}}}');
+module.exports = JSON.parse('{"game":{"f4_seek":true},"client":{"uncap_fps":false,"fullscreen":false,"devtools":false},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}},"userscripts":{}}');
 
 /***/ })
 

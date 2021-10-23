@@ -3,7 +3,7 @@
 var utils = require('./libs/Utils');
 
 class ChiefUserscript {
-	constructor(name, metadata, menu){
+	constructor(name, metadata){
 		this.name = name;
 		this.metadata = metadata;
 		
@@ -29,6 +29,21 @@ class ChiefUserscript {
 		}catch(err){
 			console.error(`Error parsing userscript ${this.name}:\n`, err);
 			return false;
+		}
+		
+		if(menu){
+			let { userscripts } = menu.config,
+				{ author, features } = this.metadata;
+			
+			if(!userscripts[author])userscripts[author] = {};
+			
+			userscripts[author] = utils.assign_deep(utils.clone_obj(features.config), menu.config.userscripts[author]);
+			
+			Object.defineProperty(this.metadata.features, 'config', {
+				get(){
+					return userscripts[author];
+				}
+			});
 		}
 		
 		try{
