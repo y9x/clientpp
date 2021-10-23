@@ -20,7 +20,9 @@ bool add_back(std::vector<Element>& vector, Element element) {
 	return true;
 }
 
-std::regex rmetadata(R"(const metadata\s*=\s*(\{[\s\S]+?\});)");
+std::regex meta_const(R"(const metadata\s*=\s*(\{[\s\S]+?\});)");
+
+std::regex meta_comment(R"(\/{2}.*?\n|$|\/\*[\s\S]*?\*\/)");
 
 // userscript struct?
 
@@ -40,10 +42,13 @@ void KrunkerWindow::load_userscripts(JSON* data) {
 			JSON put = JSON::array();
 			std::smatch match;
 
-			if (std::regex_search(buffer, match, rmetadata)) {
+			if (std::regex_search(buffer, match, meta_const)) {
 				try {
+					std::string raw = std::regex_replace(match.str(1), meta_comment, "");
+					clog::info << raw << clog::endl;
+
 					// keep raw for loading ui controls and config
-					JSON raw_metadata = JSON::parse(match.str(1));
+					JSON raw_metadata = JSON::parse(raw);
 					JSON metadata = TraverseCopy(raw_metadata, default_userscript, &default_userscript);
 
 					JSON features = metadata["features"];
