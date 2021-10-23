@@ -29,6 +29,9 @@ std::regex us_export(R"(export function (\w+))");
 // userscript struct?
 
 void KrunkerWindow::load_userscripts(JSON* data) {
+additional_block_hosts.clear();
+	additional_command_line.clear();
+	
 	std::string sdefault_userscript;
 	if (!load_resource(JSON_DEFAULT_USERSCRIPT, sdefault_userscript)) {
 		clog::error << "Error loading default userscript" << clog::endl;
@@ -61,11 +64,12 @@ void KrunkerWindow::load_userscripts(JSON* data) {
 					if (raw_features.contains("gui")) features["gui"] = raw_features["gui"];
 					if (raw_features.contains("config")) features["config"] = raw_features["config"];
 					
-					for (std::string cmd : metadata["block_hosts"])
-						add_back<std::wstring>(additional_block_hosts, Convert::wstring(cmd));
+					for (std::string host : features["block_hosts"])
+						add_back<std::wstring>(additional_block_hosts, Convert::wstring(host));
 
-					for (std::string cmd : metadata["command_line"])
+					for (std::string cmd : features["command_line"])
 						add_back<std::wstring>(additional_command_line, Convert::wstring(cmd));
+					
 
 					buffer.replace(match[0].first, match[0].second, "const metadata = _metadata;");
 
@@ -94,9 +98,6 @@ JSON KrunkerWindow::runtime_data() {
 
 	data["css"] = JSON::object();
 	data["js"] = JSON::object();
-
-	additional_block_hosts.clear();
-	additional_command_line.clear();
 
 	load_userscripts(&data["js"]);
 
