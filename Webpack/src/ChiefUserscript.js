@@ -58,8 +58,6 @@ class ChiefUserscript {
 		
 		var { gui } = this.metadata.features;
 		
-		console.log('shees', gui);
-		
 		if(menu)for(let [ labelct, controls ] of Object.entries(gui)){
 			let category = menu.category(labelct);
 			

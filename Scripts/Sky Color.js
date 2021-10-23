@@ -19,7 +19,7 @@ const metadata = {
 					"walk": "skycolor.color",
 					"change": "skycolor_change"
 				}
-			},
+			}
 		},
 		"config": {
 			"skycolor": {
