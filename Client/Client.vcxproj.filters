@@ -23,6 +23,7 @@
     <None Include="..\Webpack\dist\Webpack.js" />
     <None Include="..\Webpack\dist\Webpack.js.map" />
     <None Include="packages.config" />
+    <None Include="DefaultUserscript.json" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -199,6 +200,12 @@
     <ClCompile Include="..\OpenSSL\ssl\tls13_enc.c">
       <Filter>OpenSSL</Filter>
     </ClCompile>
+    <ClCompile Include="TraverseCopy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RuntimeData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Utils\StringUtil.h">
@@ -243,10 +250,21 @@
     <ClInclude Include="Points.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TraverseCopy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Images\Icon.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\Images\Krunker.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

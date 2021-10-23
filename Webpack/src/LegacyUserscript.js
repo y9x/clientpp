@@ -2,7 +2,7 @@
 
 // Legacy IDKR userscript
 
-var site_location = require('./SiteLocation');
+var site = require('./Site');
 
 class Userscript {
 	#field(compare, value){
@@ -33,7 +33,7 @@ class Userscript {
 		this.settings = this.#field(this.settings, data.settings);
 	}
 	async run(){
-		if(!this.locations.includes('all') && !this.locations.includes(site_location))return false;
+		if(!this.locations.includes('all') && !this.locations.includes(site))return false;
 		
 		try{
 			await this.#run();

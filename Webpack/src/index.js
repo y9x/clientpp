@@ -11,7 +11,8 @@ var ExtendMenu = require('./libs/ExtendMenu'),
 	RPC = require('./RPC'),
 	{ ipc, IM } = require('./IPC'),
 	{ config: runtime_config, js } = require('./Runtime'),
-	site_location = require('./SiteLocation');
+	site = require('./Site'),
+	run_resources = require('./Resources');
 
 class Menu extends ExtendMenu {
 	rpc = new RPC();
@@ -142,9 +143,9 @@ class Menu extends ExtendMenu {
 		});
 		
 		this.keybinds();
-		
+	}
+	update(){
 		for(let category of this.categories)category.update(true);
-		
 		this.insert('Client');
 	}
 	keybinds(){
@@ -165,11 +166,13 @@ class Menu extends ExtendMenu {
 	}
 };
 
-require('./Resources');
 
-if(site_location == 'game'){
+
+if(site == 'game'){
 	require('./Fixes');
-	new Menu();
-}
+	let menu = new Menu();
+	run_resources(menu);
+	menu.update();
+}else run_resources();
 
 new Keybind('F5', event => ipc.send(IM.reload_window));

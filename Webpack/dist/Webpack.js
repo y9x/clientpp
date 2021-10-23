@@ -11,6 +11,79 @@ exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_cle
 
 /***/ }),
 
+/***/ "./src/ChiefUserscript.js":
+/*!********************************!*\
+  !*** ./src/ChiefUserscript.js ***!
+  \********************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js");
+
+class ChiefUserscript {
+	constructor(name, metadata, menu){
+		this.name = name;
+		this.metadata = metadata;
+		
+		// utils.assign_type(this.template, metadata);
+		// done in host c++
+		
+		var { libs, gui } = this.metadata.features;
+		
+		if(libs.utils){
+			libs.utils = utils;
+		}
+	}
+	// returns false if the script failed to execute, otherwise true
+	async run(script, site, menu){
+		if(!this.metadata.locations.includes(site))return false;
+		
+		var func;
+		
+		try{
+			// cannot use import/export, fix soon
+			func = new Function('_metadata', script);
+		}catch(err){
+			console.error(`Error parsing userscript ${this.name}:\n`, err);
+			return false;
+		}
+		
+		try{
+			func.call(window, this.metadata);
+		}catch(err){
+			console.error(`Error executing userscript ${this.name}:\n`, err);
+			return false;
+		}
+		
+		var { gui } = this.metadata.features;
+		
+		if(menu){
+			// this.metadata.features.config
+			// menu.config.userscripts[this.metadata.author]
+			for(let [ labelct, controls ] of Object.entries(gui)){
+				let category = menu.category(labelct);
+				
+				for(let [ labelco, data ] of Object.entries(controls)){
+					let control = category.control(labelco, data);
+					
+					control.on('change', (value, init) => {
+						// send to module export
+						// data.
+					});
+				}
+			}
+		}
+		
+		return true;
+	}
+};
+
+module.exports = ChiefUserscript;
+
+/***/ }),
+
 /***/ "./src/FilePicker.js":
 /*!***************************!*\
   !*** ./src/FilePicker.js ***!
@@ -201,6 +274,64 @@ exports.IM = IM;
 
 /***/ }),
 
+/***/ "./src/LegacyUserscript.js":
+/*!*********************************!*\
+  !*** ./src/LegacyUserscript.js ***!
+  \*********************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+// Legacy IDKR userscript
+
+var site = __webpack_require__(/*! ./Site */ "./src/Site.js");
+
+class Userscript {
+	#field(compare, value){
+		if(Array.isArray(compare)){
+			if(!Array.isArray(value))value = [].concat(value);
+			
+			if(!value.length || value.some(data => typeof data != 'string'))return compare;
+		}else if(typeof compare != typeof value)return compare;
+		
+		return value;
+	}
+	#run = () => {}
+	name = 'Unnamed userscript';
+	version = 'Unknown version';
+	author = 'Unknown author';
+	description = 'No description provided';
+	locations = ['game'];
+	platforms = ['all'];
+	settings = { used: false };
+	constructor(data){
+		this.#run = this.#field(this.#run, data.run);
+		this.name = this.#field(this.name, data.name);
+		this.version = this.#field(this.version, data.version);
+		this.author = this.#field(this.author, data.author);
+		this.description = this.#field(this.description, data.description);
+		this.locations = this.#field(this.locations, data.locations);
+		this.platforms = this.#field(this.platforms, data.platforms);
+		this.settings = this.#field(this.settings, data.settings);
+	}
+	async run(){
+		if(!this.locations.includes('all') && !this.locations.includes(site))return false;
+		
+		try{
+			await this.#run();
+			return true;
+		}catch(err){
+			console.error(err);
+			return false;
+		}
+	}
+};
+
+module.exports = Userscript;
+
+/***/ }),
+
 /***/ "./src/RPC.js":
 /*!********************!*\
   !*** ./src/RPC.js ***!
@@ -210,9 +341,7 @@ exports.IM = IM;
 "use strict";
 
 
-var { IM, ipc } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
-	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
-	site_location = __webpack_require__(/*! ./SiteLocation */ "./src/SiteLocation.js");
+var { IM, ipc } = __webpack_require__(/*! ./IPC */ "./src/IPC.js");
 
 class RPC {
 	start = Date.now();
@@ -255,16 +384,17 @@ module.exports = RPC;
 /*!**************************!*\
   !*** ./src/Resources.js ***!
   \**************************/
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
 var { css, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
-	site_location = __webpack_require__(/*! ./SiteLocation */ "./src/SiteLocation.js"),
+	site = __webpack_require__(/*! ./Site */ "./src/Site.js"),
 	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
-	Userscript = __webpack_require__(/*! ./Userscript */ "./src/Userscript.js"),
+	LegacyUserscript = __webpack_require__(/*! ./LegacyUserscript */ "./src/LegacyUserscript.js"),
+	ChiefUserscript = __webpack_require__(/*! ./ChiefUserscript */ "./src/ChiefUserscript.js"),
 	add_css = () => {
 		for(let [ name, data ] of Object.entries(css)){
 			let url = URL.createObjectURL(new Blob([ data ], { type: 'text/css' }));
@@ -282,38 +412,43 @@ var { css, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
 		}
 	};
 
-for(let [ name, data ] of Object.entries(js)){
-	// quick fix
-	if(data.includes('// ==UserScript==') && site_location != 'game')continue;
-	
-	let module = { exports: {} },
-		func,
-		context = {
-			module,
-			exports: module.exports,
-			// console: ipc.console,
-		};
-	
-	try{
-		func = eval(`(function(${Object.keys(context)}){${data}//# sourceURL=${name}\n})`);
-	}catch(err){
-		console.error('Error parsing UserScript:', name, '\n', err);
+module.exports = menu => {
+	for(let [ name, [ data, metadata ] ] of Object.entries(js)){
+		if(metadata){
+			new ChiefUserscript(name, metadata).run(data, site, menu);
+		}else{ // legacy idkr, unknown
+			// quick fix
+			if(data.includes('// ==UserScript==') && site != 'game')continue;
+			
+			let module = { exports: {} },
+				func,
+				context = {
+					module,
+					exports: module.exports,
+					// console: ipc.console,
+				};
+			
+			try{
+				func = eval(`(function(${Object.keys(context)}){${data}//# sourceURL=${name}\n})`);
+			}catch(err){
+				console.error(`Error parsing UserScript ${name}:\n`, err);
+				break;
+			}
+			
+			// try{...}catch(err){...} doesnt provide: line, column
+			
+			try{
+				func(...Object.values(context));
+				
+				let userscript = new LegacyUserscript(module.exports);
+				
+				userscript.run();
+			}catch(err){
+				console.warn('Error executing UserScript:', name, '\n', err);
+			}
+		}
 	}
-	
-	// try{...}catch(err){...} doesnt provide: line, column
-	
-	
-	
-	try{
-		func(...Object.values(context));
-		
-		let userscript = new Userscript(module.exports);
-		
-		userscript.run();
-	}catch(err){
-		console.warn('Error executing UserScript:', name, '\n', err);
-	}
-}
+};
 
 new MutationObserver((mutations, observer) => {
 	for(let mutation of mutations){
@@ -343,10 +478,10 @@ module.exports = _RUNTIME_DATA_;
 
 /***/ }),
 
-/***/ "./src/SiteLocation.js":
-/*!*****************************!*\
-  !*** ./src/SiteLocation.js ***!
-  \*****************************/
+/***/ "./src/Site.js":
+/*!*********************!*\
+  !*** ./src/Site.js ***!
+  \*********************/
 /***/ ((module) => {
 
 "use strict";
@@ -357,64 +492,6 @@ module.exports = {
 	'/social.html': 'social',
 	'/editor.html': 'editor',
 }[location.pathname];
-
-/***/ }),
-
-/***/ "./src/Userscript.js":
-/*!***************************!*\
-  !*** ./src/Userscript.js ***!
-  \***************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-// Legacy IDKR userscript
-
-var site_location = __webpack_require__(/*! ./SiteLocation */ "./src/SiteLocation.js");
-
-class Userscript {
-	#field(compare, value){
-		if(Array.isArray(compare)){
-			if(!Array.isArray(value))value = [].concat(value);
-			
-			if(!value.length || value.some(data => typeof data != 'string'))return compare;
-		}else if(typeof compare != typeof value)return compare;
-		
-		return value;
-	}
-	#run = () => {}
-	name = 'Unnamed userscript';
-	version = 'Unknown version';
-	author = 'Unknown author';
-	description = 'No description provided';
-	locations = ['game'];
-	platforms = ['all'];
-	settings = { used: false };
-	constructor(data){
-		this.#run = this.#field(this.#run, data.run);
-		this.name = this.#field(this.name, data.name);
-		this.version = this.#field(this.version, data.version);
-		this.author = this.#field(this.author, data.author);
-		this.description = this.#field(this.description, data.description);
-		this.locations = this.#field(this.locations, data.locations);
-		this.platforms = this.#field(this.platforms, data.platforms);
-		this.settings = this.#field(this.settings, data.settings);
-	}
-	async run(){
-		if(!this.locations.includes('all') && !this.locations.includes(site_location))return false;
-		
-		try{
-			await this.#run();
-			return true;
-		}catch(err){
-			console.error(err);
-			return false;
-		}
-	}
-};
-
-module.exports = Userscript;
 
 /***/ }),
 
@@ -1483,7 +1560,8 @@ var ExtendMenu = __webpack_require__(/*! ./libs/ExtendMenu */ "./src/libs/Extend
 	RPC = __webpack_require__(/*! ./RPC */ "./src/RPC.js"),
 	{ ipc, IM } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	{ config: runtime_config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
-	site_location = __webpack_require__(/*! ./SiteLocation */ "./src/SiteLocation.js");
+	site = __webpack_require__(/*! ./Site */ "./src/Site.js"),
+	run_resources = __webpack_require__(/*! ./Resources */ "./src/Resources.js");
 
 class Menu extends ExtendMenu {
 	rpc = new RPC();
@@ -1614,9 +1692,9 @@ class Menu extends ExtendMenu {
 		});
 		
 		this.keybinds();
-		
+	}
+	update(){
 		for(let category of this.categories)category.update(true);
-		
 		this.insert('Client');
 	}
 	keybinds(){
@@ -1637,12 +1715,14 @@ class Menu extends ExtendMenu {
 	}
 };
 
-__webpack_require__(/*! ./Resources */ "./src/Resources.js");
 
-if(site_location == 'game'){
+
+if(site == 'game'){
 	__webpack_require__(/*! ./Fixes */ "./src/Fixes.js");
-	new Menu();
-}
+	let menu = new Menu();
+	run_resources(menu);
+	menu.update();
+}else run_resources();
 
 new Keybind('F5', event => ipc.send(IM.reload_window));
 })();

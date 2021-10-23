@@ -1,8 +1,6 @@
 'use strict';
 
-var { IM, ipc } = require('./IPC'),
-	utils = require('./libs/Utils'),
-	site_location = require('./SiteLocation');
+var { IM, ipc } = require('./IPC');
 
 class RPC {
 	start = Date.now();

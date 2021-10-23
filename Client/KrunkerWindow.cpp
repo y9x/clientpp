@@ -10,7 +10,6 @@
 #include <ShellScalingApi.h>
 #include <shellapi.h>
 #include <commdlg.h>
-
 #pragma comment(lib, "Shcore.lib")
 
 using namespace StringUtil;
@@ -77,81 +76,6 @@ KrunkerWindow::~KrunkerWindow() {
 	if (awindow == this) awindow = NULL;
 }
 
-// adds an element to the string vector if not present
-// returns false if the element is present, true if the element was pushed
-template<class Element>
-bool add_back(std::vector<Element>& vector, Element element) {
-	for (Element search : vector)
-		if (search == element) return false;
-
-	vector.push_back(element);
-	return true;
-}
-
-std::regex rmetadata(R"(const metadata\s*=\s*(\{[\s\S]+?\});)");
-
-void KrunkerWindow::load_userscripts(JSON* data) {
-	for (IOUtil::WDirectoryIterator it(folder->directory + folder->p_scripts, L"*.js"); ++it;) {
-		std::string buffer;
-
-		if (IOUtil::read_file(it.path().c_str(), buffer)) {
-			std::smatch match;
-			if (std::regex_search(buffer, match, rmetadata)) {
-				// clog::info << "matched " << match.str(1) << clog::endl;
-				try {
-					JSON metadata = JSON::parse(match.str(1));
-
-					clog::info << metadata << clog::endl;
-
-					JSON features;
-					if (metadata.contains("features"))features = metadata["features"];
-					else features = JSON::object();
-
-					if (metadata.contains("block_hosts")) for (std::string cmd : metadata["block_hosts"])
-						add_back<std::wstring>(additional_block_hosts, Convert::wstring(cmd));
-
-					if (metadata.contains("command_line")) for (std::string cmd : metadata["command_line"])
-						add_back<std::wstring>(additional_command_line, Convert::wstring(cmd));
-
-				}
-				catch (JSON::type_error err) {
-					clog::error << "Error reading data from userscript " << Convert::string(it.file()) << ": " << err.what() << clog::endl;
-				}
-				catch (JSON::parse_error err) {
-					clog::error << "Error parsing userscript " << Convert::string(it.file()) << ": " << err.what() << clog::endl;
-				}
-			}
-			// else clog::info << "no match" << clog::endl;
-		}
-
-		if (data)(*data)[Convert::string(it.file()).c_str()] = buffer;
-	}
-}
-
-JSON KrunkerWindow::runtime_data() {
-	JSON data = JSON::object();
-
-	data["css"] = JSON::object();
-	data["js"] = JSON::object();
-
-	additional_block_hosts.clear();
-	additional_command_line.clear();
-
-	load_userscripts(&data["js"]);
-
-	for (IOUtil::WDirectoryIterator it(folder->directory + folder->p_styles, L"*.js"); ++it;) {
-		std::string buffer;
-		if (IOUtil::read_file(it.path().c_str(), buffer))
-			data["css"][Convert::string(it.file()).c_str()] = buffer;
-	}
-
-	data["css"]["client/hide.css"] = "img[src='./img/client.png'] { display: none !IMPORTANT; }";
-	
-	data["config"] = folder->config;
-
-	return data;
-}
-
 bool mousedown = false;
 
 LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam) {
@@ -189,11 +113,6 @@ std::wstring KrunkerWindow::cmdline() {
 		// L"--js-flags=--experimental-wasm-threads",
 		// bad for cpu
 		L"--disable-background-timer-throttling",
-
-		// ws:
-#if _DEBUG == 1
-		L"--allow-running-insecure-content",
-#endif
 		L"--disable-features=msSmartScreenProtection",
 		L"--force-dark-mode",
 		L"--high-dpi-support=1",

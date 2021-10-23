@@ -99,6 +99,7 @@
     <None Include="..\Webpack\dist\Webpack.js.map" />
     <None Include="Bootstrap.js" />
     <None Include="Config.json" />
+    <None Include="DefaultUserscript.json" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -108,10 +109,12 @@
     <ClCompile Include="..\Utils\Uri.cpp" />
     <ClCompile Include="ClientFolder.cpp" />
     <ClCompile Include="KrunkerWindow.cpp" />
+    <ClCompile Include="RuntimeData.cpp" />
     <ClCompile Include="LoadRes.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="Points.cpp" />
+    <ClCompile Include="TraverseCopy.cpp" />
     <ClCompile Include="Updater.cpp" />
     <ClCompile Include="Updater.h" />
     <ClCompile Include="WebView2Installer.cpp" />
@@ -130,11 +133,16 @@
     <ClInclude Include="LoadRes.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="TraverseCopy.h" />
     <ClInclude Include="WebView2Installer.h" />
     <ClInclude Include="WebView2Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Images\Icon.ico" />
+    <Image Include="..\Images\Krunker.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\OpenSSL\OpenSSL.props" />

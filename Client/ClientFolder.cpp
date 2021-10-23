@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <Windows.h>
 #include "./ClientFolder.h"
+#include "./TraverseCopy.h"
 #include "../Utils/StringUtil.h"
 #include "../Utils/IOUtil.h"
 #include "./Log.h"
@@ -109,24 +110,6 @@ bool ClientFolder::create() {
 	return ret;
 }
 
-JSON empty_param;
-
-JSON traverse_copy(JSON value, JSON match, JSON& obj_preset = empty_param) {
-	if (value.type() != match.type()) return match;
-
-	if (value.is_object()) {
-		JSON result = &obj_preset == &empty_param ? match : obj_preset;
-
-		for (auto [skey, svalue] : value.items())
-			if (match.contains(skey)) result[skey] = traverse_copy(svalue, match[skey]);
-		
-		return result;
-	}
-	else {
-		return value;
-	}
-}
-
 bool ClientFolder::load_config() {
 	std::string config_buffer;
 
@@ -144,7 +127,7 @@ bool ClientFolder::load_config() {
 		new_config = default_config;
 	}
 
-	config = traverse_copy(new_config, default_config, default_config);
+	config = TraverseCopy(new_config, default_config, &default_config);
 
 	clog::debug << "Config loaded" << clog::endl;
 	

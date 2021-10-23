@@ -1,0 +1,16 @@
+{
+	"name": "Unnamed userscript",
+	"author": "Unknown author",
+	"description": "Userscript not provided",
+	"version": 0.1,
+	"locations": [ "game" ],
+	"features": {
+		"block_hosts": [],
+		"command_line": [],
+		"gui": {},
+		"libs": {
+			"utils": false
+		},
+		"config": {}
+	}
+}

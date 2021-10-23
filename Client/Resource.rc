@@ -72,6 +72,8 @@ JS_WEBPACK_MAP          RCDATA                  "..\\Webpack\\dist\\Webpack.js.m
 
 ICON_KRUNKER            RCDATA                  "..\\Images\\Krunker.ico"
 
+JSON_DEFAULT_USERSCRIPT RCDATA                  "DefaultUserscript.json"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
