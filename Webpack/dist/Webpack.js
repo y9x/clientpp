@@ -210,7 +210,7 @@ if(localStorage.kro_setngss_scaleUI == void[])localStorage.kro_setngss_scaleUI =
 
 var MIN_WIDTH = 1700,
 	MIN_HEIGHT = 900;
-	
+
 if(localStorage.kro_setngss_uiScaling !== 'false'){
 	var ls = localStorage.kro_setngss_scaleUI,
 		scale_ui = ls != void[] ? parseInt(ls) : 0.7;
