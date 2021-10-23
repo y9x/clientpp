@@ -310,6 +310,17 @@ void KrunkerWindow::register_events() {
 
 	webview->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
 
+	/*webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
+		BOOL success = false;
+		args->get_IsSuccess(&success);
+
+		if (!success) {
+			// show custom error page?
+		}
+
+		return S_OK;
+	}).Get(), &token);*/
+
 	webview->add_NavigationStarting(Callback<ICoreWebView2NavigationStartingEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
 		LPWSTR uriptr;
 		args->get_Uri(&uriptr);
