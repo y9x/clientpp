@@ -13,22 +13,20 @@ class ChiefUserscript {
 		
 		var { libs, gui } = this.metadata.features;
 		
-		if(libs.utils){
-			libs.utils = utils;
-		}
+		if(libs.utils)libs.utils = utils;
 	}
 	// returns false if the script failed to execute, otherwise true
 	async run(script, site, menu){
 		if(!this.metadata.locations.some(s => s == site || s == 'all'))return false;
 		
 		var exports = {},
-			func,
+			run,
 			context = { _metadata: this.metadata, exports, console };
 			
 		
 		try{
 			// cannot use import/export, fix soon
-			func = eval(`(function(${Object.keys(context)}){${script}\n//# sourceURL=https://krunker.io/userscripts:/${this.name}\n})`);
+			run = eval(`(function(${Object.keys(context)}){${script}\n//# sourceURL=https://krunker.io/userscripts:/${this.name}\n})`);
 		}catch(err){
 			console.error(`Error parsing userscript ${this.name}:\n`, err);
 			return false;
@@ -50,7 +48,7 @@ class ChiefUserscript {
 		}
 		
 		try{
-			func(...Object.values(context));
+			run(...Object.values(context));
 		}catch(err){
 			console.error(`Error executing userscript ${this.name}:\n`, err);
 			return false;
