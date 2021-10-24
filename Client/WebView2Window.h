@@ -46,8 +46,9 @@ public:
 	virtual void on_dispatch();
 	LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
 	LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
+	/*implement:
 	BEGIN_MSG_MAP(WebView2Window)
 		MESSAGE_HANDLER(WM_SIZE, on_resize)
 		MESSAGE_HANDLER(WM_DESTROY, on_destroy)
-	END_MSG_MAP()
+	END_MSG_MAP()*/
 };

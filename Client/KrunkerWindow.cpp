@@ -70,7 +70,10 @@ KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title,
 	, last_pointer_poll(now())
 	, on_webview2_startup(s)
 	, on_unknown_message(u)
-{}
+{
+	rid[0].usUsagePage = 0x01;
+	rid[0].usUsage = 0x02;
+}
 
 KrunkerWindow::~KrunkerWindow() {
 	if (awindow == this) awindow = NULL;
@@ -80,26 +83,66 @@ bool mousedown = false;
 
 LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam) {
 	MSLLHOOKSTRUCT* hook = (MSLLHOOKSTRUCT*)lParam;
+	POINT point = hook->pt;
 	
-	if (wParam == WM_LBUTTONDOWN) {
-		POINT point = hook->pt;
-		if (awindow && ::IsWindow(awindow->m_hWnd) && awindow->ScreenToClient(&point)) {
-			JSMessage msg(IM::mousedown, { point.x, point.y });
-			if (!msg.send(awindow->webview.get()))clog::error << "Unable to send " << msg.dump() << clog::endl;
-		}
+	if (awindow && ::IsWindow(awindow->m_hWnd) && awindow->ScreenToClient(&point)) switch (wParam) {
+	case WM_MOUSEMOVE:
+		break;
+	case WM_LBUTTONDOWN:
+	case WM_RBUTTONDOWN: {
 
-		return 1;
+		JSMessage msg(IM::mousedown, { point.x, point.y, wParam == WM_LBUTTONDOWN ? 0 : 2 });
+		if (!msg.send(awindow->webview.get()))clog::error << "Unable to send " << msg.dump() << clog::endl;
+
+	} break;
+	case WM_LBUTTONUP: 
+	case WM_RBUTTONUP: {
+
+		JSMessage msg(IM::mouseup, { point.x, point.y, wParam == WM_LBUTTONUP ? 0 : 2 });
+		if (!msg.send(awindow->webview.get()))clog::error << "Unable to send " << msg.dump() << clog::endl;
+
+	} break;
+	}
+	
+
+	return 1;
+	// return CallNextHookEx(NULL, code, wParam, lParam);
+}
+
+LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
+	unsigned size = sizeof(RAWINPUT);
+	static RAWINPUT raw[sizeof(RAWINPUT)];
+	GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw, &size, sizeof(RAWINPUTHEADER));
+
+	if (raw->header.dwType == RIM_TYPEMOUSE) {
+		if (raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL) {
+			JSMessage msg(IM::mousewheel, { (*(short*)&raw->data.mouse.usButtonData) * -1 /*WHEEL_DELTA*/});
+			if (!msg.send(webview.get())) clog::error << "Unable to send " << msg.dump() << clog::endl;
+		}
+		else {
+			POINT cursor;
+			GetCursorPos(&cursor);
+			ScreenToClient(&cursor);
+			JSMessage msg(IM::mousemove, { cursor.x, cursor.y, raw->data.mouse.lLastX, raw->data.mouse.lLastY });
+			if (!msg.send(webview.get())) clog::error << "Unable to send " << msg.dump() << clog::endl;
+		}
 	}
 
-	return CallNextHookEx(NULL, code, wParam, lParam);
+	return 0;
 }
 
 void KrunkerWindow::hook_mouse() {
+	rid[0].dwFlags = RIDEV_INPUTSINK; 
+	rid[0].hwndTarget = m_hWnd;
+	RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
 	mouse_hook = ::SetWindowsHookEx(WH_MOUSE_LL, *mouse_message, get_hinstance(), NULL);
 	mouse_hooked = mouse_hook != NULL;
 }
 
 void KrunkerWindow::unhook_mouse() {
+	rid[0].dwFlags = RIDEV_REMOVE;
+	rid[0].hwndTarget = NULL;
+	RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
 	if (UnhookWindowsHookEx(mouse_hook)) mouse_hooked = false;
 }
 
@@ -172,8 +215,8 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 		ShellExecute(m_hWnd, L"open", open.c_str(), L"", L"", SW_SHOW);
 	} break;
 	case IM::pointer:
-		if (msg.args[0] == "hook" && !mouse_hooked) hook_mouse();
-		else if (mouse_hooked) unhook_mouse();
+		if (msg.args[0] && !mouse_hooked) hook_mouse();
+		else if (!msg.args[0] && mouse_hooked) unhook_mouse();
 
 		break;
 	case IM::log: {
@@ -389,9 +432,9 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::fu
 		title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
 
 	create_window(inst, cmdshow);
-	
-	SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(background));
 
+	SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(background));
+	
 	if (can_fullscreen && folder->config["client"]["fullscreen"]) enter_fullscreen();
 
 	if (shcore) {
@@ -484,9 +527,14 @@ void KrunkerWindow::on_dispatch() {
 	post.clear();
 	mtx.unlock();
 
-	if (pathname == L"/" && GetActiveWindow() == m_hWnd) awindow = this;
+	bool active = GetActiveWindow() == m_hWnd;
 
-	if (now() - last_pointer_poll > 2000 && mouse_hooked) {
+	if (!active && mouse_hooked) clog::info << "no fucos" << clog::endl, unhook_mouse();
+	else if (!active && IsWindow()) SetWindowText(L"NO FOCUS");
+	else if(IsWindow()) SetWindowText(L"FOCUS:");
+	if (pathname == L"/" && active) awindow = this;
+
+	if (now() - last_pointer_poll > 1500 && mouse_hooked) {
 		clog::error << "Client polling behind" << clog::endl;
 		unhook_mouse();
 	}

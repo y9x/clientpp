@@ -2,37 +2,41 @@
 
 var utils = require('./libs/Utils'),
 	{ ipc, IM }  = require('./IPC'),
+	console = require('./Console'),
 	listening = new WeakSet(),
-	locked_node,
-	listener = event => {
-		if(event.button == 0)console.log('Recieved', event.ipc ? 'simulated' : 'real', 'left mousedown event');
-	},
-	is_game_canvas = node => node?.className == 'canvas' && !node.id;
+	locked_node;
 
 document.addEventListener('pointerlockchange', () => {
 	if(!document.pointerLockElement){
-		// locked_node?.removeEventListener('mousedown', listener);
 		locked_node = null;
-		return ipc.send(IM.pointer, 'unhook');
+		return ipc.send(IM.pointer, false);
 	}
 	
 	locked_node = document.pointerLockElement;
-	// locked_node.addEventListener('mousedown', listener)
-	ipc.send(IM.pointer, 'hook');
+	ipc.send(IM.pointer, true);
 });
 
 setInterval(() => {
 	ipc.send(IM.mouse_locked, document.pointerLockElement != void[]);
 }, 1000);
 
-ipc.on(IM.mousedown, (x, y) => {
-	var event = new MouseEvent('mousedown', {
-		clientX: x,
-		clientY: y,
-	});
-	
-	event.ipc = true;
-	locked_node?.dispatchEvent(event);
+ipc.on(IM.mousewheel, deltaY => {
+	locked_node?.dispatchEvent(new WheelEvent('wheel', { deltaY }));
+});
+
+ipc.on(IM.mousedown, (clientX, clientY, button) => {
+	locked_node?.dispatchEvent(new MouseEvent('mousedown', { button, clientX, clientY }));
+});
+
+ipc.on(IM.mouseup, (clientX, clientY, button) => {
+	locked_node?.dispatchEvent(new MouseEvent('mouseup', { button, clientX, clientY }));
+});
+
+ipc.on(IM.mousemove, (clientX, clientY, movementX, movementY) => {
+	locked_node?.dispatchEvent(new MouseEvent('mousemove', {
+		clientX, clientY,
+		movementX, movementY,
+	}));
 });
 
 if(localStorage.kro_setngss_scaleUI == void[])localStorage.kro_setngss_scaleUI = 0.7;

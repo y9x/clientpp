@@ -7,7 +7,7 @@
   \*******************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_clear:1,rpc_init:2,save_config:3,shell_open:4,fullscreen:5,update_meta:6,revert_meta:7,reload_config:8,browse_file:9,mousedown:10,pointer:11,mouse_locked:12,open_devtools:13,log:14,relaunch_webview:15,close_window:16,reload_window:17,seek_game:18}
+exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_clear:1,rpc_init:2,save_config:3,shell_open:4,fullscreen:5,update_meta:6,revert_meta:7,reload_config:8,browse_file:9,mousedown:10,mouseup:11,mousemove:12,mousewheel:13,pointer:14,mouse_locked:15,open_devtools:16,log:17,relaunch_webview:18,close_window:19,reload_window:20,seek_game:21}
 
 /***/ }),
 
@@ -173,37 +173,41 @@ module.exports = Control.Types.FilePicker = FilePicker;
 
 var utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	{ ipc, IM }  = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+	console = __webpack_require__(/*! ./Console */ "./src/Console.js"),
 	listening = new WeakSet(),
-	locked_node,
-	listener = event => {
-		if(event.button == 0)console.log('Recieved', event.ipc ? 'simulated' : 'real', 'left mousedown event');
-	},
-	is_game_canvas = node => node?.className == 'canvas' && !node.id;
+	locked_node;
 
 document.addEventListener('pointerlockchange', () => {
 	if(!document.pointerLockElement){
-		// locked_node?.removeEventListener('mousedown', listener);
 		locked_node = null;
-		return ipc.send(IM.pointer, 'unhook');
+		return ipc.send(IM.pointer, false);
 	}
 	
 	locked_node = document.pointerLockElement;
-	// locked_node.addEventListener('mousedown', listener)
-	ipc.send(IM.pointer, 'hook');
+	ipc.send(IM.pointer, true);
 });
 
 setInterval(() => {
 	ipc.send(IM.mouse_locked, document.pointerLockElement != void[]);
 }, 1000);
 
-ipc.on(IM.mousedown, (x, y) => {
-	var event = new MouseEvent('mousedown', {
-		clientX: x,
-		clientY: y,
-	});
-	
-	event.ipc = true;
-	locked_node?.dispatchEvent(event);
+ipc.on(IM.mousewheel, deltaY => {
+	locked_node?.dispatchEvent(new WheelEvent('wheel', { deltaY }));
+});
+
+ipc.on(IM.mousedown, (clientX, clientY, button) => {
+	locked_node?.dispatchEvent(new MouseEvent('mousedown', { button, clientX, clientY }));
+});
+
+ipc.on(IM.mouseup, (clientX, clientY, button) => {
+	locked_node?.dispatchEvent(new MouseEvent('mouseup', { button, clientX, clientY }));
+});
+
+ipc.on(IM.mousemove, (clientX, clientY, movementX, movementY) => {
+	locked_node?.dispatchEvent(new MouseEvent('mousemove', {
+		clientX, clientY,
+		movementX, movementY,
+	}));
 });
 
 if(localStorage.kro_setngss_scaleUI == void[])localStorage.kro_setngss_scaleUI = 0.7;

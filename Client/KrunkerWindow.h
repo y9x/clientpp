@@ -18,6 +18,7 @@ public:
 
 class KrunkerWindow : public WebView2Window {
 private:
+	RAWINPUTDEVICE rid[1];
 	static LRESULT CALLBACK mouse_message(int code, WPARAM wParam, LPARAM lParam);
 	HHOOK mouse_hook = 0;
 	bool mouse_hooked = false;
@@ -49,4 +50,10 @@ public:
 	bool seek_game();
 	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr);
 	~KrunkerWindow();
+	LRESULT on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
+	BEGIN_MSG_MAP(KrunkerWindow)
+		MESSAGE_HANDLER(WM_DESTROY, on_destroy)
+		MESSAGE_HANDLER(WM_SIZE, on_resize)
+		MESSAGE_HANDLER(WM_INPUT, on_input)
+	END_MSG_MAP()
 };

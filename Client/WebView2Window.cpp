@@ -43,7 +43,6 @@ WebView2Window::Status WebView2Window::create_webview(std::wstring cmdline, std:
 	options->put_AdditionalBrowserArguments(cmdline.c_str());
 
 	HRESULT create = CreateCoreWebView2EnvironmentWithOptions(nullptr, directory.c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Environment* envp) -> HRESULT {
-		clog::info << "test" << clog::endl;
 		if (envp == nullptr) {
 			clog::error << "Env was nullptr" << clog::endl;
 			return S_FALSE;
