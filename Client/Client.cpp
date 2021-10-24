@@ -222,8 +222,7 @@ bool Client::create() {
 		UpdaterServing serving;
 		if (updater.UpdatesAvailable(serving) && MessageBox(game.m_hWnd, L"A new client update is available. Download?", client_title, MB_YESNO) == IDYES) {
 			ShellExecute(game.m_hWnd, L"open", Convert::wstring(serving.url).c_str(), L"", L"", SW_SHOW);
-			if(::IsWindow(game.m_hWnd))game.DestroyWindow();
-			// PostThreadMessage(0, WM_QUIT, EXIT_SUCCESS);
+			exit(EXIT_SUCCESS);
 		}
 	});
 
