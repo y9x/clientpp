@@ -21,6 +21,7 @@ private:
 	std::mutex mtx;
 	std::function<bool(JSMessage)> on_unknown_message;
 	std::function<void()> on_webview2_startup;
+	std::function<void()> on_destroy_callback;
 	std::vector<std::wstring> additional_command_line;
 	std::vector<std::wstring> additional_block_hosts;
 	std::vector<JSMessage> pending_messages;
@@ -42,6 +43,7 @@ private:
 	bool send_resource(ICoreWebView2WebResourceRequestedEventArgs* args, int resource, std::wstring mime);
 	void load_userscripts(nlohmann::json* data = nullptr);
 	LRESULT on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
+	LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
 public:
 	bool can_fullscreen = false;
 	COLORREF background = RGB(0, 0, 0);
@@ -51,7 +53,7 @@ public:
 	Status get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr) override;
 	void on_dispatch() override;
 	bool seek_game();
-	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr);
+	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr, std::function<void()> on_destroy = nullptr);
 	~KrunkerWindow();
 	BEGIN_MSG_MAP(KrunkerWindow)
 		MESSAGE_HANDLER(WM_DESTROY, on_destroy)

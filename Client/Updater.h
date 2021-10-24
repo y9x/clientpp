@@ -3,7 +3,7 @@
 
 struct UpdaterServing {
 	std::string url;
-	double version;
+	double version = 0;
 };
 
 class Updater {

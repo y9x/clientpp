@@ -62,7 +62,7 @@ bool JSMessage::send(ICoreWebView2* target) {
 
 KrunkerWindow* awindow;
 
-KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title, std::wstring p, std::function<void()> s, std::function<bool(JSMessage)> u)
+KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title, std::wstring p, std::function<void()> s, std::function<bool(JSMessage)> u, std::function<void()> cl)
 	: WebView2Window(scale, title)
 	, folder(&f)
 	, og_title(title)
@@ -70,6 +70,7 @@ KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title,
 	, last_pointer_poll(now())
 	, on_webview2_startup(s)
 	, on_unknown_message(u)
+	, on_destroy_callback(cl)
 {
 	rid[0].usUsagePage = 0x01;
 	rid[0].usUsage = 0x02;
@@ -77,6 +78,7 @@ KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title,
 
 KrunkerWindow::~KrunkerWindow() {
 	if (awindow == this) awindow = NULL;
+	if (mouse_hooked) unhook_mouse();
 }
 
 bool mousedown = false;
@@ -621,4 +623,10 @@ void KrunkerWindow::on_dispatch() {
 		clog::error << "Pointer lock timeout: " << last_poll << "ms" << clog::endl;
 		unhook_mouse();
 	}
+}
+
+LRESULT KrunkerWindow::on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
+	open = false;
+	if (on_destroy_callback) on_destroy_callback();
+	return true;
 }

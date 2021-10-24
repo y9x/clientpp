@@ -1,4 +1,11 @@
 #pragma once
+#include "./Updater.h"
+#include "./ClientFolder.h"
+#include "./KrunkerWindow.h"
+#include "./WebView2Installer.h"
+#include "../Utils/Uri.h"
+#include <discord_register.h>
+#include <discord_rpc.h>
 
 class Client {
 private:

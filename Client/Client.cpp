@@ -1,26 +1,10 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
-#include <windows.h>
-#include <iostream>
-#include <chrono>
-#include <ctime>
-#include <atlbase.h>
-#include <atlwin.h>
-#include <atlenc.h>
-#include <stdlib.h>
-#include <tchar.h>
-#include <thread>
-#include <discord_rpc.h>
-#include <discord_register.h>
-#include "../Utils/StringUtil.h"
-#include "../Utils/Uri.h"
-#include "./Log.h"
-#include "./Updater.h"
-#include "./WebView2Installer.h"
-#include "./KrunkerWindow.h"
 #include "./Client.h"
+#include "./Log.h"
+#include "../Utils/StringUtil.h"
 #include <shellapi.h>
 
-constexpr const long double client_version = 0.12;
+constexpr const long double client_version = 0.10;
 constexpr const char* client_discord_rpc = "";
 // 899137303182716968
 constexpr const wchar_t* client_title = L"Chief Client++";
@@ -48,9 +32,9 @@ bool Client::navigation_cancelled(ICoreWebView2* sender, Uri uri) {
 
 	if (kru_owns) {
 		if (pathname == krunker::game || pathname.starts_with(krunker::games)) send = &game;
-		else if (pathname.starts_with(krunker::docs)) send = &documents;
 		else if (pathname == krunker::social) send = &social;
 		else if (pathname == krunker::editor) send = &editor;
+		else if (pathname.starts_with(krunker::docs)) send = &documents;
 	}
 	if (!send) {
 		cancel = true;
@@ -182,8 +166,8 @@ Client::Client(HINSTANCE h, int c)
 	, updater(client_version, "https://6ct.github.io", "/serve/updates.json")
 	, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 	, folder(L"GC++") // test unicode support L"크롬 플래그 새끼"	
-	, game(folder, { 0.8, 0.8 }, client_title, krunker::game, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return game_message(msg); })
 	, social(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Social").c_str(), krunker::social, [this]() { listen_navigation(social); })
+	, game(folder, { 0.8, 0.8 }, client_title, krunker::game, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return game_message(msg); }, []() { PostQuitMessage(EXIT_SUCCESS); })
 	, editor(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Editor").c_str(), krunker::editor, [this]() { listen_navigation(editor); })
 	, documents(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Documents").c_str(), krunker::tos, [this]() { listen_navigation(documents); })
 {}
@@ -238,8 +222,8 @@ bool Client::create() {
 		UpdaterServing serving;
 		if (updater.UpdatesAvailable(serving) && MessageBox(game.m_hWnd, L"A new client update is available. Download?", client_title, MB_YESNO) == IDYES) {
 			ShellExecute(game.m_hWnd, L"open", Convert::wstring(serving.url).c_str(), L"", L"", SW_SHOW);
-			game.open = false;
-			return;
+			if(::IsWindow(game.m_hWnd))game.DestroyWindow();
+			// PostThreadMessage(0, WM_QUIT, EXIT_SUCCESS);
 		}
 	});
 
@@ -249,12 +233,15 @@ bool Client::create() {
 int Client::messages() {
 	MSG msg;
 	BOOL ret;
-	while (game.open && (ret = GetMessage(&msg, 0, 0, 0))) {
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
+	
+	while (ret = GetMessage(&msg, 0, 0, 0)) {
 		game.on_dispatch();
 		social.on_dispatch();
 		editor.on_dispatch();
+		documents.on_dispatch();
+
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
 	}
 
 	return EXIT_SUCCESS;
