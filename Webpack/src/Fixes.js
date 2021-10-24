@@ -6,6 +6,13 @@ var utils = require('./libs/Utils'),
 	listening = new WeakSet(),
 	locked_node;
 
+ipc.send(IM.pointer, false);
+
+window.addEventListener('beforeunload', () => {
+	document.exitPointerLock();
+	ipc.send(IM.pointer, false);
+});
+
 document.addEventListener('pointerlockchange', () => {
 	if(!document.pointerLockElement){
 		locked_node = null;

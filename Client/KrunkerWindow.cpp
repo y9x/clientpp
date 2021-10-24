@@ -318,7 +318,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 			else res.args[1] = true;
 
 			mtx.lock();
-			post.push_back(res);
+			pending_messages.push_back(res);
 			mtx.unlock();
 		}, msg);
 
@@ -354,6 +354,42 @@ bool KrunkerWindow::send_resource(ICoreWebView2WebResourceRequestedEventArgs* ar
 	return false;
 }
 
+std::string KrunkerWindow::status_name(COREWEBVIEW2_WEB_ERROR_STATUS status) {
+	switch (status) {
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_COMMON_NAME_IS_INCORRECT: return "CertificateErrCommonNameIsIncorrect"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_EXPIRED: return "CertificateExpired"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CLIENT_CERTIFICATE_CONTAINS_ERRORS: return "ClientCertificateContainsErrors"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_REVOKED: return "CertificateRevoked"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_IS_INVALID: return "CertificateIsInvalid"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_SERVER_UNREACHABLE: return "ServerUnreachable"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_TIMEOUT: return "Timeout"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_ERROR_HTTP_INVALID_SERVER_RESPONSE: return "ErrorHttpInvalidServerResponse"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_ABORTED: return "ConnectionAborted"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_RESET: return "ConnectionReset"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_DISCONNECTED: return "Disconnected"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CANNOT_CONNECT: return "CannotConnect"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_HOST_NAME_NOT_RESOLVED: return "HostNameNotResolved"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_OPERATION_CANCELED: return "OperationCanceled"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_REDIRECT_FAILED: return "RedirectFailed"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_UNEXPECTED_ERROR: return "UnexpectedError"; break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_UNKNOWN: default: return "Unknown"; break;
+	}
+}
+
+std::wstring encodeURIComponent(std::wstring decoded){
+	std::wostringstream oss;
+	std::wregex r(L"[!'\\(\\)*-.0-9A-Za-z_~]");
+
+	for (wchar_t& c : decoded) {
+		std::wstring cw;
+		cw += c;
+		if (std::regex_match(cw, r)) oss << c;
+		else oss << "%" << std::uppercase << std::hex << (0xff & c);
+	}
+	
+	return oss.str();
+}
+
 void KrunkerWindow::register_events() {
 	EventRegistrationToken token;
 
@@ -369,37 +405,29 @@ void KrunkerWindow::register_events() {
 
 	webview->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
 
-	webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
-		BOOL success = false;
-		args->get_IsSuccess(&success);
+	webview->add_NavigationStarting(Callback< ICoreWebView2NavigationStartingEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+		if (mouse_hooked) unhook_mouse();
+		return S_OK;
+	}).Get(), &token);
 
+	webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
+		BOOL success = true;
+		args->get_IsSuccess(&success);
+		
 		if (!success) {
 			COREWEBVIEW2_WEB_ERROR_STATUS status;
 			args->get_WebErrorStatus(&status);
+			LPWSTR uri;
+			webview->get_Source(&uri);
 			
-			std::wstring error;
-
-			switch (status) {
-				case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_COMMON_NAME_IS_INCORRECT: error = L"CertificateErrCommonNameIsIncorrect"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_EXPIRED: error = L"CertificateExpired"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_CLIENT_CERTIFICATE_CONTAINS_ERRORS: error = L"ClientCertificateContainsErrors"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_REVOKED: error = L"CertificateRevoked"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_IS_INVALID: error = L"CertificateIsInvalid"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_SERVER_UNREACHABLE: error = L"ServerUnreachable"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_TIMEOUT: error = L"Timeout"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_ERROR_HTTP_INVALID_SERVER_RESPONSE: error = L"ErrorHttpInvalidServerResponse"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_ABORTED: error = L"ConnectionAborted"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_RESET: error = L"ConnectionReset"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_DISCONNECTED: error = L"Disconnected"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_CANNOT_CONNECT: error = L"CannotConnect"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_HOST_NAME_NOT_RESOLVED: error = L"HostNameNotResolved"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_OPERATION_CANCELED: error = L"OperationCanceled"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_REDIRECT_FAILED: error = L"RedirectFailed"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_UNEXPECTED_ERROR: error = L"UnexpectedError"; break;
-				case COREWEBVIEW2_WEB_ERROR_STATUS_UNKNOWN: default: error = L"Unknown"; break;
-			}
-
-			webview->Navigate((L"https://chief/error?code=" + Convert::wstring(std::to_string(status)) + L"&message = " + error).c_str());
+			// renderer freezes when navigating from an error page that occurs on startup
+			control->Close();
+			call_create_webview([this, status, uri]() {
+				JSON data = { status };
+				data.push_back(status_name(status));
+				data.push_back(uri);
+				webview->Navigate((L"https://chief/error?data=" + encodeURIComponent(Convert::wstring(data.dump()))).c_str());
+			});
 		}
 
 		return S_OK;
@@ -428,11 +456,11 @@ void KrunkerWindow::register_events() {
 
 		return S_OK;
 	}).Get(), &token);
-
+	
 	webview->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
 		LPWSTR sender_uriptr;
 		sender->get_Source(&sender_uriptr);
-		
+
 		ICoreWebView2WebResourceRequest* request = 0;
 		args->get_Request(&request);
 		LPWSTR uriptr;
@@ -441,7 +469,11 @@ void KrunkerWindow::register_events() {
 		request->Release();
 		std::wstring pathname = uri.pathname();
 
-		if (uri.host() == L"chief") {
+		if (pathname == L"/favicon.ico") {
+			wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+			env->CreateWebResourceResponse(nullptr, 403, L"Unused", L"", &response);
+			args->put_Response(response.get());
+		}else if (uri.host() == L"chief") {
 			if (pathname == L"/error") send_resource(args, HTML_ERROR, L"text/html");
 			else if (pathname == L"/GameFont.ttf") send_resource(args, FONT_GAME, L"font/ttf");
 		}else if (uri.host_owns(L"krunker.io")) {
@@ -558,10 +590,11 @@ KrunkerWindow::Status KrunkerWindow::get(HINSTANCE inst, int cmdshow, std::funct
 
 void KrunkerWindow::on_dispatch() {
 	mtx.lock();
-	for (JSMessage msg : post)
+	
+	for (JSMessage msg : pending_messages)
 		if (!msg.send(webview.get()))clog::error << "Unable to send " << msg.dump() << clog::endl;
-
-	post.clear();
+	pending_messages.clear();
+	
 	mtx.unlock();
 
 	bool active = GetActiveWindow() == m_hWnd;

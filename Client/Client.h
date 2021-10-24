@@ -9,7 +9,7 @@ private:
 	KrunkerWindow social;
 	KrunkerWindow editor;
 	KrunkerWindow documents;
-	DiscordEventHandlers presence_events = nullptr;
+	DiscordEventHandlers presence_events{};
 	HINSTANCE inst;
 	int cmdshow;
 	void rpc_loading();

@@ -103,10 +103,10 @@ bool ClientFolder::create() {
 	else clog::error << "Unable to create root folder" << clog::endl, ret = false;
 
 	std::string config_buffer;
-	if (load_resource(JSON_CONFIG, config_buffer)) {
+	
+	if (load_resource(JSON_CONFIG, config_buffer))
 		default_config = JSON::parse(config_buffer);
-	}
-
+	
 	return ret;
 }
 

@@ -3,12 +3,14 @@
 	<head>
 		<meta charset='utf-8' />
 		<style>
+/* main.css */
+
 @font-face {
 	font-family: gamefont;
 	src: url(./GameFont.ttf);
 }
 
-*:not(span) {
+* {
 	outline: none;
 	font-family: gamefont;
 	color: #353535;
@@ -62,6 +64,12 @@ html, body {
 	width: 600px;
 	border-radius: 4px;
 }
+
+/* modifications */
+
+.error-id, .error-code {
+	color: inherit;
+}
 		</style>
 	</head>
 	<body>
@@ -69,10 +77,10 @@ html, body {
 			<div id='instructionHolder' style='display: block; pointer-events: all;'>
 				<div id='instructionsUpdate' style='display: block;'>
 					<div style='color: rgba(255, 255, 255, 0.6);margin-top: 5px;'>Unable to navigate</div>
-					<div style='margin-top:10px;font-size:15px;color:rgba(255,255,255,0.4)'>ID: 0x<span id='error_id'>000000</span> | Code: <span id='error_message'>0</span></div>
+					<div style='margin-top:10px;font-size:15px;color:rgba(255,255,255,0.4)'>ID: 0x<span class='error-id'>000000</span> | Code: <span class='error-code'>0</span></div>
 					
 					<div style='color: rgba(255, 255, 255, 0.6);font-size: 20px;margin-bottom: 13px;margin-top: 10px;'>
-						<a href='#' id='back'>Refresh</a>
+						<a href='#' class='refresh'>Refresh</a>
 					</div>
 				</div>
 			</div>
@@ -80,9 +88,13 @@ html, body {
 		<script>
 var params = new URLSearchParams(location.search);
 
-if(params.has('code'))error_id.textContent = parseInt(params.get('code')).toString(16).padStart(6, 0);
-if(params.has('message'))error_message.textContent = params.get('message');
-back.addEventListener('click', () => history.back());
+if(params.has('data')){
+	let [ status, message, referrer ] = JSON.parse(params.get('data'));
+	
+	document.querySelector('.error-id').textContent = status.toString(16).padStart(6, 0);
+	document.querySelector('.error-code').textContent = message;
+	document.querySelector('.refresh').href = referrer;
+}
 		</script>
 	</body>
 </html>
