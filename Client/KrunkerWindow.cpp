@@ -106,7 +106,6 @@ LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lP
 	
 
 	return 1;
-	// return CallNextHookEx(NULL, code, wParam, lParam);
 }
 
 LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
@@ -116,7 +115,7 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& f
 
 	if (raw->header.dwType == RIM_TYPEMOUSE) {
 		if (raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL) {
-			JSMessage msg(IM::mousewheel, { (*(short*)&raw->data.mouse.usButtonData) * -1 /*WHEEL_DELTA*/});
+			JSMessage msg(IM::mousewheel, { (*(short*)&raw->data.mouse.usButtonData) * -1 });
 			if (!msg.send(webview.get())) clog::error << "Unable to send " << msg.dump() << clog::endl;
 		}
 		else {

@@ -44,13 +44,12 @@ class Menu extends ExtendMenu {
 			},
 		});
 		
-		var Folder = this.category('Folders');
+		Client.control('DevTools [F10]', {
+			type: 'boolean',
+			walk: 'client.devtools',
+		});
 		
-		/*Folder.control('Root', {
-			type: 'function',
-			text: 'Open',
-			value: () => ipc.send(IM.shell_open, 'root'),
-		});*/
+		var Folder = this.category('Folders');
 		
 		Folder.control('Scripts', {
 			type: 'function',
@@ -137,11 +136,6 @@ class Menu extends ExtendMenu {
 		}).on('change', (value, init) => !init && this.rpc.update(true));
 		
 		var Window = this.category('Window');
-		
-		Window.control('DevTools [F10]', {
-			type: 'boolean',
-			walk: 'client.devtools',
-		});
 		
 		Window.control('Replace Icon & Title', {
 			type: 'boolean',
