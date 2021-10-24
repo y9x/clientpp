@@ -4,7 +4,7 @@
 #include "../Utils/StringUtil.h"
 #include <shellapi.h>
 
-constexpr const long double client_version = 0.10;
+constexpr const long double client_version = 0.12;
 constexpr const char* client_discord_rpc = "";
 // 899137303182716968
 constexpr const wchar_t* client_title = L"Chief Client++";
