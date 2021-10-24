@@ -410,6 +410,20 @@ void KrunkerWindow::register_events() {
 		return S_OK;
 	}).Get(), &token);
 
+	webview->add_PermissionRequested(Callback<ICoreWebView2PermissionRequestedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args) -> HRESULT {
+		COREWEBVIEW2_PERMISSION_KIND kind;
+		args->get_PermissionKind(&kind);
+		
+		switch (kind) {
+		case COREWEBVIEW2_PERMISSION_KIND_MICROPHONE:
+		case COREWEBVIEW2_PERMISSION_KIND_CLIPBOARD_READ:
+			args->put_State(COREWEBVIEW2_PERMISSION_STATE_ALLOW);
+			break;
+		}
+
+		return S_OK;
+	}).Get(), &token);
+
 	webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
 		BOOL success = true;
 		args->get_IsSuccess(&success);
