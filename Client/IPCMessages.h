@@ -30,4 +30,5 @@ enum class IM {
 	close_window,
 	reload_window,
 	seek_game,
+	toggle_fullscreen,
 };

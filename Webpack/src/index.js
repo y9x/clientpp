@@ -167,31 +167,25 @@ class Menu extends ExtendMenu {
 			if(!init && this.config.window.meta.replace)
 				ipc.send(IM.update_meta);
 		});
-		
-		this.keybinds();
 	}
 	update(){
 		for(let category of this.categories)category.update(true);
 		this.insert('Client');
 	}
-	keybinds(){
-		new Keybind('F4', event => {
-			if(event.altKey)ipc.send(IM.close_window);
-			else if(this.config.game.f4_seek)ipc.send(IM.seek_game);
-		});
-		
-		new Keybind('F10', event => {
-			ipc.send(IM.open_devtools);
-		});
-		
-		new Keybind('F11', () => {
-			this.config.client.fullscreen = !this.config.client.fullscreen;
-			this.save_config();
-			ipc.send(IM.fullscreen);
-		});
-	}
 };
 
+new Keybind('F4', event => {
+	if(event.altKey)ipc.send(IM.close_window);
+	else ipc.send(IM.seek_game);
+});
+
+new Keybind('F11', () => {
+	ipc.send(IM.toggle_fullscreen);
+});
+
+new Keybind('F10', event => {
+	ipc.send(IM.open_devtools);
+});
 
 
 if(site == 'game'){

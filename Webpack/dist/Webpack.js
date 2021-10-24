@@ -7,7 +7,7 @@
   \*******************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_clear:1,rpc_init:2,save_config:3,shell_open:4,fullscreen:5,update_meta:6,revert_meta:7,reload_config:8,browse_file:9,mousedown:10,mouseup:11,mousemove:12,mousewheel:13,pointer:14,open_devtools:15,log:16,relaunch_webview:17,close_window:18,reload_window:19,seek_game:20}
+exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_clear:1,rpc_init:2,save_config:3,shell_open:4,fullscreen:5,update_meta:6,revert_meta:7,reload_config:8,browse_file:9,mousedown:10,mouseup:11,mousemove:12,mousewheel:13,pointer:14,open_devtools:15,log:16,relaunch_webview:17,close_window:18,reload_window:19,seek_game:20,toggle_fullscreen:21}
 
 /***/ }),
 
@@ -1760,31 +1760,25 @@ class Menu extends ExtendMenu {
 			if(!init && this.config.window.meta.replace)
 				ipc.send(IM.update_meta);
 		});
-		
-		this.keybinds();
 	}
 	update(){
 		for(let category of this.categories)category.update(true);
 		this.insert('Client');
 	}
-	keybinds(){
-		new Keybind('F4', event => {
-			if(event.altKey)ipc.send(IM.close_window);
-			else if(this.config.game.f4_seek)ipc.send(IM.seek_game);
-		});
-		
-		new Keybind('F10', event => {
-			ipc.send(IM.open_devtools);
-		});
-		
-		new Keybind('F11', () => {
-			this.config.client.fullscreen = !this.config.client.fullscreen;
-			this.save_config();
-			ipc.send(IM.fullscreen);
-		});
-	}
 };
 
+new Keybind('F4', event => {
+	if(event.altKey)ipc.send(IM.close_window);
+	else ipc.send(IM.seek_game);
+});
+
+new Keybind('F11', () => {
+	ipc.send(IM.toggle_fullscreen);
+});
+
+new Keybind('F10', event => {
+	ipc.send(IM.open_devtools);
+});
 
 
 if(site == 'game'){
