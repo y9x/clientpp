@@ -101,9 +101,6 @@
     <None Include="..\Resources\Error.html" />
     <None Include="..\Webpack\dist\Webpack.js" />
     <None Include="..\Webpack\dist\Webpack.js.map" />
-    <None Include="Bootstrap.js" />
-    <None Include="Config.json" />
-    <None Include="DefaultUserscript.json" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -143,9 +140,6 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="Debug\bio_ssl.obj" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="..\Resources\GameFont.ttf" />

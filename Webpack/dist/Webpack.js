@@ -177,6 +177,13 @@ var utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	listening = new WeakSet(),
 	locked_node;
 
+ipc.send(IM.pointer, false);
+
+window.addEventListener('beforeunload', () => {
+	document.exitPointerLock();
+	ipc.send(IM.pointer, false);
+});
+
 document.addEventListener('pointerlockchange', () => {
 	if(!document.pointerLockElement){
 		locked_node = null;
@@ -1539,14 +1546,14 @@ module.exports = Utils;
 
 /***/ }),
 
-/***/ "../Client/Config.json":
-/*!*****************************!*\
-  !*** ../Client/Config.json ***!
-  \*****************************/
+/***/ "../Resources/Config.json":
+/*!********************************!*\
+  !*** ../Resources/Config.json ***!
+  \********************************/
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"game":{"f4_seek":true},"client":{"uncap_fps":false,"fullscreen":false,"devtools":false},"render":{"vsync":true,"angle":"default","color":"default"},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}},"userscripts":{}}');
+module.exports = JSON.parse('{"game":{"f4_seek":true},"client":{"devtools":false},"render":{"uncap_fps":false,"fullscreen":false,"vsync":true,"angle":"default","color":"default"},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}},"userscripts":{}}');
 
 /***/ })
 
@@ -1610,7 +1617,7 @@ class Menu extends ExtendMenu {
 		ipc.send(IM.save_config, this.config);
 	}
 	config = runtime_config;
-	default_config = __webpack_require__(/*! ../../Client/Config.json */ "../Client/Config.json");
+	default_config = __webpack_require__(/*! ../../Resources/Config.json */ "../Resources/Config.json");
 	constructor(){
 		super();
 		
@@ -1660,12 +1667,12 @@ class Menu extends ExtendMenu {
 		
 		Render.control('Fullscreen', {
 			type: 'boolean',
-			walk: 'client.fullscreen',
+			walk: 'render.fullscreen',
 		}).on('change', (value, init) => !init && ipc.send(IM.fullscreen));
 		
 		Render.control('Uncap FPS', {
 			type: 'boolean',
-			walk: 'client.uncap_fps',
+			walk: 'render.uncap_fps',
 		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));
 		
 		Render.control('VSync', {

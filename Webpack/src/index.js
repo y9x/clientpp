@@ -24,7 +24,7 @@ class Menu extends ExtendMenu {
 		ipc.send(IM.save_config, this.config);
 	}
 	config = runtime_config;
-	default_config = require('../../Client/Config.json');
+	default_config = require('../../Resources/Config.json');
 	constructor(){
 		super();
 		

@@ -18,12 +18,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Config.json" />
-    <None Include="Bootstrap.js" />
     <None Include="..\Webpack\dist\Webpack.js" />
     <None Include="..\Webpack\dist\Webpack.js.map" />
     <None Include="packages.config" />
-    <None Include="DefaultUserscript.json" />
     <None Include="..\Resources\Config.json" />
     <None Include="..\Resources\Bootstrap.js" />
     <None Include="..\Resources\DefaultUserscript.json" />
@@ -262,9 +259,6 @@
     <ResourceCompile Include="Resource.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="Debug\bio_ssl.obj" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="..\Resources\GameFont.ttf" />
