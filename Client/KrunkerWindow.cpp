@@ -151,21 +151,15 @@ std::wstring KrunkerWindow::cmdline() {
 	load_userscripts();
 
 	std::vector<std::wstring> cmds = {
-		// on chrome 86
-		// L"--enable-features=WebAssembly,SharedArrayBuffer",
-		// L"--js-flags=--experimental-wasm-threads",
-		// bad for cpu
 		L"--disable-background-timer-throttling",
 		L"--disable-features=msSmartScreenProtection",
 		L"--force-dark-mode",
 		L"--high-dpi-support=1",
 		L"--ignore-gpu-blacklist",
-		L"--disable-print-preview",
 		L"--enable-zero-copy",
 		L"--webrtc-max-cpu-consumption-percentage=100",
 		L"--autoplay-policy=no-user-gesture-required",
 		L"--disable-ipc-flooding-protection",
-		// L"--profile-directory=Profile",
 	};
 
 	for (std::wstring cmd : additional_command_line) cmds.push_back(cmd);
@@ -187,8 +181,6 @@ std::wstring KrunkerWindow::cmdline() {
 
 		cmdline += cmd;
 	}
-
-	// clog::info << Convert::string(cmdline) << clog::endl;
 
 	return cmdline;
 }
