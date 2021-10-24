@@ -35,6 +35,7 @@ private:
 	std::vector<std::wstring> additional_block_hosts;
 	std::wstring cmdline();
 	std::time_t now();
+	bool send_resource(ICoreWebView2WebResourceRequestedEventArgs* args, int resource, std::wstring mime);
 	void load_userscripts(nlohmann::json* data = nullptr);
 public:
 	std::vector<JSMessage> post;

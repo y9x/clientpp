@@ -38,10 +38,12 @@ using namespace StringUtil;
 using Microsoft::WRL::Callback;
 
 bool Client::navigation_cancelled(ICoreWebView2* sender, Uri uri) {
+	if (uri.host() == L"chief") return false;
+	
 	bool kru_owns = uri.host_owns(L"krunker.io");
 	bool cancel = false;
 	std::wstring pathname = uri.pathname();
-	
+
 	WebView2Window* send = 0;
 
 	if (kru_owns) {
@@ -54,7 +56,7 @@ bool Client::navigation_cancelled(ICoreWebView2* sender, Uri uri) {
 		cancel = true;
 		ShellExecute(NULL, L"open", uri.href.c_str(), L"", L"", SW_SHOW);
 	}
-
+	
 	// if send->webview exists
 	if (send && send->webview != sender) {
 		cancel = true;

@@ -95,6 +95,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="..\Resources\Bootstrap.js" />
+    <None Include="..\Resources\Config.json" />
+    <None Include="..\Resources\DefaultUserscript.json" />
+    <None Include="..\Resources\Error.html" />
     <None Include="..\Webpack\dist\Webpack.js" />
     <None Include="..\Webpack\dist\Webpack.js.map" />
     <None Include="Bootstrap.js" />
@@ -141,8 +145,10 @@
     <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\Images\Icon.ico" />
-    <Image Include="..\Images\Krunker.ico" />
+    <Object Include="Debug\bio_ssl.obj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="..\Resources\GameFont.ttf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\OpenSSL\OpenSSL.props" />

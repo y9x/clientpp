@@ -11,8 +11,9 @@ bool load_resource(int resource, std::string& string) {
 			char* data = (char*)LockResource(header);
 
 			if (data != NULL) {
-				string = data;
-				string.resize(SizeofResource(0, src));
+				size_t size = SizeofResource(0, src);
+				string.resize(size);
+				memcpy(&string[0], data, size);
 				ret = true;
 			}
 

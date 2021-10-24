@@ -24,6 +24,10 @@
     <None Include="..\Webpack\dist\Webpack.js.map" />
     <None Include="packages.config" />
     <None Include="DefaultUserscript.json" />
+    <None Include="..\Resources\Config.json" />
+    <None Include="..\Resources\Bootstrap.js" />
+    <None Include="..\Resources\DefaultUserscript.json" />
+    <None Include="..\Resources\Error.html" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -260,11 +264,9 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\Images\Icon.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\Images\Krunker.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
+    <Object Include="Debug\bio_ssl.obj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="..\Resources\GameFont.ttf" />
   </ItemGroup>
 </Project>

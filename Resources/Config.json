@@ -3,14 +3,14 @@
 		"f4_seek":  true
 	},
 	"client": {
-		"uncap_fps": false,
-		"fullscreen": false,
 		"devtools": false
 	},
 	"render": {
+		"uncap_fps": false,
+		"fullscreen": false,
 		"vsync": true,
 		"angle": "default",
-		"color":  "default"
+		"color": "default"
 	},
 	"rpc": {
 		"enabled": true,

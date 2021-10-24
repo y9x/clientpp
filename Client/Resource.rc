@@ -64,15 +64,19 @@ ICON_CHIEF              RCDATA                  "..\\Images\\Icon.ico"
 
 JS_WEBPACK              RCDATA                  "..\\Webpack\\dist\\Webpack.js"
 
-JSON_CONFIG             RCDATA                  "Config.json"
+JSON_CONFIG             RCDATA                  "..\\Resources\\Config.json"
 
-JS_BOOTSTRAP            RCDATA                  "Bootstrap.js"
+JS_BOOTSTRAP            RCDATA                  "..\\Resources\\Bootstrap.js"
 
 JS_WEBPACK_MAP          RCDATA                  "..\\Webpack\\dist\\Webpack.js.map"
 
 ICON_KRUNKER            RCDATA                  "..\\Images\\Krunker.ico"
 
-JSON_DEFAULT_USERSCRIPT RCDATA                  "DefaultUserscript.json"
+JSON_DEFAULT_USERSCRIPT RCDATA                  "..\\Resources\\DefaultUserscript.json"
+
+HTML_ERROR              RCDATA                  "..\\Resources\\Error.html"
+
+FONT_GAME               RCDATA                  "..\\Resources\\GameFont.ttf"
 
 
 /////////////////////////////////////////////////////////////////////////////

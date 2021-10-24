@@ -164,7 +164,7 @@ std::wstring KrunkerWindow::cmdline() {
 
 	for (std::wstring cmd : additional_command_line) cmds.push_back(cmd);
 
-	if (folder->config["client"]["uncap_fps"].get<bool>()) {
+	if (folder->config["render"]["uncap_fps"].get<bool>()) {
 		cmds.push_back(L"--disable-frame-rate-limit");
 		if (!folder->config["render"]["vsync"]) cmds.push_back(L"--disable-gpu-vsync");
 	}
@@ -330,6 +330,30 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 	}
 }
 
+bool KrunkerWindow::send_resource(ICoreWebView2WebResourceRequestedEventArgs* args, int resource, std::wstring mime) {
+	// Create an empty IStream:
+	IStream* stream = nullptr;
+	if (CreateStreamOnHGlobal(NULL, TRUE, (LPSTREAM*)&stream) == S_OK) {
+		std::string data;
+		if (load_resource(resource, data)) {
+			ULONG written = 0;
+
+			if (stream->Write(data.data(), data.size(), &written) == S_OK) {
+				wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+				env->CreateWebResourceResponse(stream, 200, L"OK", (L"Content-Type: " + mime).c_str(), &response);
+				args->put_Response(response.get());
+
+				return true;
+			}
+			else clog::error << "Unable to write data to IStream" << clog::endl;
+		}
+		else clog::error << "Unable to load resource " << resource << clog::endl;
+	}
+	else clog::error << "Unable to create IStream on HGlobal" << clog::endl;
+
+	return false;
+}
+
 void KrunkerWindow::register_events() {
 	EventRegistrationToken token;
 
@@ -345,16 +369,41 @@ void KrunkerWindow::register_events() {
 
 	webview->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
 
-	/*webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
+	webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
 		BOOL success = false;
 		args->get_IsSuccess(&success);
 
 		if (!success) {
-			// show custom error page?
+			COREWEBVIEW2_WEB_ERROR_STATUS status;
+			args->get_WebErrorStatus(&status);
+			
+			std::wstring error;
+
+			switch (status) {
+				case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_COMMON_NAME_IS_INCORRECT: error = L"CertificateErrCommonNameIsIncorrect"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_EXPIRED: error = L"CertificateExpired"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_CLIENT_CERTIFICATE_CONTAINS_ERRORS: error = L"ClientCertificateContainsErrors"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_REVOKED: error = L"CertificateRevoked"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_IS_INVALID: error = L"CertificateIsInvalid"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_SERVER_UNREACHABLE: error = L"ServerUnreachable"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_TIMEOUT: error = L"Timeout"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_ERROR_HTTP_INVALID_SERVER_RESPONSE: error = L"ErrorHttpInvalidServerResponse"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_ABORTED: error = L"ConnectionAborted"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_RESET: error = L"ConnectionReset"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_DISCONNECTED: error = L"Disconnected"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_CANNOT_CONNECT: error = L"CannotConnect"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_HOST_NAME_NOT_RESOLVED: error = L"HostNameNotResolved"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_OPERATION_CANCELED: error = L"OperationCanceled"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_REDIRECT_FAILED: error = L"RedirectFailed"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_UNEXPECTED_ERROR: error = L"UnexpectedError"; break;
+				case COREWEBVIEW2_WEB_ERROR_STATUS_UNKNOWN: default: error = L"Unknown"; break;
+			}
+
+			webview->Navigate((L"https://chief/error?code=" + Convert::wstring(std::to_string(status)) + L"&message = " + error).c_str());
 		}
 
 		return S_OK;
-	}).Get(), &token);*/
+	}).Get(), &token);
 
 	webview->add_NavigationStarting(Callback<ICoreWebView2NavigationStartingEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
 		LPWSTR uriptr;
@@ -383,19 +432,23 @@ void KrunkerWindow::register_events() {
 	webview->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
 		LPWSTR sender_uriptr;
 		sender->get_Source(&sender_uriptr);
-
+		
 		ICoreWebView2WebResourceRequest* request = 0;
 		args->get_Request(&request);
 		LPWSTR uriptr;
 		request->get_Uri(&uriptr);
 		Uri uri(uriptr);
 		request->Release();
+		std::wstring pathname = uri.pathname();
 
-		if (uri.host_owns(L"krunker.io")) {
-			std::wstring swap = folder->directory + folder->p_swapper + uri.pathname();
+		if (uri.host() == L"chief") {
+			if (pathname == L"/error") send_resource(args, HTML_ERROR, L"text/html");
+			else if (pathname == L"/GameFont.ttf") send_resource(args, FONT_GAME, L"font/ttf");
+		}else if (uri.host_owns(L"krunker.io")) {
+			std::wstring swap = folder->directory + folder->p_swapper + pathname;
 
 			if (IOUtil::file_exists(swap)) {
-				clog::info << "Swapping " << Convert::string(uri.pathname()) << clog::endl;
+				clog::info << "Swapping " << Convert::string(pathname) << clog::endl;
 				// Create an empty IStream:
 				IStream* stream;
 
@@ -404,7 +457,7 @@ void KrunkerWindow::register_events() {
 					env->CreateWebResourceResponse(stream, 200, L"OK", L"access-control-allow-origin: https://krunker.io\naccess-control-expose-headers: Content-Length, Content-Type, Date, Server, Transfer-Encoding, X-GUploader-UploadID, X-Google-Trace", &response);
 					args->put_Response(response.get());
 				}
-				else clog::error << "Error creating IStream on swap: " << Convert::string(swap) << clog::endl;
+				else clog::error << "Unable to create IStream for file: " << Convert::string(swap) << clog::endl;
 			}
 		}else for (std::wstring test : additional_block_hosts) if (uri.host_owns(test)) {
 			wil::com_ptr<ICoreWebView2WebResourceResponse> response;
@@ -427,7 +480,7 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::fu
 
 	SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(background));
 	
-	if (can_fullscreen && folder->config["client"]["fullscreen"]) enter_fullscreen();
+	if (can_fullscreen && folder->config["render"]["fullscreen"]) enter_fullscreen();
 
 	if (shcore) {
 		using dec = decltype(::SetProcessDpiAwareness);
@@ -438,7 +491,7 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::fu
 			if (!SUCCEEDED(sda)) clog::error << "SetProcessDpiAwareness returned " << PROCESS_PER_MONITOR_DPI_AWARE << clog::endl;
 		}
 		else clog::error << "Unable to get address of SetProcessDpiAwareness" << clog::endl;
-	}else clog::warn << "Unable to load shcore, is the host Win7?" << clog::endl;
+	}else clog::warn << "Unable to load shcore. Is the host Win7?" << clog::endl;
 	
 	if (folder->config["window"]["meta"]["replace"].get<bool>())
 		SetIcon((HICON)LoadImage(inst, folder->resolve_path(Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
@@ -453,22 +506,16 @@ bool KrunkerWindow::seek_game() {
 
 KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> callback) {
 	return create_webview(cmdline(), folder->directory + folder->p_profile, [this, callback]() {
-		wil::com_ptr<ICoreWebView2Controller2> control2 = control.query<ICoreWebView2Controller2>();
-		if (control2) {
+		if (wil::com_ptr<ICoreWebView2Controller2> control2 = control.query<ICoreWebView2Controller2>()) {
 			control2->put_DefaultBackgroundColor(ColorRef(background));
 		}
 		
-		wil::com_ptr<ICoreWebView2Controller3> control3 = control.query<ICoreWebView2Controller3>();
-		if (control3) {
+		if (wil::com_ptr<ICoreWebView2Controller3> control3 = control.query<ICoreWebView2Controller3>()) {
 			control3->put_ShouldDetectMonitorScaleChanges(false);
 		}
 
 		wil::com_ptr<ICoreWebView2Settings> settings;
-		ICoreWebView2Settings* se;
-		webview->get_Settings(&se);
-
-		if (settings = se) {
-			clog::debug << "Settings work" << clog::endl;
+		if (SUCCEEDED(webview->get_Settings(&settings))) {
 			settings->put_IsScriptEnabled(true);
 			settings->put_AreDefaultScriptDialogsEnabled(true);
 			settings->put_IsWebMessageEnabled(true);
@@ -481,9 +528,7 @@ KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> c
 			webview->OpenDevToolsWindow();
 #endif
 
-			wil::com_ptr<ICoreWebView2Settings3> settings3 = settings.query<ICoreWebView2Settings3>();
-
-			if (settings3) {
+			if (wil::com_ptr<ICoreWebView2Settings3> settings3 = settings.query<ICoreWebView2Settings3>()) {
 				settings3->put_AreBrowserAcceleratorKeysEnabled(false);
 			}
 		}
@@ -524,8 +569,10 @@ void KrunkerWindow::on_dispatch() {
 	if (!active && mouse_hooked) unhook_mouse();
 	if (pathname == L"/" && active) awindow = this;
 
-	if (now() - last_pointer_poll > 1500 && mouse_hooked) {
-		clog::error << "Client polling behind" << clog::endl;
+	time_t last_poll = now() - last_pointer_poll;
+
+	if (last_poll > 1500 && mouse_hooked) {
+		clog::error << "Pointer lock timeout: " << last_poll << "ms" << clog::endl;
 		unhook_mouse();
 	}
 }

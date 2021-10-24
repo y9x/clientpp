@@ -74,12 +74,12 @@ class Menu extends ExtendMenu {
 		
 		Render.control('Fullscreen', {
 			type: 'boolean',
-			walk: 'client.fullscreen',
+			walk: 'render.fullscreen',
 		}).on('change', (value, init) => !init && ipc.send(IM.fullscreen));
 		
 		Render.control('Uncap FPS', {
 			type: 'boolean',
-			walk: 'client.uncap_fps',
+			walk: 'render.uncap_fps',
 		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));
 		
 		Render.control('VSync', {

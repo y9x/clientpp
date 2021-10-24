@@ -1,0 +1,88 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset='utf-8' />
+		<style>
+@font-face {
+	font-family: gamefont;
+	src: url(./GameFont.ttf);
+}
+
+*:not(span) {
+	outline: none;
+	font-family: gamefont;
+	color: #353535;
+	user-select: none;
+}
+
+a {
+	cursor: pointer;
+	text-shadow: none;
+	color: #2196f3;
+	text-decoration: none;
+	pointer-events: all;
+}
+
+html, body {
+	background-color: #000;
+	overflow: hidden;
+	padding: 0;
+	margin: 0;
+}
+
+#gameUI {
+	pointer-events: none;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	z-index: 1;
+}
+
+#instructionHolder {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background-color: rgba(0,0,0,.5);
+}
+
+#instructionsUpdate {
+	display: none;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-right: -50%;
+	transform: translate(-50%,-50%);
+	z-index: 9;
+	color: rgba(255,255,255,.8);
+	font-size: 32px;
+	background-color: #101010;
+	padding: 5px;
+	width: 600px;
+	border-radius: 4px;
+}
+		</style>
+	</head>
+	<body>
+		<div id='gameUI'>
+			<div id='instructionHolder' style='display: block; pointer-events: all;'>
+				<div id='instructionsUpdate' style='display: block;'>
+					<div style='color: rgba(255, 255, 255, 0.6);margin-top: 5px;'>Unable to navigate</div>
+					<div style='margin-top:10px;font-size:15px;color:rgba(255,255,255,0.4)'>ID: 0x<span id='error_id'>000000</span> | Code: <span id='error_message'>0</span></div>
+					
+					<div style='color: rgba(255, 255, 255, 0.6);font-size: 20px;margin-bottom: 13px;margin-top: 10px;'>
+						<a href='#' id='back'>Refresh</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script>
+var params = new URLSearchParams(location.search);
+
+if(params.has('code'))error_id.textContent = parseInt(params.get('code')).toString(16).padStart(6, 0);
+if(params.has('message'))error_message.textContent = params.get('message');
+back.addEventListener('click', () => history.back());
+		</script>
+	</body>
+</html>

@@ -41,9 +41,9 @@ bool write_resource(std::wstring path, int resource) {
 				}
 			}
 			UnlockResource(header);
-		}
 
-		FreeResource(header);
+			FreeResource(header);
+		}
 	}
 
 	return ret;
@@ -117,14 +117,22 @@ bool ClientFolder::load_config() {
 
 	JSON new_config = JSON::object();
 
-	bool used_default = false;
-
 	try {
 		new_config = JSON::parse(config_buffer);
 	}
 	catch (JSON::exception err) {
-		used_default = true;
 		new_config = default_config;
+	}
+
+	try{
+		if (new_config["client"].contains("uncap_fps")) {
+			new_config["render"]["uncap_fps"] = new_config["client"]["uncap_fps"];
+			new_config["render"]["fullscreen"] = new_config["client"]["fullscreen"];
+			clog::info << "Config upgraded" << clog::endl;
+		}
+	}
+	catch (JSON::type_error err) {
+		clog::error << "Unable to upgrade config: " << err.what() << clog::endl;
 	}
 
 	config = TraverseCopy(new_config, default_config);
