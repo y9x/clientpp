@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+﻿#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <iostream>
 #include <chrono>
@@ -179,7 +179,7 @@ Client::Client(HINSTANCE h, int c)
 	, cmdshow(c)
 	, updater(client_version, "https://6ct.github.io", "/serve/updates.json")
 	, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
-	, folder(L"GC++")
+	, folder(L"GC++") // test unicode support L"크롬 플래그 새끼"	
 	, game(folder, { 0.8, 0.8 }, client_title, krunker::game, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return game_message(msg); })
 	, social(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Social").c_str(), krunker::social, [this]() { listen_navigation(social); })
 	, editor(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Editor").c_str(), krunker::editor, [this]() { listen_navigation(editor); })
