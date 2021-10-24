@@ -17,8 +17,8 @@ document.addEventListener('pointerlockchange', () => {
 });
 
 setInterval(() => {
-	ipc.send(IM.mouse_locked, document.pointerLockElement != void[]);
-}, 1000);
+	ipc.send(IM.pointer, document.pointerLockElement != void[]);
+}, 300);
 
 ipc.on(IM.mousewheel, deltaY => {
 	locked_node?.dispatchEvent(new WheelEvent('wheel', { deltaY }));

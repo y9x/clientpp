@@ -212,6 +212,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 		ShellExecute(m_hWnd, L"open", open.c_str(), L"", L"", SW_SHOW);
 	} break;
 	case IM::pointer:
+		last_pointer_poll = now();
 		if (msg.args[0] && !mouse_hooked) hook_mouse();
 		else if (!msg.args[0] && mouse_hooked) unhook_mouse();
 
@@ -234,12 +235,6 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 			break;
 		}
 	} break;
-	case IM::mouse_locked:
-		last_pointer_poll = now();
-		if (msg.args[0] && !mouse_hooked) hook_mouse();
-		else if (!msg.args[0] && mouse_hooked) unhook_mouse();
-
-		break;
 	case IM::relaunch_webview:
 		// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
 		control->Close();

@@ -24,7 +24,6 @@ enum class IM {
 	mousemove,
 	mousewheel,
 	pointer,
-	mouse_locked,
 	open_devtools,
 	log,
 	relaunch_webview,
