@@ -172,8 +172,11 @@ std::wstring KrunkerWindow::cmdline() {
 
 	if (folder->config["client"]["uncap_fps"].get<bool>()) {
 		cmds.push_back(L"--disable-frame-rate-limit");
-		cmds.push_back(L"--disable-gpu-vsync");
+		if (!folder->config["render"]["vsync"]) cmds.push_back(L"--disable-gpu-vsync");
 	}
+	
+	if (folder->config["render"]["angle"] != "default") cmds.push_back(L"--use-angle=" + Convert::wstring(folder->config["render"]["angle"]));
+	if (folder->config["render"]["color"] != "default") cmds.push_back(L"--force-color-profile=" + Convert::wstring(folder->config["render"]["color"]));
 	
 	std::wstring cmdline;
 	bool first = false;
@@ -184,6 +187,8 @@ std::wstring KrunkerWindow::cmdline() {
 
 		cmdline += cmd;
 	}
+
+	// clog::info << Convert::string(cmdline) << clog::endl;
 
 	return cmdline;
 }
@@ -529,9 +534,7 @@ void KrunkerWindow::on_dispatch() {
 
 	bool active = GetActiveWindow() == m_hWnd;
 
-	if (!active && mouse_hooked) clog::info << "no fucos" << clog::endl, unhook_mouse();
-	else if (!active && IsWindow()) SetWindowText(L"NO FOCUS");
-	else if(IsWindow()) SetWindowText(L"FOCUS:");
+	if (!active && mouse_hooked) unhook_mouse();
 	if (pathname == L"/" && active) awindow = this;
 
 	if (now() - last_pointer_poll > 1500 && mouse_hooked) {

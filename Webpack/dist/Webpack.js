@@ -1546,7 +1546,7 @@ module.exports = Utils;
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"game":{"f4_seek":true},"client":{"uncap_fps":false,"fullscreen":false,"devtools":false},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}},"userscripts":{}}');
+module.exports = JSON.parse('{"game":{"f4_seek":true},"client":{"uncap_fps":false,"fullscreen":false,"devtools":false},"render":{"vsync":true,"angle":"default","color":"default"},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}},"userscripts":{}}');
 
 /***/ })
 
@@ -1658,15 +1658,43 @@ class Menu extends ExtendMenu {
 		
 		var Render = this.category('Rendering');
 		
+		Render.control('Fullscreen', {
+			type: 'boolean',
+			walk: 'client.fullscreen',
+		}).on('change', (value, init) => !init && ipc.send(IM.fullscreen));
+		
 		Render.control('Uncap FPS', {
 			type: 'boolean',
 			walk: 'client.uncap_fps',
 		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));
 		
-		Render.control('Fullscreen', {
+		Render.control('VSync', {
 			type: 'boolean',
-			walk: 'client.fullscreen',
-		}).on('change', (value, init) => !init && ipc.send(IM.fullscreen));
+			walk: 'render.vsync',
+		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));
+		
+		Render.control('Angle backend', {
+			type: 'dropdown',
+			walk: 'render.angle',
+			value: {
+				Default: 'default',
+				// 'Legacy Direct3D 9': 'd3d9',
+				'Direct3D 11': 'd3d11',
+				// 'Direct3D 11 Soft raster': 'warp',
+				'Desktop GL': 'gl',
+				'GLES, ES2 & ES3': 'gles',
+			},
+		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));
+		
+		Render.control('Color profile', {
+			type: 'dropdown',
+			walk: 'render.color',
+			value: {
+				Default: 'default',
+				'SRGB': 'srgb',
+				'RGB': 'generic-rgb',
+			},
+		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));
 		
 		var Game = this.category('Game');
 		
