@@ -34,6 +34,13 @@ public:
 		AlreadyOpen,
 		NotImplemented,
 	};
+	enum class Type {
+		Game,
+		Social,
+		Editor,
+		Documents,
+	};
+	static long long now();
 private:
 	std::mutex mtx;
 	std::function<bool(JSMessage)> on_unknown_message;
@@ -62,6 +69,7 @@ private:
 	LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
 	LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
 public:
+	Type type;
 	wil::com_ptr<ICoreWebView2Controller> control;
 	wil::com_ptr<ICoreWebView2> webview;
 	wil::com_ptr<ICoreWebView2Environment> env;
@@ -88,7 +96,7 @@ public:
 	Status get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr);
 	void on_dispatch();
 	bool seek_game();
-	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr, std::function<void()> on_destroy = nullptr);
+	KrunkerWindow(ClientFolder& folder, Type type, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr, std::function<void()> on_destroy = nullptr);
 	~KrunkerWindow();
 	BEGIN_MSG_MAP(KrunkerWindow)
 		MESSAGE_HANDLER(WM_DESTROY, on_destroy)

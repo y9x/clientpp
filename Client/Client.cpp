@@ -166,10 +166,10 @@ Client::Client(HINSTANCE h, int c)
 	, updater(client_version, "https://6ct.github.io", "/serve/updates.json")
 	, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 	, folder(L"GC++") // test unicode support L"크롬 플래그 새끼"	
-	, social(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Social").c_str(), krunker::social, [this]() { listen_navigation(social); })
-	, game(folder, { 0.8, 0.8 }, client_title, krunker::game, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return game_message(msg); }, []() { PostQuitMessage(EXIT_SUCCESS); })
-	, editor(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Editor").c_str(), krunker::editor, [this]() { listen_navigation(editor); })
-	, documents(folder, { 0.4, 0.6 }, (std::wstring(client_title) + L": Documents").c_str(), krunker::tos, [this]() { listen_navigation(documents); })
+	, game(folder, KrunkerWindow::Type::Game, { 0.8, 0.8 }, client_title, krunker::game, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return game_message(msg); }, []() { PostQuitMessage(EXIT_SUCCESS); })
+	, social(folder, KrunkerWindow::Type::Social, { 0.4, 0.6 }, (std::wstring(client_title) + L": Social").c_str(), krunker::social, [this]() { listen_navigation(social); })
+	, editor(folder, KrunkerWindow::Type::Editor, { 0.4, 0.6 }, (std::wstring(client_title) + L": Editor").c_str(), krunker::editor, [this]() { listen_navigation(editor); })
+	, documents(folder, KrunkerWindow::Type::Documents, { 0.4, 0.6 }, (std::wstring(client_title) + L": Documents").c_str(), krunker::tos, [this]() { listen_navigation(documents); })
 {}
 
 bool Client::create() {

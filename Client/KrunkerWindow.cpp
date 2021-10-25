@@ -63,24 +63,21 @@ bool JSMessage::send(ICoreWebView2* target) {
 
 KrunkerWindow* awindow;
 
-long long now_ms() {
+long long KrunkerWindow::now() {
 	return duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
-time_t now() {
-	return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-}
-
-KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 s, std::wstring t, std::wstring p, std::function<void()> st, std::function<bool(JSMessage)> uk, std::function<void()> cl)
-	: title(t)
-	, og_title(t)
+KrunkerWindow::KrunkerWindow(ClientFolder& folder_, Type type_, Vector2 s, std::wstring title_, std::wstring pathname_, std::function<void()> on_startup_, std::function<bool(JSMessage)> on_unknown_message_, std::function<void()> on_destroy_callback_)
+	: type(type_)
+	, title(title_)
+	, og_title(title_)
 	, scale(s)
-	, folder(&f)
-	, pathname(p)
+	, folder(&folder_)
+	, pathname(pathname_)
 	, last_pointer_poll(now())
-	, on_webview2_startup(st)
-	, on_unknown_message(uk)
-	, on_destroy_callback(cl)
+	, on_webview2_startup(on_startup_)
+	, on_unknown_message(on_unknown_message_)
+	, on_destroy_callback(on_destroy_callback_)
 {
 	rid[0].usUsagePage = 0x01;
 	rid[0].usUsage = 0x02;
@@ -121,48 +118,6 @@ bool KrunkerWindow::create_window(HINSTANCE inst, int cmdshow) {
 	open = true;
 
 	return true;
-}
-
-KrunkerWindow::Status KrunkerWindow::create_webview(std::wstring cmdline, std::wstring directory, std::function<void()> callback) {
-	auto options = Make<CoreWebView2EnvironmentOptions>();
-
-	options->put_AdditionalBrowserArguments(cmdline.c_str());
-
-	HRESULT create = CreateCoreWebView2EnvironmentWithOptions(nullptr, directory.c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Environment* envp) -> HRESULT {
-		if (envp == nullptr) {
-			clog::error << "Env was nullptr" << clog::endl;
-			return S_FALSE;
-		}
-		env = envp;
-		env->CreateCoreWebView2Controller(m_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
-			if (controller == nullptr) {
-				clog::error << "Controller was nullptr" << clog::endl;
-				return S_FALSE;
-			}
-
-			control = controller;
-			control->get_CoreWebView2(&webview);
-
-			callback();
-			return S_OK;
-			}).Get());
-
-		return S_OK;
-		}).Get());
-
-	if (!SUCCEEDED(create)) {
-		last_herror = create;
-
-		switch (HRESULT_CODE(create)) {
-		case ERROR_FILE_NOT_FOUND:
-			return Status::MissingRuntime;
-			break;
-		default:
-			return Status::UnknownError;
-			break;
-		}
-	}
-	else return Status::Ok;
 }
 
 COREWEBVIEW2_COLOR KrunkerWindow::ColorRef(COLORREF color) {
@@ -756,45 +711,83 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::fu
 }
 
 KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> callback) {
-	return create_webview(cmdline(), folder->directory + folder->p_profile, [this, callback]() {
-		if (wil::com_ptr<ICoreWebView2Controller2> control2 = control.query<ICoreWebView2Controller2>()) {
-			control2->put_DefaultBackgroundColor(ColorRef(background));
-		}
-		
-		if (wil::com_ptr<ICoreWebView2Controller3> control3 = control.query<ICoreWebView2Controller3>()) {
-			control3->put_ShouldDetectMonitorScaleChanges(false);
+	auto options = Make<CoreWebView2EnvironmentOptions>();
+
+	options->put_AdditionalBrowserArguments(cmdline().c_str());
+
+	HRESULT create = CreateCoreWebView2EnvironmentWithOptions(nullptr, (folder->directory + folder->p_profile).c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Environment* envp) -> HRESULT {
+		if (envp == nullptr) {
+			clog::error << "Env was nullptr" << clog::endl;
+
+			return S_FALSE;
 		}
 
-		wil::com_ptr<ICoreWebView2Settings> settings;
-		if (SUCCEEDED(webview->get_Settings(&settings))) {
-			settings->put_IsScriptEnabled(true);
-			settings->put_AreDefaultScriptDialogsEnabled(true);
-			settings->put_IsWebMessageEnabled(true);
-			settings->put_IsZoomControlEnabled(false);
-			settings->put_AreDefaultContextMenusEnabled(false);
-			settings->put_IsStatusBarEnabled(false);
+		env = envp;
+		env->CreateCoreWebView2Controller(m_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
+			if (controller == nullptr) {
+				clog::error << "Controller was nullptr. Error code: 0x" << std::hex << result  << clog::endl;
+				// call_create_webview(callback);
+				return S_FALSE;
+			}
+
+			control = controller;
+			control->get_CoreWebView2(&webview);
+
+			if (wil::com_ptr<ICoreWebView2Controller2> control2 = control.query<ICoreWebView2Controller2>()) {
+				control2->put_DefaultBackgroundColor(ColorRef(background));
+			}
+
+			if (wil::com_ptr<ICoreWebView2Controller3> control3 = control.query<ICoreWebView2Controller3>()) {
+				control3->put_ShouldDetectMonitorScaleChanges(false);
+			}
+
+			wil::com_ptr<ICoreWebView2Settings> settings;
+			if (SUCCEEDED(webview->get_Settings(&settings))) {
+				settings->put_IsScriptEnabled(true);
+				settings->put_AreDefaultScriptDialogsEnabled(true);
+				settings->put_IsWebMessageEnabled(true);
+				settings->put_IsZoomControlEnabled(false);
+				settings->put_AreDefaultContextMenusEnabled(false);
+				settings->put_IsStatusBarEnabled(false);
 #if _DEBUG != 1
-			settings->put_AreDevToolsEnabled(false);
+				settings->put_AreDevToolsEnabled(false);
 #else
-			webview->OpenDevToolsWindow();
+				webview->OpenDevToolsWindow();
 #endif
 
-			if (wil::com_ptr<ICoreWebView2Settings3> settings3 = settings.query<ICoreWebView2Settings3>()) {
-				settings3->put_AreBrowserAcceleratorKeysEnabled(false);
+				if (wil::com_ptr<ICoreWebView2Settings3> settings3 = settings.query<ICoreWebView2Settings3>()) {
+					settings3->put_AreBrowserAcceleratorKeysEnabled(false);
+				}
 			}
+
+			resize_wv();
+			register_events();
+			seek_game();
+
+			clog::debug << "KrunkerWindow created: " << Convert::string(pathname) << clog::endl;
+
+			if (on_webview2_startup) on_webview2_startup();
+			if (callback) callback();
+
+			return S_OK;
+		}).Get());
+
+		return S_OK;
+	}).Get());
+
+	if (!SUCCEEDED(create)) {
+		last_herror = create;
+
+		switch (HRESULT_CODE(create)) {
+		case ERROR_FILE_NOT_FOUND:
+			return Status::MissingRuntime;
+			break;
+		default:
+			return Status::UnknownError;
+			break;
 		}
-
-		resize_wv();
-
-		register_events();
-
-		seek_game();
-
-		clog::debug << "KrunkerWindow created: " << Convert::string(pathname) << clog::endl;
-
-		if (on_webview2_startup) on_webview2_startup();
-		if (callback) callback();
-	});
+	}
+	else return Status::Ok;
 }
 
 KrunkerWindow::Status KrunkerWindow::get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) {
