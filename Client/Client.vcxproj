@@ -115,6 +115,7 @@
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="Points.cpp" />
+    <ClCompile Include="SeekGame.cpp" />
     <ClCompile Include="TraverseCopy.cpp" />
     <ClCompile Include="Updater.cpp" />
     <ClCompile Include="Updater.h" />

@@ -1571,7 +1571,7 @@ module.exports = Utils;
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"game":{"f4_seek":true},"client":{"devtools":false},"render":{"uncap_fps":false,"fullscreen":false,"vsync":true,"angle":"default","color":"default"},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}},"userscripts":{}}');
+module.exports = JSON.parse('{"game":{"seek":{"F4":true,"mode":"any"}},"client":{"devtools":false},"render":{"uncap_fps":false,"fullscreen":false,"angle":"default","color":"default"},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}},"userscripts":{}}');
 
 /***/ })
 
@@ -1693,10 +1693,10 @@ class Menu extends ExtendMenu {
 			walk: 'render.uncap_fps',
 		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));
 		
-		Render.control('VSync', {
+		/*Render.control('VSync', {
 			type: 'boolean',
 			walk: 'render.vsync',
-		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));
+		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));*/
 		
 		Render.control('Angle backend', {
 			type: 'dropdown',
@@ -1725,7 +1725,7 @@ class Menu extends ExtendMenu {
 		
 		Game.control('Seek new Lobby [F4]', {
 			type: 'boolean',
-			walk: 'game.f4_seek',
+			walk: 'game.seek.F4',
 		});
 		
 		var RPC = this.category('Discord RPC');

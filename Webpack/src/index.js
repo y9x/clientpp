@@ -82,10 +82,10 @@ class Menu extends ExtendMenu {
 			walk: 'render.uncap_fps',
 		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));
 		
-		Render.control('VSync', {
+		/*Render.control('VSync', {
 			type: 'boolean',
 			walk: 'render.vsync',
-		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));
+		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));*/
 		
 		Render.control('Angle backend', {
 			type: 'dropdown',
@@ -114,7 +114,7 @@ class Menu extends ExtendMenu {
 		
 		Game.control('Seek new Lobby [F4]', {
 			type: 'boolean',
-			walk: 'game.f4_seek',
+			walk: 'game.seek.F4',
 		});
 		
 		var RPC = this.category('Discord RPC');

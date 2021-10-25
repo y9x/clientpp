@@ -83,24 +83,37 @@ KrunkerWindow::~KrunkerWindow() {
 
 bool mousedown = false;
 
+int button_id(UINT msg, WPARAM wParam) {
+	switch (msg) {
+	case WM_LBUTTONDOWN: case WM_LBUTTONUP: return 0; break;
+	case WM_MBUTTONDOWN: case WM_MBUTTONUP: return 1; break;
+	case WM_RBUTTONDOWN: case WM_RBUTTONUP: return 2; break;
+	case WM_XBUTTONDOWN: case WM_XBUTTONUP: return GET_XBUTTON_WPARAM(wParam) & XBUTTON1 ? 3 : 4; break;
+	default: return 0; break;
+	}
+}
+
 LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam) {
 	MSLLHOOKSTRUCT* hook = (MSLLHOOKSTRUCT*)lParam;
 	POINT point = hook->pt;
-	
+
 	if (awindow && ::IsWindow(awindow->m_hWnd) && awindow->ScreenToClient(&point)) switch (wParam) {
-	case WM_MOUSEMOVE:
-		break;
+	case WM_MOUSEMOVE: break;
+	case WM_XBUTTONDOWN:
+	case WM_MBUTTONDOWN:
 	case WM_LBUTTONDOWN:
 	case WM_RBUTTONDOWN: {
 
-		JSMessage msg(IM::mousedown, { point.x, point.y, wParam == WM_LBUTTONDOWN ? 0 : 2 });
+		JSMessage msg(IM::mousedown, { point.x, point.y, button_id(wParam, hook->mouseData) });
 		if (!msg.send(awindow->webview.get()))clog::error << "Unable to send " << msg.dump() << clog::endl;
 
 	} break;
+	case WM_XBUTTONUP:
+	case WM_MBUTTONUP:
 	case WM_LBUTTONUP: 
 	case WM_RBUTTONUP: {
 
-		JSMessage msg(IM::mouseup, { point.x, point.y, wParam == WM_LBUTTONUP ? 0 : 2 });
+		JSMessage msg(IM::mouseup, { point.x, point.y, button_id(wParam, hook->mouseData) });
 		if (!msg.send(awindow->webview.get()))clog::error << "Unable to send " << msg.dump() << clog::endl;
 
 	} break;
@@ -167,7 +180,8 @@ std::wstring KrunkerWindow::cmdline() {
 
 	if (folder->config["render"]["uncap_fps"].get<bool>()) {
 		cmds.push_back(L"--disable-frame-rate-limit");
-		if (!folder->config["render"]["vsync"]) cmds.push_back(L"--disable-gpu-vsync");
+		/*if (!folder->config["render"]["vsync"])*/
+		cmds.push_back(L"--disable-gpu-vsync");
 	}
 	
 	if (folder->config["render"]["angle"] != "default") cmds.push_back(L"--use-angle=" + Convert::wstring(folder->config["render"]["angle"]));
@@ -250,7 +264,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 		webview->Reload();
 		break;
 	case IM::seek_game:
-		if (folder->config["game"]["f4_seek"]) {
+		if (folder->config["game"]["seek"]["F4"]) {
 			webview->Stop();
 			seek_game();
 		}
@@ -556,10 +570,6 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::fu
 	else SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));
 
 	return call_create_webview(callback);
-}
-
-bool KrunkerWindow::seek_game() {
-	return SUCCEEDED(webview->Navigate((L"https://krunker.io" + pathname).c_str()));
 }
 
 KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> callback) {
