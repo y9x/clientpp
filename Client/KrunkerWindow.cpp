@@ -453,32 +453,26 @@ void KrunkerWindow::register_events() {
 	webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
 		BOOL success = true;
 		args->get_IsSuccess(&success);
-		
+
+		wchar_t* urip;
+		webview->get_Source(&urip);
+		Uri uri(urip);
+
 		if (!success) {
 			COREWEBVIEW2_WEB_ERROR_STATUS status;
 			args->get_WebErrorStatus(&status);
-			LPWSTR uri;
-			webview->get_Source(&uri);
-			
+
+			if (status == COREWEBVIEW2_WEB_ERROR_STATUS::COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_ABORTED)return S_OK;
+
 			// renderer freezes when navigating from an error page that occurs on startup
 			control->Close();
 			call_create_webview([this, status, uri]() {
 				JSON data = { status };
 				data.push_back(status_name(status));
-				data.push_back(uri);
+				data.push_back(Convert::string(uri.href));
 				webview->Navigate((L"https://chief/error?data=" + encodeURIComponent(Convert::wstring(data.dump()))).c_str());
 			});
-		}
-
-		return S_OK;
-	}).Get(), &token);
-
-	webview->add_NavigationStarting(Callback<ICoreWebView2NavigationStartingEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
-		LPWSTR uriptr;
-		args->get_Uri(&uriptr);
-		Uri uri(uriptr);
-
-		if (uri.host_owns(L"krunker.io")) {
+		}else if (uri.host_owns(L"krunker.io")) {
 			std::string js_webpack = "throw Error('Failure loading Webpack.js');";
 			load_resource(JS_WEBPACK, js_webpack);
 			std::string js_webpack_map;
@@ -496,7 +490,7 @@ void KrunkerWindow::register_events() {
 
 		return S_OK;
 	}).Get(), &token);
-	
+
 	webview->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
 		LPWSTR sender_uriptr;
 		sender->get_Source(&sender_uriptr);
@@ -560,7 +554,7 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::fu
 
 		if (SetProcessDpiAwareness) {
 			HRESULT sda = SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-			if (!SUCCEEDED(sda)) clog::error << "SetProcessDpiAwareness returned " << PROCESS_PER_MONITOR_DPI_AWARE << clog::endl;
+			if (!SUCCEEDED(sda)) clog::error << "SetProcessDpiAwareness returned " << std::hex << HRESULT_CODE(sda) << clog::endl;
 		}
 		else clog::error << "Unable to get address of SetProcessDpiAwareness" << clog::endl;
 	}else clog::warn << "Unable to load shcore. Is the host Win7?" << clog::endl;
