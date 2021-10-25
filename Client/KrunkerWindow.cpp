@@ -258,6 +258,12 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 	case IM::toggle_fullscreen:
 		folder->config["render"]["fullscreen"] = !folder->config["render"]["fullscreen"];
 		folder->save_config();
+		
+		{
+			JSMessage msg(IM::update_menu);
+			msg.args.push_back(folder->config);
+			if (!msg.send(webview.get()))clog::error << "Unable to send " << msg.dump() << clog::endl;
+		}
 	case IM::fullscreen:
 		if (folder->config["render"]["fullscreen"]) enter_fullscreen();
 		else exit_fullscreen();

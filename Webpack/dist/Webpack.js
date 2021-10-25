@@ -7,7 +7,7 @@
   \*******************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_clear:1,rpc_init:2,save_config:3,shell_open:4,fullscreen:5,update_meta:6,revert_meta:7,reload_config:8,browse_file:9,mousedown:10,mouseup:11,mousemove:12,mousewheel:13,pointer:14,open_devtools:15,log:16,relaunch_webview:17,close_window:18,reload_window:19,seek_game:20,toggle_fullscreen:21}
+exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_clear:1,rpc_init:2,save_config:3,shell_open:4,fullscreen:5,update_meta:6,revert_meta:7,reload_config:8,browse_file:9,mousedown:10,mouseup:11,mousemove:12,mousewheel:13,pointer:14,open_devtools:15,log:16,relaunch_webview:17,close_window:18,reload_window:19,seek_game:20,toggle_fullscreen:21,update_menu:22}
 
 /***/ }),
 
@@ -536,6 +536,24 @@ module.exports = {
 	'/social.html': 'social',
 	'/editor.html': 'editor',
 }[location.pathname];
+
+/***/ }),
+
+/***/ "./src/console.js":
+/*!************************!*\
+  !*** ./src/console.js ***!
+  \************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.log = console.log.bind(console);
+exports.info = console.info.bind(console);
+exports.warn = console.warn.bind(console);
+exports.error = console.error.bind(console);
+exports.debug = console.debug.bind(console);
+exports.trace = console.trace.bind(console);
 
 /***/ }),
 
@@ -1606,6 +1624,7 @@ var ExtendMenu = __webpack_require__(/*! ./libs/ExtendMenu */ "./src/libs/Extend
 	Keybind = __webpack_require__(/*! ./libs/Keybind */ "./src/libs/Keybind.js"),
 	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
 	RPC = __webpack_require__(/*! ./RPC */ "./src/RPC.js"),
+	console = __webpack_require__(/*! ./console */ "./src/console.js"),
 	{ ipc, IM } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	{ config: runtime_config, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
 	site = __webpack_require__(/*! ./Site */ "./src/Site.js"),
@@ -1760,10 +1779,11 @@ class Menu extends ExtendMenu {
 			if(!init && this.config.window.meta.replace)
 				ipc.send(IM.update_meta);
 		});
+		
+		this.insert('Client');
 	}
 	update(){
 		for(let category of this.categories)category.update(true);
-		this.insert('Client');
 	}
 };
 
@@ -1786,6 +1806,11 @@ if(site == 'game'){
 	let menu = new Menu();
 	run_resources(menu);
 	menu.update();
+	
+	ipc.on(IM.update_menu, config => {
+		menu.config = config;
+		menu.update();
+	});
 }else run_resources();
 
 new Keybind('F5', event => ipc.send(IM.reload_window));

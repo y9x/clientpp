@@ -31,4 +31,5 @@ enum class IM {
 	reload_window,
 	seek_game,
 	toggle_fullscreen,
+	update_menu,
 };
