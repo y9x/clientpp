@@ -46,7 +46,7 @@ private:
 	LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
 public:
 	bool can_fullscreen = false;
-	COLORREF background = RGB(0, 0, 0);
+	COLORREF background = RGB(28, 28, 28);
 	ClientFolder* folder;
 	std::wstring pathname;
 	Status create(HINSTANCE inst, int cmdshow, std::function<void()> callback = nullptr) override;
