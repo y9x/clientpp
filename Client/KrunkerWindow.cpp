@@ -208,10 +208,6 @@ LRESULT KrunkerWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 	return resize_wv();
 }
 
-LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam) {
-	return 1;
-}
-
 /*
 #define INPUT_IF(id, button) (mouse.usButtonFlags & RI_MOUSE_BUTTON_##id##_DOWN) { \
 	msg.event = IM::mousedown; \
@@ -248,6 +244,10 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& f
 	}
 
 	return 0;
+}
+
+LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam) {
+	return 1;
 }
 
 void KrunkerWindow::hook_mouse() {
