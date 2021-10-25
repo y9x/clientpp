@@ -98,7 +98,6 @@ LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lP
 	POINT point = hook->pt;
 
 	if (awindow && ::IsWindow(awindow->m_hWnd) && awindow->ScreenToClient(&point)) switch (wParam) {
-	case WM_MOUSEMOVE: break;
 	case WM_XBUTTONDOWN:
 	case WM_MBUTTONDOWN:
 	case WM_LBUTTONDOWN:
