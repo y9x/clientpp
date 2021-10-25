@@ -3,7 +3,8 @@
 var { css, js } = require('./Runtime'),
 	site = require('./Site'),
 	utils = require('./libs/Utils'),
-	ipc = require('./IPC'),
+	{ ipc } = require('./IPC'),
+	console = require('./Console'),
 	LegacyUserscript = require('./LegacyUserscript'),
 	ChiefUserscript = require('./ChiefUserscript'),
 	add_css = () => {
@@ -37,13 +38,14 @@ module.exports = menu => {
 				context = {
 					module,
 					exports: module.exports,
-					// console: ipc.console,
+					console,
 				};
 			
 			try{
 				func = eval(`(function(${Object.keys(context)}){${data}//# sourceURL=${name}\n})`);
 			}catch(err){
-				console.error(`Error parsing UserScript ${name}:\n`, err);
+				console.warn(`Error parsing userscript: ${name}\n`, err);
+				ipc.console.error(`Error parsing userscript ${name}:\n${err.toString()}`);
 				break;
 			}
 			
@@ -56,7 +58,8 @@ module.exports = menu => {
 				
 				userscript.run();
 			}catch(err){
-				console.warn('Error executing UserScript:', name, '\n', err);
+				console.warn(`Error executing userscript: ${name}\n`, err);
+				ipc.console.error(`Error executing userscript ${name}:\n${err.toString()}`);
 				break;
 			}
 		}

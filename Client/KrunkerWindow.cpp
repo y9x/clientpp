@@ -242,12 +242,6 @@ LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lP
 	return 1;
 }
 
-/*Vector2 movebuffer;
-long long mouse_hz = 60;
-long long mouse_interval = 1000 / mouse_hz;
-long long then = now_ms();
-*/
-
 LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
 	unsigned size = sizeof(RAWINPUT);
 	static RAWINPUT raw[sizeof(RAWINPUT)];
@@ -265,24 +259,6 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& f
 
 			JSMessage msg(IM::mousemove, { cursor.x, cursor.y, raw->data.mouse.lLastX, raw->data.mouse.lLastY });
 			if (!msg.send(webview.get())) clog::error << "Unable to send " << msg.dump() << clog::endl;
-
-			/*long long nw = now_ms();
-			long long delta = nw - then;
-
-			if (delta > mouse_interval) {
-				then = nw - (delta % mouse_interval);
-
-				POINT cursor;
-				GetCursorPos(&cursor);
-				ScreenToClient(&cursor);
-				
-				JSMessage msg(IM::mousemove, { cursor.x, cursor.y, raw->data.mouse.lLastX + movebuffer.x, raw->data.mouse.lLastY + movebuffer.y });
-				movebuffer.clear();
-				if (!msg.send(webview.get())) clog::error << "Unable to send " << msg.dump() << clog::endl;
-			}
-			else {
-				movebuffer += Vector2(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
-			}*/
 		}
 	}
 
@@ -378,6 +354,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 		break;
 	case IM::log: {
 		std::string log = msg.args[1];
+		log += '\n';
 
 		switch ((LogType)msg.args[0].get<int>()) {
 		case LogType::info:

@@ -20,7 +20,8 @@ exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_cle
 "use strict";
 
 
-var console = __webpack_require__(/*! ./Console */ "./src/Console.js"),
+var { ipc } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+	console = __webpack_require__(/*! ./Console */ "./src/Console.js"),
 	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js");
 
 class ChiefUserscript {
@@ -42,13 +43,13 @@ class ChiefUserscript {
 		var exports = {},
 			run,
 			context = { _metadata: this.metadata, exports, console };
-			
 		
 		try{
 			// cannot use import/export, fix soon
 			run = eval(`(function(${Object.keys(context)}){${script}\n//# sourceURL=https://krunker.io/userscripts:/${this.name}\n})`);
 		}catch(err){
-			console.error(`Error parsing userscript ${this.name}:\n`, err);
+			console.warn(`Error parsing userscript: ${this.name}\n`, err);
+			ipc.console.error(`Error parsing userscript ${this.name}:\n${err.toString()}`);
 			return false;
 		}
 		
@@ -67,6 +68,7 @@ class ChiefUserscript {
 			run(...Object.values(context));
 		}catch(err){
 			console.error(`Error executing userscript ${this.name}:\n`, err);
+			ipc.console.error(`Error executing userscript ${name}:\n${err.toString()}`);
 			return false;
 		}
 		
@@ -109,12 +111,34 @@ module.exports = ChiefUserscript;
 "use strict";
 
 
-exports.log = console.log.bind(console);
-exports.info = console.info.bind(console);
-exports.warn = console.warn.bind(console);
-exports.error = console.error.bind(console);
-exports.debug = console.debug.bind(console);
-exports.trace = console.trace.bind(console);
+// script executes before devtools listens on logs
+
+var methods = ['log','info','warn','error','debug','trace'],
+	initial = {},
+	buffer = {},
+	tempcall = (type, ...data) => {
+		
+	};
+
+for(let method of methods){
+	initial[method] = console[method].bind(console);
+	exports[method] = (...data) => {
+		if(!buffer[method])buffer[method] = [];
+		buffer[method].push(data);
+	};
+}
+
+// devtools hooks after
+
+setTimeout(() => {
+	for(let method of methods){
+		exports[method] = initial[method];
+		if(buffer[method])for(let data of buffer[method])exports[method](...data);
+	}
+	
+	buffer = null;
+	initial = null;
+});
 
 /***/ }),
 
@@ -274,8 +298,6 @@ var Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
 class IPCConsole {
 	constructor(ipc, prefix){
 		this.ipc = ipc;
-		this.prefix = [];
-		if(typeof prefix == 'string')this.prefix.push(prefix);
 	}
 	log(...args){
 		this.ipc.send(IM.log, LogType.info, args.join(' '));
@@ -298,7 +320,7 @@ class IPC extends Events {
 	constructor(){
 		super();
 	}
-	console = new IPCConsole();
+	console = new IPCConsole(this);
 	send(event, ...data){
 		if(typeof event != 'number')throw new TypeError(`Event must be a number. Recieved '${event}'`);
 		webview.postMessage(JSON.stringify([ event, ...data ]));
@@ -434,7 +456,8 @@ module.exports = RPC;
 var { css, js } = __webpack_require__(/*! ./Runtime */ "./src/Runtime.js"),
 	site = __webpack_require__(/*! ./Site */ "./src/Site.js"),
 	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js"),
-	ipc = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+	{ ipc } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
+	console = __webpack_require__(/*! ./Console */ "./src/Console.js"),
 	LegacyUserscript = __webpack_require__(/*! ./LegacyUserscript */ "./src/LegacyUserscript.js"),
 	ChiefUserscript = __webpack_require__(/*! ./ChiefUserscript */ "./src/ChiefUserscript.js"),
 	add_css = () => {
@@ -468,13 +491,14 @@ module.exports = menu => {
 				context = {
 					module,
 					exports: module.exports,
-					// console: ipc.console,
+					console,
 				};
 			
 			try{
 				func = eval(`(function(${Object.keys(context)}){${data}//# sourceURL=${name}\n})`);
 			}catch(err){
-				console.error(`Error parsing UserScript ${name}:\n`, err);
+				console.warn(`Error parsing userscript: ${name}\n`, err);
+				ipc.console.error(`Error parsing userscript ${name}:\n${err.toString()}`);
 				break;
 			}
 			
@@ -487,7 +511,8 @@ module.exports = menu => {
 				
 				userscript.run();
 			}catch(err){
-				console.warn('Error executing UserScript:', name, '\n', err);
+				console.warn(`Error executing userscript: ${name}\n`, err);
+				ipc.console.error(`Error executing userscript ${name}:\n${err.toString()}`);
 				break;
 			}
 		}

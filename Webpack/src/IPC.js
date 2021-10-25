@@ -9,8 +9,6 @@ var Events = require('./libs/Events'),
 class IPCConsole {
 	constructor(ipc, prefix){
 		this.ipc = ipc;
-		this.prefix = [];
-		if(typeof prefix == 'string')this.prefix.push(prefix);
 	}
 	log(...args){
 		this.ipc.send(IM.log, LogType.info, args.join(' '));
@@ -33,7 +31,7 @@ class IPC extends Events {
 	constructor(){
 		super();
 	}
-	console = new IPCConsole();
+	console = new IPCConsole(this);
 	send(event, ...data){
 		if(typeof event != 'number')throw new TypeError(`Event must be a number. Recieved '${event}'`);
 		webview.postMessage(JSON.stringify([ event, ...data ]));

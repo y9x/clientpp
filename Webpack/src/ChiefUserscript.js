@@ -1,6 +1,7 @@
 'use strict';
 
-var console = require('./Console'),
+var { ipc } = require('./IPC'),
+	console = require('./Console'),
 	utils = require('./libs/Utils');
 
 class ChiefUserscript {
@@ -22,13 +23,13 @@ class ChiefUserscript {
 		var exports = {},
 			run,
 			context = { _metadata: this.metadata, exports, console };
-			
 		
 		try{
 			// cannot use import/export, fix soon
 			run = eval(`(function(${Object.keys(context)}){${script}\n//# sourceURL=https://krunker.io/userscripts:/${this.name}\n})`);
 		}catch(err){
-			console.error(`Error parsing userscript ${this.name}:\n`, err);
+			console.warn(`Error parsing userscript: ${this.name}\n`, err);
+			ipc.console.error(`Error parsing userscript ${this.name}:\n${err.toString()}`);
 			return false;
 		}
 		
@@ -47,6 +48,7 @@ class ChiefUserscript {
 			run(...Object.values(context));
 		}catch(err){
 			console.error(`Error executing userscript ${this.name}:\n`, err);
+			ipc.console.error(`Error executing userscript ${name}:\n${err.toString()}`);
 			return false;
 		}
 		
