@@ -19,6 +19,12 @@ using Microsoft::WRL::Callback;
 
 using JSON = nlohmann::json;
 
+JSMessage::JSMessage() {}
+
+JSMessage::JSMessage(JSON a) {
+	args = a;
+}
+
 JSMessage::JSMessage(IM e) {
 	event = e;
 }
@@ -61,7 +67,9 @@ bool JSMessage::send(ICoreWebView2* target) {
 	return SUCCEEDED(target->PostWebMessageAsJson(Convert::wstring(dump()).c_str()));
 }
 
-KrunkerWindow* awindow;
+bool JSMessage::send(wil::com_ptr<ICoreWebView2> target) {
+	return SUCCEEDED(target->PostWebMessageAsJson(Convert::wstring(dump()).c_str()));
+}
 
 long long KrunkerWindow::now() {
 	return duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -84,7 +92,6 @@ KrunkerWindow::KrunkerWindow(ClientFolder& folder_, Type type_, Vector2 s, std::
 }
 
 KrunkerWindow::~KrunkerWindow() {
-	if (awindow == this) awindow = NULL;
 	if (mouse_hooked) unhook_mouse();
 	if (::IsWindow(m_hWnd)) DestroyWindow();
 }
@@ -191,8 +198,8 @@ bool KrunkerWindow::monitor_data(Vector2& pos, Vector2& size) {
 	pos.x = r.left;
 	pos.y = r.top;
 
-	size.x = r.right - r.left;
-	size.y = r.bottom - r.top;
+	size.x = (long)r.right - r.left;
+	size.y = (long)r.bottom - r.top;
 
 	return true;
 }
@@ -201,46 +208,20 @@ LRESULT KrunkerWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 	return resize_wv();
 }
 
-bool mousedown = false;
-
-int button_id(UINT msg, WPARAM wParam) {
-	switch (msg) {
-	case WM_LBUTTONDOWN: case WM_LBUTTONUP: return 0; break;
-	case WM_MBUTTONDOWN: case WM_MBUTTONUP: return 1; break;
-	case WM_RBUTTONDOWN: case WM_RBUTTONUP: return 2; break;
-	case WM_XBUTTONDOWN: case WM_XBUTTONUP: return GET_XBUTTON_WPARAM(wParam) & XBUTTON1 ? 3 : 4; break;
-	default: return 0; break;
-	}
-}
-
 LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam) {
-	MSLLHOOKSTRUCT* hook = (MSLLHOOKSTRUCT*)lParam;
-	POINT point = hook->pt;
-
-	if (awindow && ::IsWindow(awindow->m_hWnd) && awindow->ScreenToClient(&point)) switch (wParam) {
-	case WM_XBUTTONDOWN:
-	case WM_MBUTTONDOWN:
-	case WM_LBUTTONDOWN:
-	case WM_RBUTTONDOWN: {
-
-		JSMessage msg(IM::mousedown, { point.x, point.y, button_id(wParam, hook->mouseData) });
-		if (!msg.send(awindow->webview.get()))clog::error << "Unable to send " << msg.dump() << clog::endl;
-
-	} break;
-	case WM_XBUTTONUP:
-	case WM_MBUTTONUP:
-	case WM_LBUTTONUP: 
-	case WM_RBUTTONUP: {
-
-		JSMessage msg(IM::mouseup, { point.x, point.y, button_id(wParam, hook->mouseData) });
-		if (!msg.send(awindow->webview.get()))clog::error << "Unable to send " << msg.dump() << clog::endl;
-
-	} break;
-	}
-	
-
 	return 1;
 }
+
+/*
+#define INPUT_IF(id, button) (mouse.usButtonFlags & RI_MOUSE_BUTTON_##id##_DOWN) { \
+	msg.event = IM::mousedown; \
+	msg.args.push_back(button); \
+} else if(mouse.usButtonFlags & RI_MOUSE_BUTTON_##id##_UP) { \
+	msg.event = IM::mouseup; \
+	msg.args.push_back(button); \
+}
+
+*/
 
 LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
 	unsigned size = sizeof(RAWINPUT);
@@ -248,18 +229,22 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& f
 	GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw, &size, sizeof(RAWINPUTHEADER));
 
 	if (raw->header.dwType == RIM_TYPEMOUSE) {
-		if (raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL) {
-			JSMessage msg(IM::mousewheel, { (*(short*)&raw->data.mouse.usButtonData) * -1 });
-			if (!msg.send(webview.get())) clog::error << "Unable to send " << msg.dump() << clog::endl;
-		}
-		else {
-			POINT cursor;
-			GetCursorPos(&cursor);
-			ScreenToClient(&cursor);
+		JSMessage msg;
+		RAWMOUSE mouse = raw->data.mouse;
+		USHORT flags = mouse.usButtonFlags;
 
-			JSMessage msg(IM::mousemove, { cursor.x, cursor.y, raw->data.mouse.lLastX, raw->data.mouse.lLastY });
-			if (!msg.send(webview.get())) clog::error << "Unable to send " << msg.dump() << clog::endl;
-		}
+		if (flags & RI_MOUSE_WHEEL) JSMessage(IM::mousewheel, { ((*(short*)&mouse.usButtonData) / WHEEL_DELTA) * -100 }).send(webview);
+		if (flags & RI_MOUSE_BUTTON_1_DOWN) JSMessage(IM::mousedown, { 0 }).send(webview);
+		if (flags & RI_MOUSE_BUTTON_1_UP) JSMessage(IM::mouseup, { 0 }).send(webview);
+		if (flags & RI_MOUSE_BUTTON_2_DOWN) JSMessage(IM::mousedown, { 2 }).send(webview);
+		if (flags & RI_MOUSE_BUTTON_2_UP) JSMessage(IM::mouseup, { 2 }).send(webview);
+		if (flags & RI_MOUSE_BUTTON_3_DOWN) JSMessage(IM::mousedown, { 1 }).send(webview);
+		if (flags & RI_MOUSE_BUTTON_3_UP) JSMessage(IM::mouseup, { 1 }).send(webview);
+		if (flags & RI_MOUSE_BUTTON_4_DOWN) JSMessage(IM::mousedown, { 3 }).send(webview);
+		if (flags & RI_MOUSE_BUTTON_4_UP) JSMessage(IM::mouseup, { 3 }).send(webview);
+		if (flags & RI_MOUSE_BUTTON_5_DOWN) JSMessage(IM::mousedown, { 4 }).send(webview);
+		if (flags & RI_MOUSE_BUTTON_5_UP) JSMessage(IM::mouseup, { 4 }).send(webview);
+		if (mouse.lLastX || mouse.lLastY) JSMessage(IM::mousemove, { mouse.lLastX, mouse.lLastY }).send(webview);
 	}
 
 	return 0;
@@ -354,8 +339,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 		break;
 	case IM::log: {
 		std::string log = msg.args[1];
-		log += '\n';
-
+		
 		switch ((LogType)msg.args[0].get<int>()) {
 		case LogType::info:
 			clog::info << log << clog::endl;
@@ -397,7 +381,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 		{
 			JSMessage msg(IM::update_menu);
 			msg.args.push_back(folder->config);
-			if (!msg.send(webview.get()))clog::error << "Unable to send " << msg.dump() << clog::endl;
+			if (!msg.send(webview))clog::error << "Unable to send " << msg.dump() << clog::endl;
 		}
 	case IM::fullscreen:
 		if (folder->config["render"]["fullscreen"]) enter_fullscreen();
@@ -781,7 +765,7 @@ void KrunkerWindow::on_dispatch() {
 	mtx.lock();
 	
 	for (JSMessage msg : pending_messages)
-		if (!msg.send(webview.get()))clog::error << "Unable to send " << msg.dump() << clog::endl;
+		if (!msg.send(webview))clog::error << "Unable to send " << msg.dump() << clog::endl;
 	pending_messages.clear();
 	
 	mtx.unlock();
@@ -789,8 +773,7 @@ void KrunkerWindow::on_dispatch() {
 	bool active = GetActiveWindow() == m_hWnd;
 
 	if (!active && mouse_hooked) unhook_mouse();
-	if (pathname == L"/" && active) awindow = this;
-
+	
 	time_t last_poll = now() - last_pointer_poll;
 
 	if (last_poll > 1500 && mouse_hooked) {

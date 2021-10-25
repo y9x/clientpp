@@ -31,19 +31,16 @@ ipc.on(IM.mousewheel, deltaY => {
 	locked_node?.dispatchEvent(new WheelEvent('wheel', { deltaY }));
 });
 
-ipc.on(IM.mousedown, (clientX, clientY, button) => {
-	locked_node?.dispatchEvent(new MouseEvent('mousedown', { button, clientX, clientY }));
+ipc.on(IM.mousedown, button => {
+	locked_node?.dispatchEvent(new MouseEvent('mousedown', { button }));
 });
 
-ipc.on(IM.mouseup, (clientX, clientY, button) => {
-	locked_node?.dispatchEvent(new MouseEvent('mouseup', { button, clientX, clientY }));
+ipc.on(IM.mouseup, button => {
+	locked_node?.dispatchEvent(new MouseEvent('mouseup', { button }));
 });
 
-ipc.on(IM.mousemove, (clientX, clientY, movementX, movementY) => {
-	locked_node?.dispatchEvent(new MouseEvent('mousemove', {
-		clientX, clientY,
-		movementX, movementY,
-	}));
+ipc.on(IM.mousemove, (movementX, movementY) => {
+	locked_node?.dispatchEvent(new MouseEvent('mousemove', { movementX, movementY }));
 });
 
 if(localStorage.kro_setngss_scaleUI == void[])localStorage.kro_setngss_scaleUI = 0.7;

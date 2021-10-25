@@ -11,19 +11,19 @@ class IPCConsole {
 		this.ipc = ipc;
 	}
 	log(...args){
-		this.ipc.send(IM.log, LogType.info, args.join(' '));
+		this.ipc.send(IM.log, LogType.info, args.join(' ') + '\n');
 	}
 	info(...args){
-		this.ipc.send(IM.log, LogType.info, args.join(' '));
+		this.ipc.send(IM.log, LogType.info, args.join(' ') + '\n');
 	}
 	warn(...args){
-		this.ipc.send(IM.log, LogType.warn, args.join(' '));
+		this.ipc.send(IM.log, LogType.warn, args.join(' ') + '\n');
 	}
 	error(...args){
-		this.ipc.send(IM.log, LogType.error, args.join(' '));
+		this.ipc.send(IM.log, LogType.error, args.join(' ') + '\n');
 	}
 	debug(...args){
-		this.ipc.send(IM.log, LogType.debug, args.join(' '));
+		this.ipc.send(IM.log, LogType.debug, args.join(' ') + '\n');
 	}
 };
 

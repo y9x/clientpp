@@ -11,6 +11,8 @@ httplib::Client api("https://matchmaker.krunker.io");
 std::vector<std::string> modes = {"Free for All","Team Deathmatch","Hardpoint","Capture the Flag","Parkour","Hide & Seek","Infected","Race","Last Man Standing","Simon Says","Gun Game","Prop Hunt","Boss Hunt","unused","unused","Stalker","King of the Hill","One in the Chamber","Trade","Kill Confirmed","Defuse","Sharp Shooter","Traitor","Raid","Blitz","Domination","Squad Deathmatch","Kranked FFA"};
 
 bool KrunkerWindow::seek_game() {
+	if(type != Type::Game)return SUCCEEDED(webview->Navigate((L"https://krunker.io" + pathname).c_str()));
+	
 	std::string seek_mode = folder->config["game"]["seek"]["mode"];
 	
 	if (seek_mode != "any") {
