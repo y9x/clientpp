@@ -38,7 +38,6 @@ private:
 	static LRESULT CALLBACK mouse_message(int code, WPARAM wParam, LPARAM lParam);
 	Status call_create_webview(std::function<void()> callback = nullptr);
 	std::wstring cmdline();
-	std::time_t now();
 	std::string status_name(COREWEBVIEW2_WEB_ERROR_STATUS status);
 	bool send_resource(ICoreWebView2WebResourceRequestedEventArgs* args, int resource, std::wstring mime);
 	void load_userscripts(nlohmann::json* data = nullptr);

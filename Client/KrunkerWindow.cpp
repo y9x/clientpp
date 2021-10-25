@@ -62,6 +62,14 @@ bool JSMessage::send(ICoreWebView2* target) {
 
 KrunkerWindow* awindow;
 
+long long now_ms() {
+	return duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
+time_t now() {
+	return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+}
+
 KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title, std::wstring p, std::function<void()> s, std::function<bool(JSMessage)> u, std::function<void()> cl)
 	: WebView2Window(scale, title)
 	, folder(&f)
@@ -122,6 +130,12 @@ LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lP
 	return 1;
 }
 
+/*Vector2 movebuffer;
+long long mouse_hz = 60;
+long long mouse_interval = 1000 / mouse_hz;
+long long then = now_ms();
+*/
+
 LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
 	unsigned size = sizeof(RAWINPUT);
 	static RAWINPUT raw[sizeof(RAWINPUT)];
@@ -136,8 +150,27 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& f
 			POINT cursor;
 			GetCursorPos(&cursor);
 			ScreenToClient(&cursor);
+
 			JSMessage msg(IM::mousemove, { cursor.x, cursor.y, raw->data.mouse.lLastX, raw->data.mouse.lLastY });
 			if (!msg.send(webview.get())) clog::error << "Unable to send " << msg.dump() << clog::endl;
+
+			/*long long nw = now_ms();
+			long long delta = nw - then;
+
+			if (delta > mouse_interval) {
+				then = nw - (delta % mouse_interval);
+
+				POINT cursor;
+				GetCursorPos(&cursor);
+				ScreenToClient(&cursor);
+				
+				JSMessage msg(IM::mousemove, { cursor.x, cursor.y, raw->data.mouse.lLastX + movebuffer.x, raw->data.mouse.lLastY + movebuffer.y });
+				movebuffer.clear();
+				if (!msg.send(webview.get())) clog::error << "Unable to send " << msg.dump() << clog::endl;
+			}
+			else {
+				movebuffer += Vector2(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
+			}*/
 		}
 	}
 
@@ -199,9 +232,6 @@ std::wstring KrunkerWindow::cmdline() {
 	return cmdline;
 }
 
-std::time_t KrunkerWindow::now() {
-	return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-}
 
 void KrunkerWindow::handle_message(JSMessage msg) {
 	switch ((IM)msg.event) {

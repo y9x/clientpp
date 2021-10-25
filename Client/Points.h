@@ -19,8 +19,11 @@ public:
 struct Vector2 {
 	double x = 0;
 	double y = 0;
-	bool operator = (POINT p);
+	bool operator = (POINT point);
+	bool operator += (Vector2 vector);
+	Vector2 operator + (Vector2 vector);
 	operator POINT ();
+	void clear();
 	Vector2(POINT p);
 	Vector2(double x, double y);
 	Vector2();
