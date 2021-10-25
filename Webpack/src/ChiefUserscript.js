@@ -29,7 +29,7 @@ class ChiefUserscript {
 			run = eval(`(function(${Object.keys(context)}){${script}\n//# sourceURL=https://krunker.io/userscripts:/${this.name}\n})`);
 		}catch(err){
 			console.warn(`Error parsing userscript: ${this.name}\n`, err);
-			ipc.console.error(`Error parsing userscript ${this.name}:\n${err.toString()}`);
+			ipc.console.error(`Error parsing userscript ${this.name}:\n${err}`);
 			return false;
 		}
 		
@@ -48,7 +48,7 @@ class ChiefUserscript {
 			run(...Object.values(context));
 		}catch(err){
 			console.error(`Error executing userscript ${this.name}:\n`, err);
-			ipc.console.error(`Error executing userscript ${name}:\n${err.toString()}`);
+			ipc.console.error(`Error executing userscript ${name}:\n${err}`);
 			return false;
 		}
 		

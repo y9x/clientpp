@@ -45,7 +45,7 @@ module.exports = menu => {
 				func = eval(`(function(${Object.keys(context)}){${data}//# sourceURL=${name}\n})`);
 			}catch(err){
 				console.warn(`Error parsing userscript: ${name}\n`, err);
-				ipc.console.error(`Error parsing userscript ${name}:\n${err.toString()}`);
+				ipc.console.error(`Error parsing userscript ${name}:\n${err}`);
 				break;
 			}
 			
@@ -59,7 +59,7 @@ module.exports = menu => {
 				userscript.run();
 			}catch(err){
 				console.warn(`Error executing userscript: ${name}\n`, err);
-				ipc.console.error(`Error executing userscript ${name}:\n${err.toString()}`);
+				ipc.console.error(`Error executing userscript ${name}:\n${err}`);
 				break;
 			}
 		}
