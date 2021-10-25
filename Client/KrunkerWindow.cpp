@@ -254,18 +254,12 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 			webview->Stop();
 			seek_game();
 		}
-
 		break;
 	case IM::toggle_fullscreen:
-		folder->config["client"]["fullscreen"] = !folder->config["client"]["fullscreen"];
+		folder->config["render"]["fullscreen"] = !folder->config["render"]["fullscreen"];
 		folder->save_config();
-
-		if (folder->config["client"]["fullscreen"]) enter_fullscreen();
-		else exit_fullscreen();
-
-		break;
 	case IM::fullscreen:
-		if (folder->config["client"]["fullscreen"]) enter_fullscreen();
+		if (folder->config["render"]["fullscreen"]) enter_fullscreen();
 		else exit_fullscreen();
 		break;
 	case IM::update_meta:
