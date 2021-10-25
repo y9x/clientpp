@@ -10,6 +10,7 @@
 #include <ShellScalingApi.h>
 #include <shellapi.h>
 #include <commdlg.h>
+#include <WebView2EnvironmentOptions.h>
 #pragma comment(lib, "Shcore.lib")
 
 using namespace StringUtil;
@@ -70,14 +71,15 @@ time_t now() {
 	return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 }
 
-KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title, std::wstring p, std::function<void()> s, std::function<bool(JSMessage)> u, std::function<void()> cl)
-	: WebView2Window(scale, title)
+KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 s, std::wstring t, std::wstring p, std::function<void()> st, std::function<bool(JSMessage)> uk, std::function<void()> cl)
+	: title(t)
+	, og_title(t)
+	, scale(s)
 	, folder(&f)
-	, og_title(title)
 	, pathname(p)
 	, last_pointer_poll(now())
-	, on_webview2_startup(s)
-	, on_unknown_message(u)
+	, on_webview2_startup(st)
+	, on_unknown_message(uk)
 	, on_destroy_callback(cl)
 {
 	rid[0].usUsagePage = 0x01;
@@ -87,6 +89,161 @@ KrunkerWindow::KrunkerWindow(ClientFolder& f, Vector2 scale, std::wstring title,
 KrunkerWindow::~KrunkerWindow() {
 	if (awindow == this) awindow = NULL;
 	if (mouse_hooked) unhook_mouse();
+	if (::IsWindow(m_hWnd)) DestroyWindow();
+}
+
+HINSTANCE KrunkerWindow::get_hinstance() {
+	return (HINSTANCE)GetWindowLong(GWL_HINSTANCE);
+}
+
+bool KrunkerWindow::create_window(HINSTANCE inst, int cmdshow) {
+	Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
+
+	Vector2 scr_pos;
+	Vector2 scr_size;
+
+	if (monitor_data(scr_pos, scr_size)) {
+		Rect2D r;
+
+		r.width = long(scr_size.x * scale.x);
+		r.height = long(scr_size.y * scale.y);
+
+		r.x = long(scr_pos.x + ((scr_size.x - r.width) / 2));
+		r.y = long(scr_pos.y + ((scr_size.y - r.height) / 2));
+
+		SetWindowPos(NULL, r.get(), 0);
+	}
+	else ResizeClient(700, 500);
+
+	ShowWindow(cmdshow);
+	UpdateWindow();
+
+	open = true;
+
+	return true;
+}
+
+KrunkerWindow::Status KrunkerWindow::create_webview(std::wstring cmdline, std::wstring directory, std::function<void()> callback) {
+	auto options = Make<CoreWebView2EnvironmentOptions>();
+
+	options->put_AdditionalBrowserArguments(cmdline.c_str());
+
+	HRESULT create = CreateCoreWebView2EnvironmentWithOptions(nullptr, directory.c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Environment* envp) -> HRESULT {
+		if (envp == nullptr) {
+			clog::error << "Env was nullptr" << clog::endl;
+			return S_FALSE;
+		}
+		env = envp;
+		env->CreateCoreWebView2Controller(m_hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
+			if (controller == nullptr) {
+				clog::error << "Controller was nullptr" << clog::endl;
+				return S_FALSE;
+			}
+
+			control = controller;
+			control->get_CoreWebView2(&webview);
+
+			callback();
+			return S_OK;
+			}).Get());
+
+		return S_OK;
+		}).Get());
+
+	if (!SUCCEEDED(create)) {
+		last_herror = create;
+
+		switch (HRESULT_CODE(create)) {
+		case ERROR_FILE_NOT_FOUND:
+			return Status::MissingRuntime;
+			break;
+		default:
+			return Status::UnknownError;
+			break;
+		}
+	}
+	else return Status::Ok;
+}
+
+COREWEBVIEW2_COLOR KrunkerWindow::ColorRef(COLORREF color) {
+	return COREWEBVIEW2_COLOR{ 255,GetRValue(color),GetGValue(color),GetBValue(color) };
+}
+
+bool KrunkerWindow::enter_fullscreen() {
+	if (fullscreen) return false;
+
+	RECT screen;
+
+	if (!monitor_data(screen)) return false;
+
+	GetClientRect(&windowed);
+	ClientToScreen(&windowed);
+
+	DWORD style = GetWindowLong(GWL_STYLE);
+	SetWindowLong(GWL_STYLE, style & ~WS_OVERLAPPEDWINDOW);
+
+	SetWindowPos(0, &screen, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+	resize_wv();
+
+	return fullscreen = true;
+}
+
+bool KrunkerWindow::exit_fullscreen() {
+	if (!fullscreen) return false;
+
+	SetWindowLongPtr(GWL_EXSTYLE, WS_EX_LEFT);
+	SetWindowLongPtr(GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+
+	DWORD style = GetWindowLong(GWL_STYLE);
+	SetWindowLong(GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
+	SetWindowPos(NULL, RECT_ARGS(windowed), SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+	resize_wv();
+
+	fullscreen = false;
+	return true;
+}
+
+bool KrunkerWindow::resize_wv() {
+	if (control == nullptr) return false;
+
+	RECT bounds;
+	GetClientRect(&bounds);
+	control->put_Bounds(bounds);
+
+	return true;
+}
+
+bool KrunkerWindow::monitor_data(RECT& rect) {
+	HMONITOR monitor = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
+	MONITORINFO info;
+	info.cbSize = sizeof(info);
+
+	if (!GetMonitorInfo(monitor, &info)) {
+		clog::error << "Can't get monitor info" << clog::endl;
+		return false;
+	}
+
+	rect = info.rcMonitor;
+
+	return true;
+}
+
+bool KrunkerWindow::monitor_data(Vector2& pos, Vector2& size) {
+	RECT r;
+
+	if (!monitor_data(r))return false;
+
+	pos.x = r.left;
+	pos.y = r.top;
+
+	size.x = r.right - r.left;
+	size.y = r.bottom - r.top;
+
+	return true;
+}
+
+LRESULT KrunkerWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
+	return resize_wv();
 }
 
 bool mousedown = false;
@@ -178,18 +335,21 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& f
 }
 
 void KrunkerWindow::hook_mouse() {
+	clog::debug << "Hooking mouse" << clog::endl;
 	rid[0].dwFlags = RIDEV_INPUTSINK; 
 	rid[0].hwndTarget = m_hWnd;
 	RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
-	mouse_hook = ::SetWindowsHookEx(WH_MOUSE_LL, *mouse_message, get_hinstance(), NULL);
-	mouse_hooked = mouse_hook != NULL;
+	mouse_hook = SetWindowsHookEx(WH_MOUSE_LL, *mouse_message, get_hinstance(), NULL);
+	mouse_hooked = true;
 }
 
 void KrunkerWindow::unhook_mouse() {
+	clog::debug << "Unhooked mouse" << clog::endl;
 	rid[0].dwFlags = RIDEV_REMOVE;
 	rid[0].hwndTarget = NULL;
 	RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
-	if (UnhookWindowsHookEx(mouse_hook)) mouse_hooked = false;
+	UnhookWindowsHookEx(mouse_hook);
+	mouse_hooked = false;
 }
 
 // https://peter.sh/experiments/chromium-command-line-switches/

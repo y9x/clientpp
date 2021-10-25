@@ -28,7 +28,7 @@ bool Client::navigation_cancelled(ICoreWebView2* sender, Uri uri) {
 	bool cancel = false;
 	std::wstring pathname = uri.pathname();
 
-	WebView2Window* send = 0;
+	KrunkerWindow* send = 0;
 
 	if (kru_owns) {
 		if (pathname == krunker::game || pathname.starts_with(krunker::games)) send = &game;
@@ -53,7 +53,7 @@ bool Client::navigation_cancelled(ICoreWebView2* sender, Uri uri) {
 	return cancel;
 }
 
-void Client::listen_navigation(WebView2Window& window) {
+void Client::listen_navigation(KrunkerWindow& window) {
 	EventRegistrationToken token;
 
 	window.webview->add_NewWindowRequested(Callback<ICoreWebView2NewWindowRequestedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {

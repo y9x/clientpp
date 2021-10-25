@@ -23,7 +23,7 @@ private:
 	void install_runtimes();
 	bool game_message(JSMessage msg);
 	bool navigation_cancelled(ICoreWebView2* sender, Uri uri);
-	void listen_navigation(WebView2Window& window);
+	void listen_navigation(KrunkerWindow& window);
 public:
 	Client(HINSTANCE h, int c);
 	bool create();

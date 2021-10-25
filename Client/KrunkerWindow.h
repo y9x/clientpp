@@ -1,9 +1,18 @@
 #pragma once
+#include <mutex>
+#include <string>
+#include <functional>
+#include <atlbase.h>
+#include <atlwin.h>
+#include <atlenc.h>
+#include <json.hpp>
+#include <wrl.h>
+#include <wil/com.h>
+#include <WebView2.h>
 #include "../Utils/IOUtil.h"
 #include "./ClientFolder.h"
-#include "./WebView2Window.h"
 #include "./IPCMessages.h"
-#include <mutex>
+#include "./Points.h"
 
 class JSMessage {
 public:
@@ -16,7 +25,15 @@ public:
 	bool send(ICoreWebView2* target);
 };
 
-class KrunkerWindow : public WebView2Window {
+class KrunkerWindow : public CWindowImpl<KrunkerWindow> {
+public:
+	enum class Status {
+		Ok,
+		MissingRuntime,
+		UnknownError,
+		AlreadyOpen,
+		NotImplemented,
+	};
 private:
 	std::mutex mtx;
 	std::function<bool(JSMessage)> on_unknown_message;
@@ -42,15 +59,34 @@ private:
 	bool send_resource(ICoreWebView2WebResourceRequestedEventArgs* args, int resource, std::wstring mime);
 	void load_userscripts(nlohmann::json* data = nullptr);
 	LRESULT on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
+	LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
 	LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
 public:
+	wil::com_ptr<ICoreWebView2Controller> control;
+	wil::com_ptr<ICoreWebView2> webview;
+	wil::com_ptr<ICoreWebView2Environment> env;
+	std::wstring title;
+	std::wstring pathname;
+	bool open = false;
+	bool fullscreen = false;
+	HRESULT last_herror = 0;
+	Vector2 scale;
+	RECT windowed;
+	COREWEBVIEW2_COLOR ColorRef(COLORREF color);
+	HINSTANCE get_hinstance();
+	bool create_window(HINSTANCE inst, int cmdshow);
+	bool enter_fullscreen();
+	bool exit_fullscreen();
+	bool resize_wv();
+	bool monitor_data(RECT& rect);
+	bool monitor_data(Vector2& pos, Vector2& size);
+	Status create_webview(std::wstring cmdline, std::wstring directory, std::function<void()> callback);
 	bool can_fullscreen = false;
 	COLORREF background = RGB(28, 28, 28);
 	ClientFolder* folder;
-	std::wstring pathname;
-	Status create(HINSTANCE inst, int cmdshow, std::function<void()> callback = nullptr) override;
-	Status get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr) override;
-	void on_dispatch() override;
+	Status create(HINSTANCE inst, int cmdshow, std::function<void()> callback = nullptr);
+	Status get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr);
+	void on_dispatch();
 	bool seek_game();
 	KrunkerWindow(ClientFolder& folder, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr, std::function<void()> on_destroy = nullptr);
 	~KrunkerWindow();
