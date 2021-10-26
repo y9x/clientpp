@@ -35,6 +35,10 @@ ipc.on(IM.mousedown, button => {
 	locked_node?.dispatchEvent(new MouseEvent('mousedown', { button }));
 });
 
+ipc.on(IM.mouseup, button => {
+	locked_node?.dispatchEvent(new MouseEvent('mouseup', { button }));
+});
+
 ipc.on(IM.mousemove, (movementX, movementY) => {
 	locked_node?.dispatchEvent(new MouseEvent('mousemove', { movementX, movementY }));
 });

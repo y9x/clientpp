@@ -197,8 +197,8 @@ bool KrunkerWindow::monitor_data(Vector2& pos, Vector2& size) {
 	pos.x = r.left;
 	pos.y = r.top;
 
-	size.x = (long)r.right - r.left;
-	size.y = (long)r.bottom - r.top;
+	size.x = r.right - r.left;
+	size.y = r.bottom - r.top;
 
 	return true;
 }
@@ -206,17 +206,6 @@ bool KrunkerWindow::monitor_data(Vector2& pos, Vector2& size) {
 LRESULT KrunkerWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
 	return resize_wv();
 }
-
-/*
-#define INPUT_IF(id, button) (mouse.usButtonFlags & RI_MOUSE_BUTTON_##id##_DOWN) { \
-	msg.event = IM::mousedown; \
-	msg.args.push_back(button); \
-} else if(mouse.usButtonFlags & RI_MOUSE_BUTTON_##id##_UP) { \
-	msg.event = IM::mouseup; \
-	msg.args.push_back(button); \
-}
-
-*/
 
 Vector2 movebuffer;
 
@@ -226,54 +215,44 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& f
 	GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw, &size, sizeof(RAWINPUTHEADER));
 
 	if (raw->header.dwType == RIM_TYPEMOUSE) {
-		JSMessage msg;
 		RAWMOUSE mouse = raw->data.mouse;
 		USHORT flags = mouse.usButtonFlags;
-
+		
 		if (flags & RI_MOUSE_WHEEL) JSMessage(IM::mousewheel, { ((*(short*)&mouse.usButtonData) / WHEEL_DELTA) * -100 }).send(webview);
 		if (flags & RI_MOUSE_BUTTON_1_DOWN) JSMessage(IM::mousedown, { 0 }).send(webview);
+		if (flags & RI_MOUSE_BUTTON_1_UP) JSMessage(IM::mouseup, { 0 }).send(webview);
 		if (flags & RI_MOUSE_BUTTON_2_DOWN) JSMessage(IM::mousedown, { 2 }).send(webview);
+		if (flags & RI_MOUSE_BUTTON_2_UP) JSMessage(IM::mouseup, { 2 }).send(webview);
 		if (flags & RI_MOUSE_BUTTON_3_DOWN) JSMessage(IM::mousedown, { 1 }).send(webview);
+		if (flags & RI_MOUSE_BUTTON_3_UP) JSMessage(IM::mouseup, { 1 }).send(webview);
 		if (flags & RI_MOUSE_BUTTON_4_DOWN) JSMessage(IM::mousedown, { 3 }).send(webview);
+		if (flags & RI_MOUSE_BUTTON_4_UP) JSMessage(IM::mouseup, { 3 }).send(webview);
 		if (flags & RI_MOUSE_BUTTON_5_DOWN) JSMessage(IM::mousedown, { 4 }).send(webview);
-		if (mouse.lLastX || mouse.lLastY) movebuffer += Vector2(raw->data.mouse.lLastX, raw->data.mouse.lLastY); 
+		if (flags & RI_MOUSE_BUTTON_5_UP) JSMessage(IM::mouseup, { 4 }).send(webview);
+		if (mouse.lLastX || mouse.lLastY) movebuffer += Vector2(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
 	}
 
-	return 0;
+	return S_OK;
 }
 
 LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam) {
-	switch (wParam) {
-	case WM_LBUTTONUP:
-	case WM_RBUTTONUP:
-	case WM_XBUTTONUP:
-		return CallNextHookEx(NULL, code, wParam, lParam);
-		break;
-	default:
-		return 1;
-		break;
-	}
+	return 1;
 }
 
 void KrunkerWindow::hook_mouse() {
 	clog::debug << "Hooking mouse" << clog::endl;
-	rid[0].dwFlags = RIDEV_INPUTSINK; 
+	rid[0].dwFlags = RIDEV_INPUTSINK;
 	rid[0].hwndTarget = m_hWnd;
-	RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
-	
-	POINT pos;
-	GetCursorPos(&pos);
 
-	INPUT input;
+	INPUT input = {};
 	input.type = INPUT_MOUSE;
-	input.mi.dx = pos.x;
-	input.mi.dy = pos.y;
-	input.mi.dwFlags = (MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE | MOUSEEVENTF_LEFTUP);
-	input.mi.mouseData = 0;
-	input.mi.dwExtraInfo = NULL;
+	input.mi.dx = 0;
 	input.mi.time = 0;
+	input.mi.dwExtraInfo = NULL;
+	input.mi.dwFlags = (MOUSEEVENTF_MOVE | MOUSEEVENTF_LEFTUP | MOUSEEVENTF_RIGHTUP | MOUSEEVENTF_MIDDLEUP);
 	SendInput(1, &input, sizeof(INPUT));
-	
+
+	RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
 	mouse_hook = SetWindowsHookEx(WH_MOUSE_LL, *mouse_message, get_hinstance(), NULL);
 	mouse_hooked = true;
 }
