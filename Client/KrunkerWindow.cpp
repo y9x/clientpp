@@ -138,13 +138,16 @@ bool KrunkerWindow::enter_fullscreen() {
 
 	if (!monitor_data(screen)) return false;
 
-	GetClientRect(&windowed);
-	ClientToScreen(&windowed);
+	GetClientRect(&saved_size);
+	ClientToScreen(&saved_size);
 
-	DWORD style = GetWindowLong(GWL_STYLE);
-	SetWindowLong(GWL_STYLE, style & ~WS_OVERLAPPEDWINDOW);
+	saved_style = GetWindowLong(GWL_STYLE);
+	saved_ex_style = GetWindowLong(GWL_EXSTYLE);
+	SetWindowLong(GWL_EXSTYLE, saved_ex_style & ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
+	SetWindowLong(GWL_STYLE, saved_style & ~(WS_CAPTION | WS_THICKFRAME));
 
-	SetWindowPos(0, &screen, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+	SetWindowPos(0, &screen, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+
 	resize_wv();
 
 	return fullscreen = true;
@@ -153,12 +156,9 @@ bool KrunkerWindow::enter_fullscreen() {
 bool KrunkerWindow::exit_fullscreen() {
 	if (!fullscreen) return false;
 
-	SetWindowLongPtr(GWL_EXSTYLE, WS_EX_LEFT);
-	SetWindowLongPtr(GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
-
-	DWORD style = GetWindowLong(GWL_STYLE);
-	SetWindowLong(GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
-	SetWindowPos(NULL, RECT_ARGS(windowed), SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+	SetWindowLong(GWL_STYLE, saved_style);
+	SetWindowLong(GWL_EXSTYLE, saved_ex_style);
+	SetWindowPos(NULL, RECT_ARGS(saved_size), SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 	resize_wv();
 
 	fullscreen = false;

@@ -85,7 +85,9 @@ public:
 	bool fullscreen = false;
 	HRESULT last_herror = 0;
 	Vector2 scale;
-	RECT windowed;
+	RECT saved_size;
+	DWORD saved_style = 0;
+	DWORD saved_ex_style = 0;
 	COREWEBVIEW2_COLOR ColorRef(COLORREF color);
 	HINSTANCE get_hinstance();
 	bool create_window(HINSTANCE inst, int cmdshow);
