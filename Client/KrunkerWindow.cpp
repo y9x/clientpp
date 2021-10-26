@@ -772,7 +772,7 @@ KrunkerWindow::Status KrunkerWindow::get(HINSTANCE inst, int cmdshow, std::funct
 	}
 }
 
-long long mouse_hz = 240;
+long long mouse_hz = 244;
 long long mouse_interval = 1000 / mouse_hz;
 long long then = KrunkerWindow::now();
 
