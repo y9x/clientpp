@@ -95,7 +95,7 @@ void KrunkerWindow::load_userscripts(JSON* data) {
 					errors.push_back("Unable to read metadata from userscript " + Convert::string(it.file()) + ": " + err.what());
 				}
 				catch (JSON::parse_error err) {
-					errors.push_back("Unable to parse metadata from userscript " + Convert::string(it.file()) + ": " + err.what());
+					errors.push_back("Unable to process metadata from userscript " + Convert::string(it.file()) + ": " + err.what());
 				}
 
 				put[1] = metadata;
