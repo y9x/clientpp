@@ -281,7 +281,6 @@ std::wstring KrunkerWindow::cmdline() {
 		L"--disable-background-timer-throttling",
 		L"--disable-features=msSmartScreenProtection",
 		L"--ignore-gpu-blacklist",
-		L"--force-dark-mode",
 		L"--enable-zero-copy",
 		L"--webrtc-max-cpu-consumption-percentage=100",
 		L"--autoplay-policy=no-user-gesture-required",
@@ -359,7 +358,6 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 		}
 	} break;
 	case IM::relaunch_webview:
-		// https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.992.28#close
 		control->Close();
 		call_create_webview();
 
