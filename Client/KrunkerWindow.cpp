@@ -280,10 +280,8 @@ std::wstring KrunkerWindow::cmdline() {
 	std::vector<std::wstring> cmds = {
 		L"--disable-background-timer-throttling",
 		L"--disable-features=msSmartScreenProtection",
-		// L"--disable-ipc-flooding-protection",
-		L"--force-dark-mode",
-		L"--high-dpi-support=1",
 		L"--ignore-gpu-blacklist",
+		L"--force-dark-mode",
 		L"--enable-zero-copy",
 		L"--webrtc-max-cpu-consumption-percentage=100",
 		L"--autoplay-policy=no-user-gesture-required",
