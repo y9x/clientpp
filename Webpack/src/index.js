@@ -92,11 +92,10 @@ class Menu extends ExtendMenu {
 			walk: 'render.angle',
 			value: {
 				Default: 'default',
-				// 'Legacy Direct3D 9': 'd3d9',
+				'Direct3D 11 on 12': 'd3d11on12',
 				'Direct3D 11': 'd3d11',
-				// 'Direct3D 11 Soft raster': 'warp',
-				'Desktop GL': 'gl',
-				'GLES, ES2 & ES3': 'gles',
+				'Direct3D 9': 'd3d9',
+				'OpenGL': 'gl',
 			},
 		}).on('change', (value, init) => !init && ipc.send(IM.relaunch_webview));
 		
