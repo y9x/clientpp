@@ -145,7 +145,6 @@ bool KrunkerWindow::enter_fullscreen() {
 	saved_ex_style = GetWindowLong(GWL_EXSTYLE);
 	SetWindowLong(GWL_EXSTYLE, saved_ex_style & ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
 	SetWindowLong(GWL_STYLE, saved_style & ~(WS_CAPTION | WS_THICKFRAME));
-
 	SetWindowPos(0, &screen, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 
 	resize_wv();
