@@ -233,15 +233,10 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& f
 
 		if (flags & RI_MOUSE_WHEEL) JSMessage(IM::mousewheel, { ((*(short*)&mouse.usButtonData) / WHEEL_DELTA) * -100 }).send(webview);
 		if (flags & RI_MOUSE_BUTTON_1_DOWN) JSMessage(IM::mousedown, { 0 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_1_UP) JSMessage(IM::mouseup, { 0 }).send(webview);
 		if (flags & RI_MOUSE_BUTTON_2_DOWN) JSMessage(IM::mousedown, { 2 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_2_UP) JSMessage(IM::mouseup, { 2 }).send(webview);
 		if (flags & RI_MOUSE_BUTTON_3_DOWN) JSMessage(IM::mousedown, { 1 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_3_UP) JSMessage(IM::mouseup, { 1 }).send(webview);
 		if (flags & RI_MOUSE_BUTTON_4_DOWN) JSMessage(IM::mousedown, { 3 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_4_UP) JSMessage(IM::mouseup, { 3 }).send(webview);
 		if (flags & RI_MOUSE_BUTTON_5_DOWN) JSMessage(IM::mousedown, { 4 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_5_UP) JSMessage(IM::mouseup, { 4 }).send(webview);
 		if (mouse.lLastX || mouse.lLastY) movebuffer += Vector2(raw->data.mouse.lLastX, raw->data.mouse.lLastY); 
 	}
 
@@ -249,7 +244,16 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& f
 }
 
 LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam) {
-	return 1;
+	switch (wParam) {
+	case WM_LBUTTONUP:
+	case WM_RBUTTONUP:
+	case WM_XBUTTONUP:
+		return CallNextHookEx(NULL, code, wParam, lParam);
+		break;
+	default:
+		return 1;
+		break;
+	}
 }
 
 void KrunkerWindow::hook_mouse() {

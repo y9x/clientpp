@@ -224,7 +224,7 @@ document.addEventListener('pointerlockchange', () => {
 
 setInterval(() => {
 	ipc.send(IM.pointer, document.pointerLockElement != void[]);
-}, 500);
+}, 250);
 
 ipc.on(IM.mousewheel, deltaY => {
 	locked_node?.dispatchEvent(new WheelEvent('wheel', { deltaY }));
@@ -232,10 +232,6 @@ ipc.on(IM.mousewheel, deltaY => {
 
 ipc.on(IM.mousedown, button => {
 	locked_node?.dispatchEvent(new MouseEvent('mousedown', { button }));
-});
-
-ipc.on(IM.mouseup, button => {
-	locked_node?.dispatchEvent(new MouseEvent('mouseup', { button }));
 });
 
 ipc.on(IM.mousemove, (movementX, movementY) => {
@@ -574,12 +570,34 @@ module.exports = {
 "use strict";
 
 
-exports.log = console.log.bind(console);
-exports.info = console.info.bind(console);
-exports.warn = console.warn.bind(console);
-exports.error = console.error.bind(console);
-exports.debug = console.debug.bind(console);
-exports.trace = console.trace.bind(console);
+// script executes before devtools listens on logs
+
+var methods = ['log','info','warn','error','debug','trace'],
+	initial = {},
+	buffer = {},
+	tempcall = (type, ...data) => {
+		
+	};
+
+for(let method of methods){
+	initial[method] = console[method].bind(console);
+	exports[method] = (...data) => {
+		if(!buffer[method])buffer[method] = [];
+		buffer[method].push(data);
+	};
+}
+
+// devtools hooks after
+
+setTimeout(() => {
+	for(let method of methods){
+		exports[method] = initial[method];
+		if(buffer[method])for(let data of buffer[method])exports[method](...data);
+	}
+	
+	buffer = null;
+	initial = null;
+});
 
 /***/ }),
 
