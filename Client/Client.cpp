@@ -200,12 +200,21 @@ bool Client::create() {
 	documents.background = RGB(0xFF, 0xFF, 0xFF);
 	
 	switch (game.create(inst, cmdshow)) {
+	case KrunkerWindow::Status::Ok: break;
 	case KrunkerWindow::Status::MissingRuntime:
 		clog::error << "WebView2 installation check failed. Unable to create game window." << clog::endl;
 		install_runtimes();
 		return false;
+	case KrunkerWindow::Status::UserDataExists:
+		clog::error << "Unable to create user data folder." << clog::endl;
+		game.MessageBox(L"Unable to create the user data folder. Delete the GC++ folder in your documents then relaunch the client.", client_title);;
+		break;
+	case KrunkerWindow::Status::RuntimeFatal:
+		clog::error << "Fatal Edge runtime error occured." << clog::endl;
+		game.MessageBox(L"An unknown Edge runtime error occured. Try relaunching the client.", client_title);;
 		break;
 	case KrunkerWindow::Status::UnknownError:
+	default:
 		std::wstringstream sstream;
 		sstream << std::hex << game.last_herror;
 		

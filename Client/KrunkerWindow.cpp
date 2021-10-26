@@ -739,9 +739,18 @@ KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> c
 	if (!SUCCEEDED(create)) {
 		last_herror = create;
 
-		switch (HRESULT_CODE(create)) {
-		case ERROR_FILE_NOT_FOUND:
+		switch (create) {
+		case HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND):
 			return Status::MissingRuntime;
+			break;
+		case HRESULT_FROM_WIN32(ERROR_FILE_EXISTS):
+			return Status::UserDataExists;
+			break;
+		case E_ACCESSDENIED:
+			return Status::FailCreateUserData;
+			break;
+		case E_FAIL:
+			return Status::RuntimeFatal;
 			break;
 		default:
 			return Status::UnknownError;

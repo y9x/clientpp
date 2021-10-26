@@ -32,6 +32,9 @@ class KrunkerWindow : public CWindowImpl<KrunkerWindow> {
 public:
 	enum class Status {
 		Ok,
+		UserDataExists,
+		FailCreateUserData,
+		RuntimeFatal,
 		MissingRuntime,
 		UnknownError,
 		AlreadyOpen,
