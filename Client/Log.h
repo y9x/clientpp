@@ -13,10 +13,11 @@ namespace clog {
 		std::string buffer;
 		int overflow(int c) override;
 		bool badge_file;
+		bool work;
 		std::string badge;
 		std::wstring file;
 	public:
-		FileOut(std::string badge, std::wstring file, bool cout = false, bool add_badge_to_file = false);
+		FileOut(std::string badge, std::wstring file, bool add_badge_to_file = false, bool work = true);
 	};
 
 	extern FileOut info;

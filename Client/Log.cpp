@@ -8,22 +8,22 @@ namespace clog {
 	std::wstring logs;
 
 #if _DEBUG == 1
-	constexpr bool cout = true;
+	constexpr bool vdebug = true;
 #else
-	constexpr bool cout = false;
+	constexpr bool vdebug = false;
 #endif
 
 	int FileOut::overflow(int c) {
-		if (c == EOF) return 0;
+		if (!work || c == EOF) return 0;
 
 		buffer += c;
 
 		if (c == endl) {
 			std::string prefix;
 
-			if (cout || badge_file) prefix += "[" + badge + "] ";
+			if (vdebug || badge_file) prefix += "[" + badge + "] ";
 
-			if (!cout) {
+			if (!vdebug) {
 				std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 				std::string ts = std::ctime(&now);
 				ts.pop_back();
@@ -34,7 +34,7 @@ namespace clog {
 			
 			buffer = prefix + ": " + buffer;
 
-			if(cout){
+			if(vdebug){
 				std::cout << buffer;
 			}
 			else {
@@ -74,7 +74,7 @@ namespace clog {
 		return true;
 	}
 
-	FileOut::FileOut(std::string b, std::wstring f, bool c, bool bf) : badge(b), badge_file(bf), file(f), std::ostream(this) {
+	FileOut::FileOut(std::string b, std::wstring f, bool bf, bool work) : work(work), badge(b), badge_file(bf), file(f), std::ostream(this) {
 		console_attached = attach_console();
 	}
 
@@ -82,5 +82,5 @@ namespace clog {
 	FileOut info("Info", L"\\Info.log", true);
 	FileOut warn("Warning", L"\\Info.log", true);
 	FileOut error("Error", L"\\Error.log");
-	FileOut debug("Debug", L"\\Debug.log");
+	FileOut debug("Debug", L"\\Debug.log", false, vdebug);
 };
