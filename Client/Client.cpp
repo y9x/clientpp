@@ -126,8 +126,6 @@ bool Client::game_message(JSMessage msg) {
 		if (folder.config["rpc"]["name"]) presence.largeImageText = user.c_str();
 		else presence.state = "In game";
 
-		// clog::info << "Set presence" << clog::endl;
-
 		Discord_UpdatePresence(&presence);
 
 	} break;
