@@ -260,6 +260,20 @@ void KrunkerWindow::hook_mouse() {
 	rid[0].dwFlags = RIDEV_INPUTSINK; 
 	rid[0].hwndTarget = m_hWnd;
 	RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
+	
+	POINT pos;
+	GetCursorPos(&pos);
+
+	INPUT input;
+	input.type = INPUT_MOUSE;
+	input.mi.dx = pos.x;
+	input.mi.dy = pos.y;
+	input.mi.dwFlags = (MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE | MOUSEEVENTF_LEFTUP);
+	input.mi.mouseData = 0;
+	input.mi.dwExtraInfo = NULL;
+	input.mi.time = 0;
+	SendInput(1, &input, sizeof(INPUT));
+	
 	mouse_hook = SetWindowsHookEx(WH_MOUSE_LL, *mouse_message, get_hinstance(), NULL);
 	mouse_hooked = true;
 }
