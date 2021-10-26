@@ -31,8 +31,6 @@ namespace StringUtil {
 		}
 
 		std::string slice(std::string string, int start, int end) {
-			// std::cout << "start: " << start << ", len: " << string.length() << ", math: " << string.length() + start << std::endl;
-
 			int sub_end = start - end,
 				str_len = (int)string.length();
 

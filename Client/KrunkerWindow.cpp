@@ -8,68 +8,13 @@
 #include "../Utils/Base64.h"
 #include "./Log.h"
 #include <ShellScalingApi.h>
-#include <shellapi.h>
-#include <commdlg.h>
 #include <WebView2EnvironmentOptions.h>
-#pragma comment(lib, "Shcore.lib")
 
 using namespace StringUtil;
 using Microsoft::WRL::Make;
 using Microsoft::WRL::Callback;
 
 using JSON = nlohmann::json;
-
-JSMessage::JSMessage() {}
-
-JSMessage::JSMessage(JSON a) {
-	args = a;
-}
-
-JSMessage::JSMessage(IM e) {
-	event = e;
-}
-
-JSMessage::JSMessage(IM e, JSON p) {
-	event = e;
-	args = p;
-}
-
-JSMessage::JSMessage(LPWSTR raw) {
-	JSON parsed = JSON::parse(Convert::string(raw));
-
-	if (!parsed.is_array()) {
-		clog::error << "Message was not an array" << clog::endl;
-		return;
-	}
-
-	for (size_t index = 0; index < parsed.size(); index++) {
-		if (index == 0) {
-			if (!parsed[index].is_number()) {
-				clog::error << "Event was not a number" << clog::endl;
-				return;
-			}
-			else event = (IM)parsed[index].get<int>();
-		}
-		else args.push_back(parsed[index]);
-	}
-}
-
-std::string JSMessage::dump() {
-	JSON message = JSON::array();
-
-	message.push_back((int)event);
-	for (JSON value : args) message.push_back(value);
-
-	return message.dump();
-}
-
-bool JSMessage::send(ICoreWebView2* target) {
-	return SUCCEEDED(target->PostWebMessageAsJson(Convert::wstring(dump()).c_str()));
-}
-
-bool JSMessage::send(wil::com_ptr<ICoreWebView2> target) {
-	return SUCCEEDED(target->PostWebMessageAsJson(Convert::wstring(dump()).c_str()));
-}
 
 long long KrunkerWindow::now() {
 	return duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -87,8 +32,8 @@ KrunkerWindow::KrunkerWindow(ClientFolder& folder_, Type type_, Vector2 s, std::
 	, on_unknown_message(on_unknown_message_)
 	, on_destroy_callback(on_destroy_callback_)
 {
-	rid[0].usUsagePage = 0x01;
-	rid[0].usUsage = 0x02;
+	raw_input.usUsagePage = 0x01;
+	raw_input.usUsage = 0x02;
 }
 
 KrunkerWindow::~KrunkerWindow() {
@@ -241,8 +186,8 @@ LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lP
 
 void KrunkerWindow::hook_mouse() {
 	clog::debug << "Hooking mouse" << clog::endl;
-	rid[0].dwFlags = RIDEV_INPUTSINK;
-	rid[0].hwndTarget = m_hWnd;
+	raw_input.dwFlags = RIDEV_INPUTSINK;
+	raw_input.hwndTarget = m_hWnd;
 
 	INPUT input = {};
 	input.type = INPUT_MOUSE;
@@ -252,16 +197,16 @@ void KrunkerWindow::hook_mouse() {
 	input.mi.dwFlags = (MOUSEEVENTF_MOVE | MOUSEEVENTF_LEFTUP | MOUSEEVENTF_RIGHTUP | MOUSEEVENTF_MIDDLEUP);
 	SendInput(1, &input, sizeof(INPUT));
 
-	RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
+	RegisterRawInputDevices(&raw_input, 1, sizeof(raw_input));
 	mouse_hook = SetWindowsHookEx(WH_MOUSE_LL, *mouse_message, get_hinstance(), NULL);
 	mouse_hooked = true;
 }
 
 void KrunkerWindow::unhook_mouse() {
 	clog::debug << "Unhooked mouse" << clog::endl;
-	rid[0].dwFlags = RIDEV_REMOVE;
-	rid[0].hwndTarget = NULL;
-	RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
+	raw_input.dwFlags = RIDEV_REMOVE;
+	raw_input.hwndTarget = NULL;
+	RegisterRawInputDevices(&raw_input, 1, sizeof(raw_input));
 	UnhookWindowsHookEx(mouse_hook);
 	mouse_hooked = false;
 }
@@ -303,180 +248,32 @@ std::wstring KrunkerWindow::cmdline() {
 	return cmdline;
 }
 
-
-void KrunkerWindow::handle_message(JSMessage msg) {
-	switch ((IM)msg.event) {
-	case IM::save_config:
-		folder->config = msg.args[0];
-		folder->save_config();
-
-		break;
-	case IM::open_devtools:
-		if (folder->config["client"]["devtools"]) webview->OpenDevToolsWindow();
-		break;
-	case IM::shell_open: {
-		std::wstring open;
-
-		if (msg.args[0] == "root")open = folder->directory;
-		else if (msg.args[0] == "logs") open = folder->directory + folder->p_logs;
-		else if (msg.args[0] == "scripts") open = folder->directory + folder->p_scripts;
-		else if (msg.args[0] == "styles") open = folder->directory + folder->p_styles;
-		else if (msg.args[0] == "swapper") open = folder->directory + folder->p_swapper;
-		else if (msg.args[0] == "url") open = Convert::wstring(msg.args[1].get<std::string>());
-
-		ShellExecute(m_hWnd, L"open", open.c_str(), L"", L"", SW_SHOW);
-	} break;
-	case IM::pointer:
-		last_pointer_poll = now();
-		if (msg.args[0] && !mouse_hooked) hook_mouse();
-		else if (!msg.args[0] && mouse_hooked) unhook_mouse();
-
-		break;
-	case IM::log: {
-		std::string log = msg.args[1];
-		
-		switch ((LogType)msg.args[0].get<int>()) {
-		case LogType::info:
-			clog::info << log << clog::endl;
-			break;
-		case LogType::warn:
-			clog::warn << log << clog::endl;
-			break;
-		case LogType::error:
-			clog::error << log << clog::endl;
-			break;
-		case LogType::debug:
-			clog::debug << log << clog::endl;
-			break;
-		}
-	} break;
-	case IM::relaunch_webview:
-		control->Close();
-		call_create_webview();
-
-		break;
-	case IM::close_window:
-		if (::IsWindow(m_hWnd)) DestroyWindow();
-		break;
-	case IM::reload_window:
-		webview->Stop();
-		webview->Reload();
-		break;
-	case IM::seek_game:
-		if (folder->config["game"]["seek"]["F4"]) {
-			webview->Stop();
-			seek_game();
-		}
-		break;
-	case IM::toggle_fullscreen:
-		folder->config["render"]["fullscreen"] = !folder->config["render"]["fullscreen"];
-		folder->save_config();
-		
-		{
-			JSMessage msg(IM::update_menu);
-			msg.args.push_back(folder->config);
-			if (!msg.send(webview))clog::error << "Unable to send " << msg.dump() << clog::endl;
-		}
-	case IM::fullscreen:
-		if (folder->config["render"]["fullscreen"]) enter_fullscreen();
-		else exit_fullscreen();
-		break;
-	case IM::update_meta:
-		title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
-		SetIcon((HICON)LoadImage(get_hinstance(), folder->resolve_path(Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
-		SetWindowText(title.c_str());
-
-		break;
-	case IM::revert_meta:
-		title = og_title;
-		SetIcon(LoadIcon(get_hinstance(), MAKEINTRESOURCE(MAINICON)));
-		SetWindowText(title.c_str());
-
-		break;
-	case IM::reload_config:
-		folder->load_config();
-
-		break;
-	case IM::browse_file:
-		new std::thread([this](JSMessage msg) {
-			wchar_t filename[MAX_PATH];
-
-			OPENFILENAME ofn;
-			ZeroMemory(&filename, sizeof(filename));
-			ZeroMemory(&ofn, sizeof(ofn));
-			ofn.lStructSize = sizeof(ofn);
-			ofn.hwndOwner = m_hWnd;
-			std::wstring title = Convert::wstring(msg.args[1]);
-			std::wstring filters;
-			for (JSON value : msg.args[2]) {
-				std::string label = value[0];
-				std::string filter = value[1];
-
-				label += " (" + filter + ")";
-
-				filters += Convert::wstring(label);
-				filters += L'\0';
-				filters += Convert::wstring(filter);
-				filters += L'\0';
-			}
-
-			// L"Icon Files\0*.ico\0Any File\0*.*\0"
-			// filters is terminated by 2 null characters
-			// each filter is terminated by 1 null character
-			ofn.lpstrFilter = filters.c_str();
-			ofn.lpstrFile = filename;
-			ofn.nMaxFile = MAX_PATH;
-			ofn.lpstrTitle = title.c_str();
-			ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
-
-			JSMessage res((IM)msg.args[0].get<int>());
-
-			if (GetOpenFileName(&ofn)) {
-				std::wstring fn;
-				fn.resize(MAX_PATH);
-				fn = filename;
-
-				// make relative
-				res.args[0] = Convert::string(folder->relative_path(fn));
-				res.args[1] = false;
-			}
-			else res.args[1] = true;
-
-			mtx.lock();
-			pending_messages.push_back(res);
-			mtx.unlock();
-		}, msg);
-
-		break;
-	default:
-		if (!on_unknown_message || !on_unknown_message(msg)) clog::error << "Unknown message " << msg.dump() << clog::endl;
-
-		break;
-	}
-}
-
 bool KrunkerWindow::send_resource(ICoreWebView2WebResourceRequestedEventArgs* args, int resource, std::wstring mime) {
-	// Create an empty IStream:
 	IStream* stream = nullptr;
-	if (CreateStreamOnHGlobal(NULL, TRUE, (LPSTREAM*)&stream) == S_OK) {
-		std::string data;
-		if (load_resource(resource, data)) {
-			ULONG written = 0;
+	std::string data;
 
-			if (stream->Write(data.data(), data.size(), &written) == S_OK) {
-				wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-				env->CreateWebResourceResponse(stream, 200, L"OK", (L"Content-Type: " + mime).c_str(), &response);
-				args->put_Response(response.get());
-
-				return true;
-			}
-			else clog::error << "Unable to write data to IStream" << clog::endl;
-		}
-		else clog::error << "Unable to load resource " << resource << clog::endl;
+	if (!load_resource(resource, data)) {
+		clog::error << "Unable to load resource " << resource << clog::endl;
+		return false;
 	}
-	else clog::error << "Unable to create IStream on HGlobal" << clog::endl;
 
-	return false;
+	if (CreateStreamOnHGlobal(NULL, TRUE, (LPSTREAM*)&stream) != S_OK) {
+		clog::error << "Unable to create IStream on HGlobal" << clog::endl;
+		return false;
+	}
+	
+	ULONG written = 0;
+
+	if (stream->Write(data.data(), data.size(), &written) != S_OK) {
+		clog::error << "Unable to write data to IStream" << clog::endl;
+		return false;
+	}
+
+	wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+	env->CreateWebResourceResponse(stream, 200, L"OK", (L"Content-Type: " + mime).c_str(), &response);
+	args->put_Response(response.get());
+
+	return true;
 }
 
 std::string KrunkerWindow::status_name(COREWEBVIEW2_WEB_ERROR_STATUS status) {
@@ -656,6 +453,7 @@ void KrunkerWindow::register_events() {
 	}).Get(), &token);
 }
 
+// #pragma comment(lib, "Shcore.lib")
 HMODULE shcore = LoadLibrary(L"api-ms-win-shcore-scaling-l1-1-1.dll");
 
 KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {
@@ -670,9 +468,7 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::fu
 
 	if (shcore) {
 		using dec = decltype(::SetProcessDpiAwareness);
-		std::function SetProcessDpiAwareness = (dec*)GetProcAddress(shcore, "SetProcessDpiAwareness");
-
-		if (SetProcessDpiAwareness) {
+		if (std::function SetProcessDpiAwareness = (dec*)GetProcAddress(shcore, "SetProcessDpiAwareness")) {
 			HRESULT sda = SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
 			if (!SUCCEEDED(sda)) clog::error << "SetProcessDpiAwareness returned " << std::hex << HRESULT_CODE(sda) << clog::endl;
 		}

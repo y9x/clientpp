@@ -207,6 +207,12 @@
     <ClCompile Include="SeekGame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IPCMessages.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JSMessage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Utils\StringUtil.h">
@@ -249,6 +255,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TraverseCopy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JSMessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
