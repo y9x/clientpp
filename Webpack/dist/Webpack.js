@@ -75,7 +75,11 @@ class ChiefUserscript {
 		var { gui } = this.metadata.features;
 		
 		if(menu)for(let [ labelct, controls ] of Object.entries(gui)){
-			let category = menu.category(labelct);
+			let category;
+			
+			// use existing category when possible
+			for(let ct of menu.categories)if(ct.label == labelct)category = ct;
+			if(!category)category = menu.category(labelct);
 			
 			for(let [ labelco, data ] of Object.entries(controls)){
 				let change_callback = data.change;
