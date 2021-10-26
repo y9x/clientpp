@@ -275,13 +275,13 @@ std::wstring KrunkerWindow::cmdline() {
 	std::vector<std::wstring> cmds = {
 		L"--disable-background-timer-throttling",
 		L"--disable-features=msSmartScreenProtection",
+		// L"--disable-ipc-flooding-protection",
 		L"--force-dark-mode",
 		L"--high-dpi-support=1",
 		L"--ignore-gpu-blacklist",
 		L"--enable-zero-copy",
 		L"--webrtc-max-cpu-consumption-percentage=100",
 		L"--autoplay-policy=no-user-gesture-required",
-		L"--disable-ipc-flooding-protection",
 	};
 
 	for (std::wstring cmd : additional_command_line) cmds.push_back(cmd);
@@ -762,6 +762,8 @@ KrunkerWindow::Status KrunkerWindow::get(HINSTANCE inst, int cmdshow, std::funct
 }
 
 void KrunkerWindow::on_dispatch() {
+	if (!open) return;
+	
 	mtx.lock();
 	
 	for (JSMessage msg : pending_messages)
