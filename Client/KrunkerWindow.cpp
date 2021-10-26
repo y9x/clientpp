@@ -219,6 +219,8 @@ LRESULT KrunkerWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 
 */
 
+Vector2 movebuffer;
+
 LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
 	unsigned size = sizeof(RAWINPUT);
 	static RAWINPUT raw[sizeof(RAWINPUT)];
@@ -240,7 +242,7 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& f
 		if (flags & RI_MOUSE_BUTTON_4_UP) JSMessage(IM::mouseup, { 3 }).send(webview);
 		if (flags & RI_MOUSE_BUTTON_5_DOWN) JSMessage(IM::mousedown, { 4 }).send(webview);
 		if (flags & RI_MOUSE_BUTTON_5_UP) JSMessage(IM::mouseup, { 4 }).send(webview);
-		if (mouse.lLastX || mouse.lLastY) JSMessage(IM::mousemove, { mouse.lLastX, mouse.lLastY }).send(webview);
+		if (mouse.lLastX || mouse.lLastY) movebuffer += Vector2(raw->data.mouse.lLastX, raw->data.mouse.lLastY); 
 	}
 
 	return 0;
@@ -770,6 +772,10 @@ KrunkerWindow::Status KrunkerWindow::get(HINSTANCE inst, int cmdshow, std::funct
 	}
 }
 
+long long mouse_hz = 240;
+long long mouse_interval = 1000 / mouse_hz;
+long long then = KrunkerWindow::now();
+
 void KrunkerWindow::on_dispatch() {
 	if (!open) return;
 	
@@ -790,6 +796,18 @@ void KrunkerWindow::on_dispatch() {
 	if (last_poll > 1500 && mouse_hooked) {
 		clog::error << "Pointer lock timeout: " << last_poll << "ms" << clog::endl;
 		unhook_mouse();
+	}
+
+	if (mouse_hooked) {
+		long long nw = now();
+		long long delta = nw - then;
+
+		if (delta > mouse_interval) {
+			then = nw - (delta % mouse_interval);
+			JSMessage(IM::mousemove, { movebuffer.x, movebuffer.y }).send(webview);
+			movebuffer.clear();
+		}
+
 	}
 }
 
