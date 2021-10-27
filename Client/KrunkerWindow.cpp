@@ -1,5 +1,4 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
-#include <httplib.hpp>
 #include "./KrunkerWindow.h"
 #include "../Utils/StringUtil.h"
 #include "./LoadRes.h"
@@ -7,6 +6,7 @@
 #include "../Utils/Uri.h"
 #include "../Utils/Base64.h"
 #include "./Log.h"
+#include <regex>
 #include <ShellScalingApi.h>
 #include <WebView2EnvironmentOptions.h>
 
