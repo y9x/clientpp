@@ -1693,7 +1693,7 @@ class Menu extends ExtendMenu {
 		Client.control('Github', {
 			type: 'linkfunction',
 			value(){
-				ipc.send(IM.shell_open, 'url', 'https://github.com/y9x/clientpp');
+				ipc.send(IM.shell_open, 'url', 'https://github.com/6ct/clientpp');
 			},
 		});
 		

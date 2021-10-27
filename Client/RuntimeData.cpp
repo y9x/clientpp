@@ -122,13 +122,13 @@ JSON KrunkerWindow::runtime_data() {
 
 	load_userscripts(&data["js"]);
 
-	for (IOUtil::WDirectoryIterator it(folder->directory + folder->p_styles, L"*.js"); ++it;) {
+	for (IOUtil::WDirectoryIterator it(folder->directory + folder->p_styles, L"*.css"); ++it;) {
 		std::string buffer;
 		if (IOUtil::read_file(it.path().c_str(), buffer))
 			data["css"][Convert::string(it.file()).c_str()] = buffer;
 	}
 
-	data["css"]["client/hide.css"] = "img[src='./img/client.png'] { display: none !IMPORTANT; }";
+	data["css"]["client/hide.css"] = "#clientExit{display:block!IMPORTANT}img[src='./img/client.png']{display:none!IMPORTANT}";
 
 	data["config"] = folder->config;
 
