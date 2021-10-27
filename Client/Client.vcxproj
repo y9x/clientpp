@@ -96,6 +96,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="..\Resources\Bootstrap.js" />
+    <None Include="..\Resources\Client.css" />
     <None Include="..\Resources\Config.json" />
     <None Include="..\Resources\DefaultUserscript.json" />
     <None Include="..\Resources\Error.html" />

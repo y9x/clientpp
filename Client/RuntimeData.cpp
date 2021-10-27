@@ -128,7 +128,9 @@ JSON KrunkerWindow::runtime_data() {
 			data["css"][Convert::string(it.file()).c_str()] = buffer;
 	}
 
-	data["css"]["client/hide.css"] = "#clientExit{display:block!IMPORTANT}img[src='./img/client.png']{display:none!IMPORTANT}";
+	std::string cli_css;
+	if (load_resource(CSS_CLIENT, cli_css)) data["css"]["client/builtin.css"] = cli_css;
+	else clog::error << "Unable to load built-in CSS" << clog::endl;
 
 	data["config"] = folder->config;
 

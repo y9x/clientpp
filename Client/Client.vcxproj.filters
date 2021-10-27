@@ -25,6 +25,7 @@
     <None Include="..\Resources\Bootstrap.js" />
     <None Include="..\Resources\DefaultUserscript.json" />
     <None Include="..\Resources\Error.html" />
+    <None Include="..\Resources\Client.css" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">

@@ -1,0 +1,7 @@
+#clientExit { 
+	display: block !IMPORTANT;
+}
+
+img[src='./img/client.png'] {
+	display: none !IMPORTANT;
+}

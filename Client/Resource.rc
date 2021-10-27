@@ -78,6 +78,7 @@ HTML_ERROR              RCDATA                  "..\\Resources\\Error.html"
 
 FONT_GAME               RCDATA                  "..\\Resources\\GameFont.ttf"
 
+CSS_CLIENT              RCDATA                  "..\\Resources\\Client.css"
 
 /////////////////////////////////////////////////////////////////////////////
 //
