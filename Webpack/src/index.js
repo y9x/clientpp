@@ -177,7 +177,7 @@ class Menu extends ExtendMenu {
 
 new Keybind('F4', event => {
 	if(event.altKey)ipc.send(IM.close_window);
-	else ipc.send(IM.seek_game);
+	else ipc.send(IM.seek_game, localStorage.pingRegion7);
 });
 
 new Keybind('F11', () => {

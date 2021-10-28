@@ -12,8 +12,10 @@ namespace StringUtil {
 
 	namespace Manipulate {
 		std::string slice(std::string string, int start, int end);
-
 		std::string slice(std::string string, int start);
+
+		std::string lowercase(std::string string);
+		std::string uppercase(std::string string);
 
 		std::string replace_all(std::string string, const std::string& from, const std::string& to);
 		std::wstring replace_all(std::wstring string, const std::wstring& from, const std::wstring& to);

@@ -1619,7 +1619,7 @@ module.exports = Utils;
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"game":{"seek":{"F4":true,"mode":"any"}},"client":{"devtools":false},"render":{"uncap_fps":false,"fullscreen":false,"angle":"default","color":"default"},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}},"userscripts":{}}');
+module.exports = JSON.parse('{"game":{"seek":{"F4":true,"mode":"","map":""}},"client":{"devtools":false},"render":{"uncap_fps":false,"fullscreen":false,"angle":"default","color":"default"},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}},"userscripts":{}}');
 
 /***/ })
 
@@ -1836,7 +1836,7 @@ class Menu extends ExtendMenu {
 
 new Keybind('F4', event => {
 	if(event.altKey)ipc.send(IM.close_window);
-	else ipc.send(IM.seek_game);
+	else ipc.send(IM.seek_game, localStorage.pingRegion7);
 });
 
 new Keybind('F11', () => {

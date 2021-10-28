@@ -534,7 +534,7 @@ KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> c
 
 			resize_wv();
 			register_events();
-			seek_game();
+			webview->Navigate((L"https://krunker.io" + pathname).c_str());
 
 			clog::debug << "KrunkerWindow created: " << Convert::string(pathname) << clog::endl;
 

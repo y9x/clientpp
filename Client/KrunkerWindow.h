@@ -14,6 +14,7 @@
 #include "./ClientFolder.h"
 #include "./IPCMessages.h"
 #include "./Points.h"
+#include "./LobbySeeker.h"
 
 class KrunkerWindow : public CWindowImpl<KrunkerWindow> {
 public:
@@ -58,6 +59,7 @@ private:
 	std::string status_name(COREWEBVIEW2_WEB_ERROR_STATUS status);
 	bool send_resource(ICoreWebView2WebResourceRequestedEventArgs* args, int resource, std::wstring mime);
 	void load_userscripts(nlohmann::json* data = nullptr);
+	LobbySeeker seeker;
 	LRESULT on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
 	LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
 	LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
@@ -90,7 +92,6 @@ public:
 	Status create(HINSTANCE inst, int cmdshow, std::function<void()> callback = nullptr);
 	Status get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr);
 	void on_dispatch();
-	bool seek_game();
 	KrunkerWindow(ClientFolder& folder, Type type, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr, std::function<void()> on_destroy = nullptr);
 	~KrunkerWindow();
 	BEGIN_MSG_MAP(KrunkerWindow)

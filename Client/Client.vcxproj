@@ -113,12 +113,12 @@
     <ClCompile Include="IPCMessages.cpp" />
     <ClCompile Include="JSMessage.cpp" />
     <ClCompile Include="KrunkerWindow.cpp" />
+    <ClCompile Include="LobbySeeker.cpp" />
     <ClCompile Include="RuntimeData.cpp" />
     <ClCompile Include="LoadRes.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="Points.cpp" />
-    <ClCompile Include="SeekGame.cpp" />
     <ClCompile Include="TraverseCopy.cpp" />
     <ClCompile Include="Updater.cpp" />
     <ClCompile Include="Updater.h" />
@@ -126,6 +126,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JSMessage.h" />
+    <ClInclude Include="LobbySeeker.h" />
     <ClInclude Include="Points.h" />
     <ClInclude Include="..\Utils\Base64.h" />
     <ClInclude Include="..\Utils\IOUtil.h" />

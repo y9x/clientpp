@@ -85,6 +85,17 @@ namespace StringUtil {
 			}
 			return strings;
 		}
+
+
+		std::string lowercase(std::string string) {
+			for (char& c : string) c = tolower(c);
+			return string;
+		}
+
+		std::string uppercase(std::string string) {
+			for (char& c : string) c = toupper(c);
+			return string;
+		}
 	};
 
 	namespace Validate {

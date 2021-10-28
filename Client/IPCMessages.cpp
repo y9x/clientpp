@@ -69,7 +69,21 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 	case IM::seek_game:
 		if (folder->config["game"]["seek"]["F4"]) {
 			webview->Stop();
-			seek_game();
+			
+			int mode = 0;
+			int region = 0;
+
+			for (int mi = 0; mi < LobbySeeker::modes.size(); mi++) if (LobbySeeker::modes[mi] == folder->config["game"]["seek"]["mode"]) {
+				mode = mi;
+			}
+
+			for (int ri = 0; ri < LobbySeeker::regions.size(); ri++) if (LobbySeeker::regions[ri].first == msg.args[0]) {
+				region = ri;
+			}
+
+			seeker.Seek(region, mode, folder->config["game"]["seek"]["map"], [this](std::string url) {
+				webview->Navigate(Convert::wstring(url).c_str());
+			});
 		}
 		break;
 	case IM::toggle_fullscreen:
@@ -149,7 +163,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 			mtx.lock();
 			pending_messages.push_back(res);
 			mtx.unlock();
-			}, msg);
+		}, msg);
 
 		break;
 	default:

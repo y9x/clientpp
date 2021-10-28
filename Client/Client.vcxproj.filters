@@ -205,13 +205,13 @@
     <ClCompile Include="RuntimeData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SeekGame.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="IPCMessages.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="JSMessage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LobbySeeker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -259,6 +259,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="JSMessage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LobbySeeker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
