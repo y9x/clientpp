@@ -76,7 +76,7 @@ std::string LobbySeeker::seek() {
 			if (mode != -1 && game.mode != mode) continue;
 			if (use_map && Manipulate::lowercase(game.map) != Manipulate::lowercase(map)) continue;
 
-			clog::info << "Valid " << game.map << " " << game.id << clog::endl;
+			// clog::info << "Valid " << game.map << " " << game.id << clog::endl;
 
 			return game.link();
 		}
