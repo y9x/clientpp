@@ -79,8 +79,8 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 				region = ri;
 			}
 			
-			std::string url = seeker.Seek(region, mode, folder->config["game"]["seek"]["map"]);
-			
+			std::string url = seeker.seek(region, mode, folder->config["game"]["seek"]["map"]);
+
 			mtx.lock();
 			pending_navigations.push_back(Convert::wstring(url));
 			mtx.unlock();

@@ -9,5 +9,5 @@ public:
 	static std::vector<std::pair<std::string, std::string>> regions;
 public:
 	LobbySeeker() {}
-	std::string Seek(int region, int mode, std::string map);
+	std::string seek(int region, int mode, std::string map);
 };

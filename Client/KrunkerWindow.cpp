@@ -20,13 +20,12 @@ long long KrunkerWindow::now() {
 	return duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
-KrunkerWindow::KrunkerWindow(ClientFolder& folder_, Type type_, Vector2 s, std::wstring title_, std::wstring pathname_, std::function<void()> on_startup_, std::function<bool(JSMessage)> on_unknown_message_, std::function<void()> on_destroy_callback_)
+KrunkerWindow::KrunkerWindow(ClientFolder& folder_, Type type_, Vector2 s, std::wstring title_, std::function<void()> on_startup_, std::function<bool(JSMessage)> on_unknown_message_, std::function<void()> on_destroy_callback_)
 	: type(type_)
 	, title(title_)
 	, og_title(title_)
 	, scale(s)
 	, folder(&folder_)
-	, pathname(pathname_)
 	, last_pointer_poll(now())
 	, on_webview2_startup(on_startup_)
 	, on_unknown_message(on_unknown_message_)
@@ -534,9 +533,8 @@ KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> c
 
 			resize_wv();
 			register_events();
-			webview->Navigate((L"https://krunker.io" + pathname).c_str());
-
-			clog::debug << "KrunkerWindow created: " << Convert::string(pathname) << clog::endl;
+			
+			clog::debug << "KrunkerWindow created" << clog::endl;
 
 			if (on_webview2_startup) on_webview2_startup();
 			if (callback) callback();

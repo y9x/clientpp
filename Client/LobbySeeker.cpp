@@ -36,7 +36,7 @@ std::vector<std::pair<std::string, std::string>> LobbySeeker::regions = {
 	{ "as-seoul", "South Korea" },
 };
 
-std::string LobbySeeker::Seek(int region, int mode, std::string map) {
+std::string LobbySeeker::seek(int region, int mode, std::string map) {
 	map = Manipulate::lowercase(map);
 	
 	if (auto res = api.Get("/game-list?hostname=krunker.io"))try {

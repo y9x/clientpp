@@ -70,7 +70,6 @@ public:
 	wil::com_ptr<ICoreWebView2> webview;
 	wil::com_ptr<ICoreWebView2Environment> env;
 	std::wstring title;
-	std::wstring pathname;
 	bool open = false;
 	bool fullscreen = false;
 	HRESULT last_herror = 0;
@@ -93,7 +92,7 @@ public:
 	Status create(HINSTANCE inst, int cmdshow, std::function<void()> callback = nullptr);
 	Status get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr);
 	void on_dispatch();
-	KrunkerWindow(ClientFolder& folder, Type type, Vector2 scale, std::wstring title, std::wstring path, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr, std::function<void()> on_destroy = nullptr);
+	KrunkerWindow(ClientFolder& folder, Type type, Vector2 scale, std::wstring title, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr, std::function<void()> on_destroy = nullptr);
 	~KrunkerWindow();
 	BEGIN_MSG_MAP(KrunkerWindow)
 		MESSAGE_HANDLER(WM_DESTROY, on_destroy)
