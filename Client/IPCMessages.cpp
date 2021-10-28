@@ -68,7 +68,9 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 		webview->Reload();
 		break;
 	case IM::seek_game:
-		if (folder->config["game"]["seek"]["F4"]) new std::thread([this](std::string sregion) {
+		if (type == Type::Game && !seeking && folder->config["game"]["seek"]["F4"]) new std::thread([this](std::string sregion) {
+			seeking = true;
+
 			LobbySeeker seeker;
 
 			for (size_t mi = 0; mi < LobbySeeker::modes.size(); mi++) if (LobbySeeker::modes[mi] == folder->config["game"]["seek"]["mode"]) {
@@ -89,6 +91,8 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 			mtx.lock();
 			pending_navigations.push_back(Convert::wstring(url));
 			mtx.unlock();
+
+			seeking = false;
 		}, msg.args[0]);
 
 		break;

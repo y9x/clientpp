@@ -35,6 +35,7 @@ public:
 	};
 	static long long now();
 private:
+	bool seeking = false;
 	std::mutex mtx;
 	std::function<bool(JSMessage)> on_unknown_message;
 	std::function<void()> on_webview2_startup;
