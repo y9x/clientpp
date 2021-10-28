@@ -36,39 +36,50 @@ std::vector<std::pair<std::string, std::string>> LobbySeeker::regions = {
 	{ "as-seoul", "South Korea" },
 };
 
-std::string LobbySeeker::seek(int region, int mode, std::string map) {
-	map = Manipulate::lowercase(map);
-	
+int Game::region_id(std::string region) {
+	for (size_t mir = 0; mir < LobbySeeker::regions.size(); mir++) if (LobbySeeker::regions[mir].first == region)
+		return (int)mir;
+
+	return -1;
+}
+Game::Game(JSON data)
+	: id(data[0])
+	, region(region_id(data[1]))
+	, map(data[4]["i"])
+	, mode(data[4]["g"])
+	, players(data[2])
+	, max_players(data[3])
+{}
+bool Game::operator < (Game c) {
+	return players < c.players;
+}
+bool Game::full() {
+	return players == max_players;
+}
+std::string Game::link() {
+	return "https://krunker.io/?game=" + id;
+}
+
+std::string LobbySeeker::seek() {
 	if (auto res = api.Get("/game-list?hostname=krunker.io"))try {
 		JSON data = JSON::parse(res->body);
+		
+		std::vector<Game> games;
 
-		for (JSON game : data["games"]) {
-			JSON meta = game[4];
-			int meta_mode = meta["g"];
-			int meta_region = -1;
-			std::string meta_sregion = game[1];
+		for (JSON data : data["games"]) games.push_back(data);
 
-			for (int mir = 0; mir < regions.size(); mir++) if (regions[mir].first == meta_sregion) {
-				meta_region = mir;
-				break;
-			}
+		std::sort(games.begin(), games.end());
 
-			std::string meta_id = game[0];
-			std::string meta_map = Manipulate::lowercase(meta["i"]);
-				
-			if (region != meta_region) { clog::warn << "game not specified region" << clog::endl; continue; }
-			if (mode != -1 /*ANY*/ && meta_mode != mode) { clog::warn << "game not specified mode" << clog::endl; continue; }
-			if (map != "" && meta_map != map) { clog::warn << "game not specified map" << clog::endl; continue; }
+		for (Game game : games) {
+			if (game.full()) continue;
+			if (region != -1 && game.region != region) { clog::debug << "game region: " << region << " != " << game.region << clog::endl; continue; }
+			if (mode != -1 && game.mode != mode) { clog::debug << "game mode: " << mode << " != " << game.mode << clog::endl; continue; }
+			if (use_map && Manipulate::lowercase(game.map) != Manipulate::lowercase(map)) { clog::debug << "game map: " << map << " != " << game.map << clog::endl; continue; }
 
-			clog::info << "Valid " << game << clog::endl;
-				
-			return "https://krunker.io/?game=" + meta_id;
+			clog::info << "Valid " << game.map << " " << game.id << clog::endl;
 
-			break;
+			return game.link();
 		}
-
-		clog::error << "Error finding game" << clog::endl;
-		return "https://krunker.io";
 	}
 	catch (JSON::parse_error err) {
 		clog::error << "Unable to parse game list: " << err.what() << clog::endl;
@@ -76,4 +87,8 @@ std::string LobbySeeker::seek(int region, int mode, std::string map) {
 	catch (JSON::type_error err) {
 		clog::error << "Unable to process game list: " << err.what() << clog::endl;
 	}
+
+
+	clog::error << "Error finding game" << clog::endl;
+	return "https://krunker.io";
 }

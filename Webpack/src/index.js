@@ -128,6 +128,11 @@ class Menu extends ExtendMenu {
 			},
 		});
 		
+		Game.control('Seek customs', {
+			type: 'boolean',
+			walk: 'game.seek.customs',
+		});
+		
 		var RPC = this.category('Discord RPC');
 		
 		RPC.control('Enabled', {

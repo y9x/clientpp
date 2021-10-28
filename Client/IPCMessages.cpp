@@ -2,6 +2,7 @@
 #include "../Utils/StringUtil.h"
 #include "./Log.h"
 #include "./resource.h"
+#include "./LobbySeeker.h"
 #include <shellapi.h>
 #include <commdlg.h>
 
@@ -68,18 +69,22 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 		break;
 	case IM::seek_game:
 		if (folder->config["game"]["seek"]["F4"]) new std::thread([this](std::string sregion) {
-			int mode = -1;
-			int region = 0;
+			LobbySeeker seeker;
 
-			for (int mi = 0; mi < LobbySeeker::modes.size(); mi++) if (LobbySeeker::modes[mi] == folder->config["game"]["seek"]["mode"]) {
-				mode = mi;
+			for (size_t mi = 0; mi < LobbySeeker::modes.size(); mi++) if (LobbySeeker::modes[mi] == folder->config["game"]["seek"]["mode"]) {
+				seeker.mode = mi;
 			}
 			
-			for (int ri = 0; ri < LobbySeeker::regions.size(); ri++) if (LobbySeeker::regions[ri].first == sregion) {
-				region = ri;
+			for (size_t ri = 0; ri < LobbySeeker::regions.size(); ri++) if (LobbySeeker::regions[ri].first == sregion) {
+				seeker.region = ri;
 			}
 			
-			std::string url = seeker.seek(region, mode, folder->config["game"]["seek"]["map"]);
+			seeker.customs = folder->config["game"]["seek"]["customs"];
+			seeker.map = folder->config["game"]["seek"]["map"];
+
+			if (seeker.map.length()) seeker.use_map = true;
+			
+			std::string url = seeker.seek();
 
 			mtx.lock();
 			pending_navigations.push_back(Convert::wstring(url));

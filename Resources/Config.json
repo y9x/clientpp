@@ -3,7 +3,8 @@
 		"seek": {
 			"F4": true,
 			"mode": "",
-			"map":  ""
+			"map": "",
+			"customs": false
 		}
 	},
 	"client": {

@@ -1619,7 +1619,7 @@ module.exports = Utils;
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"game":{"seek":{"F4":true,"mode":"","map":""}},"client":{"devtools":false},"render":{"uncap_fps":false,"fullscreen":false,"angle":"default","color":"default"},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}},"userscripts":{}}');
+module.exports = JSON.parse('{"game":{"seek":{"F4":true,"mode":"","map":"","customs":false}},"client":{"devtools":false},"render":{"uncap_fps":false,"fullscreen":false,"angle":"default","color":"default"},"rpc":{"enabled":true,"name":false},"window":{"meta":{"replace":false,"title":"Krunker","icon":"Krunker.ico"}},"userscripts":{}}');
 
 /***/ })
 
@@ -1785,6 +1785,11 @@ class Menu extends ExtendMenu {
 				Any: '',
 				...modes,
 			},
+		});
+		
+		Game.control('Seek customs', {
+			type: 'boolean',
+			walk: 'game.seek.customs',
 		});
 		
 		var RPC = this.category('Discord RPC');

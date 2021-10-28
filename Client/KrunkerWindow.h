@@ -14,7 +14,6 @@
 #include "./ClientFolder.h"
 #include "./IPCMessages.h"
 #include "./Points.h"
-#include "./LobbySeeker.h"
 
 class KrunkerWindow : public CWindowImpl<KrunkerWindow> {
 public:
@@ -60,7 +59,6 @@ private:
 	std::string status_name(COREWEBVIEW2_WEB_ERROR_STATUS status);
 	bool send_resource(ICoreWebView2WebResourceRequestedEventArgs* args, int resource, std::wstring mime);
 	void load_userscripts(nlohmann::json* data = nullptr);
-	LobbySeeker seeker;
 	LRESULT on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
 	LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
 	LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
