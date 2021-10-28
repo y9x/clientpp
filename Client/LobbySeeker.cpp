@@ -72,9 +72,9 @@ std::string LobbySeeker::seek() {
 
 		for (Game game : games) {
 			if (game.full()) continue;
-			if (region != -1 && game.region != region) { clog::debug << "game region: " << region << " != " << game.region << clog::endl; continue; }
-			if (mode != -1 && game.mode != mode) { clog::debug << "game mode: " << mode << " != " << game.mode << clog::endl; continue; }
-			if (use_map && Manipulate::lowercase(game.map) != Manipulate::lowercase(map)) { clog::debug << "game map: " << map << " != " << game.map << clog::endl; continue; }
+			if (region != -1 && game.region != region) continue;
+			if (mode != -1 && game.mode != mode) continue;
+			if (use_map && Manipulate::lowercase(game.map) != Manipulate::lowercase(map)) continue;
 
 			clog::info << "Valid " << game.map << " " << game.id << clog::endl;
 
