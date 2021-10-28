@@ -42,6 +42,7 @@ private:
 	std::function<void()> on_destroy_callback;
 	std::vector<std::wstring> additional_command_line;
 	std::vector<std::wstring> additional_block_hosts;
+	std::vector<std::wstring> pending_navigations;
 	std::vector<JSMessage> pending_messages;
 	std::wstring og_title;
 	RAWINPUTDEVICE raw_input;

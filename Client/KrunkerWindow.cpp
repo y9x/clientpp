@@ -592,8 +592,16 @@ void KrunkerWindow::on_dispatch() {
 	
 	for (JSMessage msg : pending_messages)
 		if (!msg.send(webview))clog::error << "Unable to send " << msg.dump() << clog::endl;
+	
 	pending_messages.clear();
 	
+	for (std::wstring url : pending_navigations) {
+		webview->Stop();
+		webview->Navigate(url.c_str());
+	}
+	
+	pending_navigations.clear();
+
 	mtx.unlock();
 
 	bool active = GetActiveWindow() == m_hWnd;
@@ -616,7 +624,6 @@ void KrunkerWindow::on_dispatch() {
 			JSMessage(IM::mousemove, { movebuffer.x, movebuffer.y }).send(webview);
 			movebuffer.clear();
 		}
-
 	}
 }
 
