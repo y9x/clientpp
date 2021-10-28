@@ -1,5 +1,5 @@
 #clientExit { 
-	display: block !IMPORTANT;
+	display: flex !IMPORTANT;
 }
 
 img[src='./img/client.png'] {
