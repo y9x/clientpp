@@ -1661,7 +1661,10 @@ var __webpack_exports__ = {};
 
 try{
 	window.onbeforeunload = () => {};
-	Object.defineProperty(window, 'onbeforeunload', { writable: false, value(){} })
+	Object.defineProperties(window, {
+		onbeforeunload: {writable: false, value(){} },
+		closeClient: { writable: false, value(){ ipc.send(IM.close_window) } },
+	});
 }catch(err){
 	
 }
@@ -1863,7 +1866,6 @@ new Keybind('F11', () => {
 new Keybind('F10', event => {
 	ipc.send(IM.open_devtools);
 });
-
 
 if(site == 'game'){
 	__webpack_require__(/*! ./Fixes */ "./src/Fixes.js");

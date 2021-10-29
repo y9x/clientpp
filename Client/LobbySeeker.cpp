@@ -68,15 +68,15 @@ std::string LobbySeeker::seek() {
 
 		for (JSON data : data["games"]) games.push_back(data);
 
+		clog::info << "sorting.." << clog::endl;
 		std::sort(games.begin(), games.end());
+		clog::info << "sorted" << clog::endl;
 
 		for (Game game : games) {
 			if (game.full()) continue;
 			if (region != -1 && game.region != region) continue;
 			if (mode != -1 && game.mode != mode) continue;
 			if (use_map && Manipulate::lowercase(game.map) != Manipulate::lowercase(map)) continue;
-
-			// clog::info << "Valid " << game.map << " " << game.id << clog::endl;
 
 			return game.link();
 		}
