@@ -32,4 +32,8 @@ enum class IM {
 	seek_game,
 	toggle_fullscreen,
 	update_menu,
+	account_list,
+	account_set,
+	account_get,
+	account_remove,
 };

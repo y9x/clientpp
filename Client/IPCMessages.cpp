@@ -62,10 +62,12 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 		break;
 	case IM::close_window:
 		if (::IsWindow(m_hWnd)) DestroyWindow();
+
 		break;
 	case IM::reload_window:
 		webview->Stop();
 		webview->Reload();
+
 		break;
 	case IM::seek_game:
 		if (type == Type::Game && !seeking && folder->config["game"]["seek"]["F4"]) new std::thread([this](std::string sregion) {

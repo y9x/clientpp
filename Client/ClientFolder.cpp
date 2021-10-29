@@ -72,6 +72,7 @@ std::wstring ClientFolder::resolve_path(std::wstring file) {
 	// default_config["window"]["meta"]["icon"] = Convert::string(directory + p_krunker);
 
 	FILE* f = _wfopen(joined.c_str(), L"r");
+
 	if (f) {
 		fclose(f);
 		return joined;

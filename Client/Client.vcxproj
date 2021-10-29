@@ -109,6 +109,7 @@
     <ClCompile Include="..\Utils\IOUtil.cpp" />
     <ClCompile Include="..\Utils\StringUtil.cpp" />
     <ClCompile Include="..\Utils\Uri.cpp" />
+    <ClCompile Include="AccountManager.cpp" />
     <ClCompile Include="ClientFolder.cpp" />
     <ClCompile Include="IPCMessages.cpp" />
     <ClCompile Include="JSMessage.cpp" />
@@ -125,6 +126,7 @@
     <ClCompile Include="WebView2Installer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AccountManager.h" />
     <ClInclude Include="JSMessage.h" />
     <ClInclude Include="LobbySeeker.h" />
     <ClInclude Include="Points.h" />

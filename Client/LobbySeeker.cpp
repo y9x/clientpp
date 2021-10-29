@@ -42,6 +42,7 @@ int Game::region_id(std::string region) {
 
 	return -1;
 }
+
 Game::Game(JSON data)
 	: id(data[0])
 	, region(region_id(data[1]))
@@ -50,12 +51,15 @@ Game::Game(JSON data)
 	, players(data[2])
 	, max_players(data[3])
 {}
+
 bool Game::operator < (Game c) {
 	return players < c.players;
 }
+
 bool Game::full() {
 	return players == max_players;
 }
+
 std::string Game::link() {
 	return "https://krunker.io/?game=" + id;
 }

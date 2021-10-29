@@ -214,6 +214,9 @@
     <ClCompile Include="LobbySeeker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AccountManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Utils\StringUtil.h">
@@ -262,6 +265,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LobbySeeker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AccountManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
