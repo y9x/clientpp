@@ -17,6 +17,7 @@ private:
 	KrunkerWindow game;
 	KrunkerWindow social;
 	KrunkerWindow editor;
+	KrunkerWindow scripting;
 	KrunkerWindow documents;
 	DiscordEventHandlers presence_events{};
 	HINSTANCE inst;

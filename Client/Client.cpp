@@ -15,6 +15,7 @@ namespace krunker {
 	constexpr const wchar_t* games = L"/games";
 	constexpr const wchar_t* editor = L"/editor.html";
 	constexpr const wchar_t* social = L"/social.html";
+	constexpr const wchar_t* scripting = L"/scripting.html";
 	constexpr const wchar_t* docs = L"/docs/";
 	constexpr const wchar_t* tos = L"/docs/tos.html";
 };
@@ -29,13 +30,14 @@ bool Client::navigation_cancelled(ICoreWebView2* sender, Uri uri) {
 	bool cancel = false;
 	std::wstring pathname = uri.pathname();
 
-	KrunkerWindow* send = 0;
+	KrunkerWindow* send = nullptr;
 
 	if (kru_owns) {
-		if (pathname == krunker::game || pathname.starts_with(krunker::games)) send = &game;
+		if (uri.host_owns(L"docs.krunker.io") || pathname.starts_with(krunker::docs)) send = &documents;
+		else if (pathname == krunker::game || pathname.starts_with(krunker::games)) send = &game;
 		else if (pathname == krunker::social) send = &social;
 		else if (pathname == krunker::editor) send = &editor;
-		else if (pathname.starts_with(krunker::docs)) send = &documents;
+		else if (pathname == krunker::scripting) send = &scripting;
 	}
 	if (!send) {
 		cancel = true;
@@ -204,6 +206,7 @@ Client::Client(HINSTANCE h, int c)
 	, game(folder, KrunkerWindow::Type::Game, { 0.8, 0.8 }, client_title, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return on_message(msg, game); }, []() { PostQuitMessage(EXIT_SUCCESS); })
 	, social(folder, KrunkerWindow::Type::Social, { 0.7, 0.7 }, (std::wstring(client_title) + L": Social").c_str(), [this]() { listen_navigation(social); }, [this](JSMessage msg) -> bool { return on_message(msg, social); })
 	, editor(folder, KrunkerWindow::Type::Editor, { 0.7, 0.7 }, (std::wstring(client_title) + L": Editor").c_str(), [this]() { listen_navigation(editor); }, [this](JSMessage msg) -> bool { return on_message(msg, editor); })
+	, scripting(folder, KrunkerWindow::Type::Social, { 0.6, 0.6 }, (std::wstring(client_title) + L": Scripting").c_str(), [this]() { listen_navigation(scripting); }, [this](JSMessage msg) -> bool { return on_message(msg, scripting); })
 	, documents(folder, KrunkerWindow::Type::Documents, { 0.4, 0.6 }, (std::wstring(client_title) + L": Documents").c_str(), [this]() { listen_navigation(documents); }, [this](JSMessage msg) -> bool { return on_message(msg, documents); })
 	, accounts(folder)
 	, shcore(LoadLibrary(L"api-ms-win-shcore-scaling-l1-1-1.dll"))
