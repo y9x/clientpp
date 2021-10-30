@@ -7,7 +7,6 @@
 #include "../Utils/Base64.h"
 #include "./Log.h"
 #include <regex>
-#include <ShellScalingApi.h>
 #include <WebView2EnvironmentOptions.h>
 
 using namespace StringUtil;
@@ -452,9 +451,6 @@ void KrunkerWindow::register_events() {
 	}).Get(), &token);
 }
 
-// #pragma comment(lib, "Shcore.lib")
-HMODULE shcore = LoadLibrary(L"api-ms-win-shcore-scaling-l1-1-1.dll");
-
 KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {
 	if (folder->config["window"]["meta"]["replace"].get<bool>())
 		title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
@@ -465,15 +461,6 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::fu
 	
 	if (can_fullscreen && folder->config["render"]["fullscreen"]) enter_fullscreen();
 
-	if (shcore) {
-		using dec = decltype(::SetProcessDpiAwareness);
-		if (std::function SetProcessDpiAwareness = (dec*)GetProcAddress(shcore, "SetProcessDpiAwareness")) {
-			HRESULT sda = SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-			if (!SUCCEEDED(sda)) clog::error << "SetProcessDpiAwareness returned " << std::hex << HRESULT_CODE(sda) << clog::endl;
-		}
-		else clog::error << "Unable to get address of SetProcessDpiAwareness" << clog::endl;
-	}else clog::warn << "Unable to load shcore. Is the host Win7?" << clog::endl;
-	
 	if (folder->config["window"]["meta"]["replace"].get<bool>())
 		SetIcon((HICON)LoadImage(inst, folder->resolve_path(Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
 	else SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));

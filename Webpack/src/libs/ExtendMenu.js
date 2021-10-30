@@ -19,18 +19,30 @@ class ExtendMenu extends Events {
 			menu: this,
 		},
 	};
-	async insert(label){
-		var array = await utils.wait_for(() => typeof windows == 'object' && windows),
-			settings = array[0],
-			index = settings.tabs.length,
-			get = settings.getSettings;
-	
-		settings.tabs.push({
-			name: label,
-			categories: [],
-		});
+	async attach(){
+		if(this.window instanceof Object)throw new Error('Already attached');
 		
-		settings.getSettings = () => settings.tabIndex == index ? this.html.get() : get.call(settings);
+		var array = await utils.wait_for(() => typeof windows == 'object' && windows);
+		
+		this.window = array.find(window => window.header == this.header);
+		
+		if(!this.window)throw new Error(`Unable to find header '${this.header}'`);
+		
+		this.index = this.window.tabs.push({
+			name: this.label,
+			categories: [],
+		}) - 1;
+		
+		this.getSettings = this.window.getSettings;
+		
+		this.window.getSettings = () => this.window.tabIndex == this.index ? this.html.get() : this.getSettings.call(this.window);
+	}
+	detach(){
+		if(!(this.window instanceof Object))throw new Error('Not attached');
+		
+		this.window.tabs.splice(this.index, 1);
+		this.window.getSettings = this.getSettings;
+		this.window = null;
 	}
 	categories = new Set();
 	category(label){
@@ -41,8 +53,10 @@ class ExtendMenu extends Events {
 	update(init = false){
 		for(let category of this.categories)category.update(init);	
 	}
-	constructor(){
+	constructor(header, label){
 		super();
+		this.header = header;
+		this.label = label;
 	}
 };
 

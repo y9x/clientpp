@@ -17,20 +17,23 @@ class Utils {
 		return crt;
 	}
 	static crt_ele(node_name, attributes = {}){
-		var after = {};
-		
-		for(let prop in attributes)if(typeof attributes[prop] == 'object' && attributes[prop] != null)after[prop] = attributes[prop], delete attributes[prop];
+		var after = {},
+			assign = {};
+				
+		for(let prop in attributes)
+			if(typeof attributes[prop] == 'object' && attributes[prop] != null)after[prop] = attributes[prop];
+			else assign[prop] = attributes[prop];
 	
 		var node;
 		
-		if(node_name == 'raw')node = this.crt_ele('div', { innerHTML: attributes.html }).firstChild;
+		if(node_name == 'raw')node = this.crt_ele('div', { innerHTML: assign.html }).firstChild;
 		else if(node_name == 'text')node = document.createTextNode('');
 		else node = document.createElement(node_name);
 		
-		var cls = attributes.className;
+		var cls = assign.className;
 		
 		if(cls){
-			delete attributes.className;
+			delete assign.className;
 			node.setAttribute('class', cls);
 		}
 		
@@ -38,11 +41,10 @@ class Utils {
 		
 		if(events){
 			delete after.events;
-			
 			for(let event in events)node.addEventListener(event, events[event]);
 		}
 		
-		Object.assign(node, attributes);
+		Object.assign(node, assign);
 		
 		for(let prop in after)Object.assign(node[prop], after[prop]);
 		

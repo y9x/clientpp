@@ -1,9 +1,8 @@
 'use strict';
 
 try{
-	window.onbeforeunload = () => {};
 	Object.defineProperties(window, {
-		onbeforeunload: {writable: false, value(){} },
+		onbeforeunload: { writable: false, value(){} },
 		closeClient: { writable: false, value(){ ipc.send(IM.close_window) } },
 	});
 }catch(err){
@@ -30,7 +29,7 @@ class Menu extends ExtendMenu {
 	config = runtime_config;
 	default_config = require('../../Resources/Config.json');
 	constructor(){
-		super();
+		super('Game Settings', 'Client');
 		
 		var Client = this.category('Client');
 		
@@ -188,7 +187,7 @@ class Menu extends ExtendMenu {
 				ipc.send(IM.update_meta);
 		});
 		
-		this.insert('Client');
+		this.attach();
 	}
 	update(){
 		for(let category of this.categories)category.update(true);
@@ -210,7 +209,8 @@ new Keybind('F10', event => {
 
 if(site == 'game'){
 	require('./Fixes');
-	let menu = new Menu();
+	require('./AccountManager');
+	let menu = window.TEST = new Menu();
 	run_resources(menu);
 	menu.update();
 	

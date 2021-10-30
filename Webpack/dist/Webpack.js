@@ -7,7 +7,69 @@
   \*******************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_clear:1,rpc_init:2,save_config:3,shell_open:4,fullscreen:5,update_meta:6,revert_meta:7,reload_config:8,browse_file:9,mousedown:10,mouseup:11,mousemove:12,mousewheel:13,pointer:14,open_devtools:15,log:16,relaunch_webview:17,close_window:18,reload_window:19,seek_game:20,toggle_fullscreen:21,update_menu:22}
+exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_clear:1,rpc_init:2,save_config:3,shell_open:4,fullscreen:5,update_meta:6,revert_meta:7,reload_config:8,browse_file:9,mousedown:10,mouseup:11,mousemove:12,mousewheel:13,pointer:14,open_devtools:15,log:16,relaunch_webview:17,close_window:18,reload_window:19,seek_game:20,toggle_fullscreen:21,update_menu:22,account_list:23,account_set:24,account_get:25,account_remove:26}
+
+/***/ }),
+
+/***/ "./src/AccountManager.js":
+/*!*******************************!*\
+  !*** ./src/AccountManager.js ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var utils = __webpack_require__(/*! ./libs/utils */ "./src/libs/utils.js"),
+	site = __webpack_require__(/*! ./Site */ "./src/Site.js"),
+	Window = __webpack_require__(/*! ./libs/MenuUI/Window */ "./src/libs/MenuUI/Window/index.js"),
+	{ tick } = __webpack_require__(/*! ./libs/MenuUI/consts */ "./src/libs/MenuUI/consts.js");
+
+class Menu {
+	window = new Window(this);
+	save_config(){}
+	async attach(){
+		var sin = await utils.wait_for(() => document.querySelector('#signedInHeaderBar')),
+			sout = await utils.wait_for(() => document.querySelector('#signedOutHeaderBar'));
+		
+		tick(utils.add_ele('div', sin, {
+			className: 'button buttonG lgn',
+			style: {
+				width: '300px',
+				'margin-right': 0,
+				'padding-top': '5px',
+				'margin-left': '5px',
+				'padding-bottom': '13px',
+			},
+			innerHTML: `Accounts <span class="material-icons" style="vertical-align:middle;color: #fff;font-size:36px;margin-top:-8px;">switch_account</span>`,
+			events: {
+				click: () => this.window.show(),
+			},
+		}));
+		
+		tick(utils.add_ele('div', sout, {
+			className: 'button buttonG lgn',
+			style: {
+				width: '200px',
+				'margin-right': 0,
+				'padding-top': '5px',
+				'margin-left': '5px',
+				'padding-bottom': '13px',
+			},
+			innerHTML: `Accounts <span class="material-icons" style="vertical-align:middle;color: #fff;font-size:36px;margin-top:-8px;">switch_account</span>`,
+			events: {
+				click: () => this.window.show(),
+			},
+		}));
+		
+		this.window.attach(await utils.wait_for(() => document.querySelector('#uiBase')));
+	}
+	constructor(){
+		this.attach();
+	}
+};
+
+new Menu();
 
 /***/ }),
 
@@ -701,18 +763,30 @@ class ExtendMenu extends Events {
 			menu: this,
 		},
 	};
-	async insert(label){
-		var array = await utils.wait_for(() => typeof windows == 'object' && windows),
-			settings = array[0],
-			index = settings.tabs.length,
-			get = settings.getSettings;
-	
-		settings.tabs.push({
-			name: label,
-			categories: [],
-		});
+	async attach(){
+		if(this.window instanceof Object)throw new Error('Already attached');
 		
-		settings.getSettings = () => settings.tabIndex == index ? this.html.get() : get.call(settings);
+		var array = await utils.wait_for(() => typeof windows == 'object' && windows);
+		
+		this.window = array.find(window => window.header == this.header);
+		
+		if(!this.window)throw new Error(`Unable to find header '${this.header}'`);
+		
+		this.index = this.window.tabs.push({
+			name: this.label,
+			categories: [],
+		}) - 1;
+		
+		this.getSettings = this.window.getSettings;
+		
+		this.window.getSettings = () => this.window.tabIndex == this.index ? this.html.get() : this.getSettings.call(this.window);
+	}
+	detach(){
+		if(!(this.window instanceof Object))throw new Error('Not attached');
+		
+		this.window.tabs.splice(this.index, 1);
+		this.window.getSettings = this.getSettings;
+		this.window = null;
 	}
 	categories = new Set();
 	category(label){
@@ -723,8 +797,10 @@ class ExtendMenu extends Events {
 	update(init = false){
 		for(let category of this.categories)category.update(init);	
 	}
-	constructor(){
+	constructor(header, label){
 		super();
+		this.header = header;
+		this.label = label;
 	}
 };
 
@@ -770,6 +846,9 @@ class HTMLProxy {
 		// html += '-->';
 		
 		return html;
+	}
+	node(){
+		return document.createElement(this.id);
 	}
 };
 
@@ -1256,6 +1335,232 @@ module.exports = Category;
 
 /***/ }),
 
+/***/ "./src/libs/MenuUI/Window/Tab.js":
+/*!***************************************!*\
+  !*** ./src/libs/MenuUI/Window/Tab.js ***!
+  \***************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var { tick, select } = __webpack_require__(/*! ../consts */ "./src/libs/MenuUI/consts.js"),
+	utils = __webpack_require__(/*! ../../Utils */ "./src/libs/Utils.js"),
+	Category = __webpack_require__(/*! ./Category */ "./src/libs/MenuUI/Window/Category.js");
+
+class Tab {
+	constructor(window, label){
+		this.window = window;
+		
+		this.button = utils.add_ele('div', this.window.tab_layout, {
+			className: 'settingTab',
+			textContent: label,
+			events: {
+				click: () => this.show(),
+			},
+		});
+		
+		tick(this.button);
+		select(this.button);
+		
+		this.categories = new Set();
+		
+		this.content = utils.add_ele('div', window.container, { id: 'settHolder' });
+		
+		this.hide();
+	}
+	category(label){
+		var category = this.last_category = new Category(this, label);
+		
+		this.categories.add(category);
+		
+		return category;
+	}
+	control(...args){
+		var category = this.last_category;
+		
+		if(!category || !category.is_default){
+			category = this.category();
+			category.is_default = true;
+		}
+		
+		return category.control(...args);
+	}
+	update(init){
+		for(let category of this.categories)category.update(init);
+	}
+	show(){
+		this.visible = true;
+		for(let tab of this.window.tabs)if(tab != this)tab.hide();
+		this.button.classList.add('tabANew');
+		this.show_content();
+		this.window.menu.emit('tab-shown');
+		
+		for(let category of this.categories)category.fix();
+	}
+	hide(){
+		this.visible = false;
+		this.button.classList.remove('tabANew');
+		this.hide_content();
+	}
+	show_content(){
+		this.content.style.display = 'block';
+	}
+	hide_content(){
+		this.content.style.display = 'none';
+	}
+};
+
+module.exports = Tab;
+
+/***/ }),
+
+/***/ "./src/libs/MenuUI/Window/index.js":
+/*!*****************************************!*\
+  !*** ./src/libs/MenuUI/Window/index.js ***!
+  \*****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var utils = __webpack_require__(/*! ../../Utils */ "./src/libs/Utils.js"),
+	Tab = __webpack_require__(/*! ./Tab */ "./src/libs/MenuUI/Window/Tab.js");
+
+class Window {
+	constructor(menu){
+		this.menu = menu;
+		
+		this.content = utils.crt_ele('div', {
+			style: {
+				position: 'absolute',
+				width: '100%',
+				height: '100%',
+				left: 0,
+				top: 0,
+				'z-index': 1e9,
+			},
+		});
+		
+		this.node = this.content.attachShadow({ mode: 'closed' });
+		
+		this.styles = new Set();
+		
+		new MutationObserver((mutations, observer) => {
+			for(let mutation of mutations)for(let node of mutation.addedNodes)if(['LINK', 'STYLE'].includes(node.tagName))this.update_styles();
+		}).observe(document, { childList: true, subtree: true });
+		
+		this.holder = utils.add_ele('div', this.node, {
+			id: 'windowHolder',
+			className: 'popupWin',
+			style: {
+				'pointer-events': 'all',
+			},
+		});
+		
+		this.container = utils.add_ele('div', this.holder, {
+			id: 'menuWindow',
+			className: 'stickyHeader dark',
+			style: {
+				'overflow-y': 'auto',
+				width: '1200px',
+				'max-height': 'calc(100% - 250px)',
+				top: '50%',
+				transform: 'translate(-50%, -50%)',
+			},
+		});
+		
+		this.header = utils.add_ele('div', this.container, { className: 'settingsHeader' });
+		
+		this.holder.addEventListener('click', event => {
+			if(event.target == this.holder)this.hide();
+		});
+		
+		this.tabs = new Set();
+		
+		this.tab_layout = utils.add_ele('div', this.header, { id: 'settingsTabLayout' });
+		
+		this.hide();
+	}
+	update_styles(){
+		for(let style of this.styles)style.remove(), this.styles.delete(style);
+		
+		for(let sheet of document.styleSheets){
+			let style = utils.add_ele('style', this.node);
+			
+			this.styles.add(style);
+			
+			if(sheet.href)style.textContent += '@import url(' + JSON.stringify(sheet.href) + ');\n';
+			else try{
+				for(let rule of sheet.cssRules)style.textContent += rule.cssText + '\n';
+			}catch(err){
+				console.error(err);
+			}
+		}
+	}
+	tab(label){
+		var tab = new Tab(this, label);
+		
+		this.tabs.add(tab);
+		
+		return tab;
+	}
+	attach(ui_base){
+		ui_base.appendChild(this.content);
+	}
+	show(){
+		this.content.style.display = 'block';
+	}
+	hide(){
+		this.content.style.display = 'none';
+	}
+	get main_tab(){
+		var first;
+		
+		for(let tab of this.tabs){
+			first = first || tab;
+			if(tab.visible)return tab;
+		}
+		
+		return first;
+	}
+	update(init){
+		for(let tab of this.tabs){
+			tab.update(init);
+			if(tab != this.main_tab)tab.hide();
+		}
+		
+		this.main_tab.show();
+	}
+};
+
+module.exports = Window;
+
+/***/ }),
+
+/***/ "./src/libs/MenuUI/consts.js":
+/*!***********************************!*\
+  !*** ./src/libs/MenuUI/consts.js ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.tick = node => node.addEventListener('mouseenter', () => {
+	try{
+		playTick();
+	}catch(err){}
+});
+
+exports.select = node => node.addEventListener('click', () => {
+	try{
+		SOUND.play('select_0', 0.1);
+	}catch(err){}
+});
+
+/***/ }),
+
 /***/ "./src/libs/Utils.js":
 /*!***************************!*\
   !*** ./src/libs/Utils.js ***!
@@ -1282,20 +1587,23 @@ class Utils {
 		return crt;
 	}
 	static crt_ele(node_name, attributes = {}){
-		var after = {};
-		
-		for(let prop in attributes)if(typeof attributes[prop] == 'object' && attributes[prop] != null)after[prop] = attributes[prop], delete attributes[prop];
+		var after = {},
+			assign = {};
+				
+		for(let prop in attributes)
+			if(typeof attributes[prop] == 'object' && attributes[prop] != null)after[prop] = attributes[prop];
+			else assign[prop] = attributes[prop];
 	
 		var node;
 		
-		if(node_name == 'raw')node = this.crt_ele('div', { innerHTML: attributes.html }).firstChild;
+		if(node_name == 'raw')node = this.crt_ele('div', { innerHTML: assign.html }).firstChild;
 		else if(node_name == 'text')node = document.createTextNode('');
 		else node = document.createElement(node_name);
 		
-		var cls = attributes.className;
+		var cls = assign.className;
 		
 		if(cls){
-			delete attributes.className;
+			delete assign.className;
 			node.setAttribute('class', cls);
 		}
 		
@@ -1303,11 +1611,10 @@ class Utils {
 		
 		if(events){
 			delete after.events;
-			
 			for(let event in events)node.addEventListener(event, events[event]);
 		}
 		
-		Object.assign(node, attributes);
+		Object.assign(node, assign);
 		
 		for(let prop in after)Object.assign(node[prop], after[prop]);
 		
@@ -1460,20 +1767,23 @@ class Utils {
 		return crt;
 	}
 	static crt_ele(node_name, attributes = {}){
-		var after = {};
-		
-		for(let prop in attributes)if(typeof attributes[prop] == 'object' && attributes[prop] != null)after[prop] = attributes[prop], delete attributes[prop];
+		var after = {},
+			assign = {};
+				
+		for(let prop in attributes)
+			if(typeof attributes[prop] == 'object' && attributes[prop] != null)after[prop] = attributes[prop];
+			else assign[prop] = attributes[prop];
 	
 		var node;
 		
-		if(node_name == 'raw')node = this.crt_ele('div', { innerHTML: attributes.html }).firstChild;
+		if(node_name == 'raw')node = this.crt_ele('div', { innerHTML: assign.html }).firstChild;
 		else if(node_name == 'text')node = document.createTextNode('');
 		else node = document.createElement(node_name);
 		
-		var cls = attributes.className;
+		var cls = assign.className;
 		
 		if(cls){
-			delete attributes.className;
+			delete assign.className;
 			node.setAttribute('class', cls);
 		}
 		
@@ -1481,11 +1791,10 @@ class Utils {
 		
 		if(events){
 			delete after.events;
-			
 			for(let event in events)node.addEventListener(event, events[event]);
 		}
 		
-		Object.assign(node, attributes);
+		Object.assign(node, assign);
 		
 		for(let prop in after)Object.assign(node[prop], after[prop]);
 		
@@ -1660,9 +1969,8 @@ var __webpack_exports__ = {};
 
 
 try{
-	window.onbeforeunload = () => {};
 	Object.defineProperties(window, {
-		onbeforeunload: {writable: false, value(){} },
+		onbeforeunload: { writable: false, value(){} },
 		closeClient: { writable: false, value(){ ipc.send(IM.close_window) } },
 	});
 }catch(err){
@@ -1689,7 +1997,7 @@ class Menu extends ExtendMenu {
 	config = runtime_config;
 	default_config = __webpack_require__(/*! ../../Resources/Config.json */ "../Resources/Config.json");
 	constructor(){
-		super();
+		super('Game Settings', 'Client');
 		
 		var Client = this.category('Client');
 		
@@ -1847,7 +2155,7 @@ class Menu extends ExtendMenu {
 				ipc.send(IM.update_meta);
 		});
 		
-		this.insert('Client');
+		this.attach();
 	}
 	update(){
 		for(let category of this.categories)category.update(true);
@@ -1869,7 +2177,8 @@ new Keybind('F10', event => {
 
 if(site == 'game'){
 	__webpack_require__(/*! ./Fixes */ "./src/Fixes.js");
-	let menu = new Menu();
+	__webpack_require__(/*! ./AccountManager */ "./src/AccountManager.js");
+	let menu = window.TEST = new Menu();
 	run_resources(menu);
 	menu.update();
 	

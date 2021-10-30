@@ -15,9 +15,6 @@ class MenuUI extends Events {
 		
 		this.config_key = key;
 		
-		// utils.wait_for(() => document.querySelector('#menuItemContainer')).then(node => this.button.attach(node));
-		// utils.wait_for(() => document.querySelector('#uiBase')).then(node => this.window.attach(node));
-		
 		new MutationObserver((mutations, observer) => {
 			for(let mutation of mutations)for(let node of mutation.addedNodes){
 				if(node.id == 'menuItemContainer')this.button.attach(node);
@@ -79,17 +76,6 @@ class MenuUI extends Events {
 	async load_config(){
 		this.insert_config(await this.store.get(this.config_key, 'object'));
 	}
-	static keybinds = new Set();
 };
-
-window.addEventListener('keydown', event => {
-	if(event.repeat || ['TEXTAREA', 'INPUT'].includes((document.activeElement || {}).tagName))return;
-	
-	// some(keycode => typeof keycode == 'string' && [ keycode, keycode.replace('Digit', 'Numpad') ]
-	for(let keybind of MenuUI.keybinds)if(keybind.code.includes(event.code)){
-		event.preventDefault();
-		keybind.interact();
-	}
-});
 
 module.exports = MenuUI;

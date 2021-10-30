@@ -30,6 +30,9 @@ class HTMLProxy {
 		
 		return html;
 	}
+	node(){
+		return document.createElement(this.id);
+	}
 };
 
 module.exports = HTMLProxy;

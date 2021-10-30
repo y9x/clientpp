@@ -3,6 +3,7 @@
 #include "./Log.h"
 #include "../Utils/StringUtil.h"
 #include <shellapi.h>
+#include <ShellScalingApi.h>
 
 constexpr const long double client_version = 0.15;
 constexpr const char* client_discord_rpc = "";
@@ -89,7 +90,7 @@ void Client::rpc_loading() {
 	Discord_UpdatePresence(&presence);
 }
 
-bool Client::game_message(JSMessage msg) {
+bool Client::on_message(JSMessage msg) {
 	switch (msg.event) {
 	case IM::rpc_init:
 
@@ -129,6 +130,16 @@ bool Client::game_message(JSMessage msg) {
 		Discord_UpdatePresence(&presence);
 
 	} break;
+	case IM::account_get:
+
+		break;
+	case IM::account_set:
+
+		break;
+	case IM::account_list:
+
+		break;
+
 	default:
 		return false;
 	}
@@ -164,10 +175,12 @@ Client::Client(HINSTANCE h, int c)
 	, updater(client_version, "https://6ct.github.io", "/serve/updates.json")
 	, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 	, folder(L"GC++") // test unicode support L"크롬 플래그 새끼"	
-	, game(folder, KrunkerWindow::Type::Game, { 0.8, 0.8 }, client_title, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return game_message(msg); }, []() { PostQuitMessage(EXIT_SUCCESS); })
-	, social(folder, KrunkerWindow::Type::Social, { 0.7, 0.7 }, (std::wstring(client_title) + L": Social").c_str(), [this]() { listen_navigation(social); })
-	, editor(folder, KrunkerWindow::Type::Editor, { 0.7, 0.7 }, (std::wstring(client_title) + L": Editor").c_str(), [this]() { listen_navigation(editor); })
-	, documents(folder, KrunkerWindow::Type::Documents, { 0.4, 0.6 }, (std::wstring(client_title) + L": Documents").c_str(), [this]() { listen_navigation(documents); })
+	, game(folder, KrunkerWindow::Type::Game, { 0.8, 0.8 }, client_title, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return on_message(msg); }, []() { PostQuitMessage(EXIT_SUCCESS); })
+	, social(folder, KrunkerWindow::Type::Social, { 0.7, 0.7 }, (std::wstring(client_title) + L": Social").c_str(), [this]() { listen_navigation(social); }, [this](JSMessage msg) -> bool { return on_message(msg); })
+	, editor(folder, KrunkerWindow::Type::Editor, { 0.7, 0.7 }, (std::wstring(client_title) + L": Editor").c_str(), [this]() { listen_navigation(editor); }, [this](JSMessage msg) -> bool { return on_message(msg); })
+	, documents(folder, KrunkerWindow::Type::Documents, { 0.4, 0.6 }, (std::wstring(client_title) + L": Documents").c_str(), [this]() { listen_navigation(documents); }, [this](JSMessage msg) -> bool { return on_message(msg); })
+	, account(folder)
+	, shcore(LoadLibrary(L"api-ms-win-shcore-scaling-l1-1-1.dll"))
 {}
 
 bool Client::create() {
@@ -196,6 +209,15 @@ bool Client::create() {
 
 	game.can_fullscreen = true;
 	documents.background = RGB(0xFF, 0xFF, 0xFF);
+
+	if (shcore) {
+		using dec = decltype(::SetProcessDpiAwareness);
+		if (std::function SetProcessDpiAwareness = (dec*)GetProcAddress(shcore, "SetProcessDpiAwareness")) {
+			HRESULT sda = SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+			if (!SUCCEEDED(sda)) clog::error << "SetProcessDpiAwareness returned 0x" << std::hex << HRESULT_CODE(sda) << clog::endl;
+		}
+		else clog::error << "Unable to get address of SetProcessDpiAwareness" << clog::endl;
+	}
 	
 	switch (game.create(inst, cmdshow, [this]() {
 		game.webview->Navigate(L"https://krunker.io");

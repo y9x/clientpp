@@ -4,11 +4,13 @@
 #include "./KrunkerWindow.h"
 #include "./WebView2Installer.h"
 #include "../Utils/Uri.h"
+#include "./AccountManager.h"
 #include <discord_register.h>
 #include <discord_rpc.h>
 
 class Client {
 private:
+	AccountManager account;
 	Updater updater;
 	WebView2Installer installer;
 	ClientFolder folder;
@@ -18,10 +20,11 @@ private:
 	KrunkerWindow documents;
 	DiscordEventHandlers presence_events{};
 	HINSTANCE inst;
+	HMODULE shcore;
 	int cmdshow;
 	void rpc_loading();
 	void install_runtimes();
-	bool game_message(JSMessage msg);
+	bool on_message(JSMessage msg);
 	bool navigation_cancelled(ICoreWebView2* sender, Uri uri);
 	void listen_navigation(KrunkerWindow& window);
 public:
