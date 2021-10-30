@@ -24,7 +24,7 @@ private:
 	int cmdshow;
 	void rpc_loading();
 	void install_runtimes();
-	bool on_message(JSMessage msg);
+	bool on_message(JSMessage msg, KrunkerWindow& window);
 	bool navigation_cancelled(ICoreWebView2* sender, Uri uri);
 	void listen_navigation(KrunkerWindow& window);
 public:

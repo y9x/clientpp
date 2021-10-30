@@ -90,7 +90,7 @@ void Client::rpc_loading() {
 	Discord_UpdatePresence(&presence);
 }
 
-bool Client::on_message(JSMessage msg) {
+bool Client::on_message(JSMessage msg, KrunkerWindow& window) {
 	switch (msg.event) {
 	case IM::rpc_init:
 
@@ -130,15 +130,22 @@ bool Client::on_message(JSMessage msg) {
 		Discord_UpdatePresence(&presence);
 
 	} break;
-	case IM::account_get:
+	case IM::account_remove:
+
+		account.data.erase(msg.args[0]);
 
 		break;
 	case IM::account_set:
 
-		break;
-	case IM::account_list:
+		account.data[msg.args[0]] = msg.args[1];
 
 		break;
+	case IM::account_list:{
+
+		JSMessage res((IM)msg.args[0].get<int>(), { account.dump() });
+		if (!res.send(window.webview))clog::error << "Unable to send " << res.dump() << clog::endl;
+		
+	} break;
 
 	default:
 		return false;
@@ -175,10 +182,10 @@ Client::Client(HINSTANCE h, int c)
 	, updater(client_version, "https://6ct.github.io", "/serve/updates.json")
 	, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 	, folder(L"GC++") // test unicode support L"크롬 플래그 새끼"	
-	, game(folder, KrunkerWindow::Type::Game, { 0.8, 0.8 }, client_title, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return on_message(msg); }, []() { PostQuitMessage(EXIT_SUCCESS); })
-	, social(folder, KrunkerWindow::Type::Social, { 0.7, 0.7 }, (std::wstring(client_title) + L": Social").c_str(), [this]() { listen_navigation(social); }, [this](JSMessage msg) -> bool { return on_message(msg); })
-	, editor(folder, KrunkerWindow::Type::Editor, { 0.7, 0.7 }, (std::wstring(client_title) + L": Editor").c_str(), [this]() { listen_navigation(editor); }, [this](JSMessage msg) -> bool { return on_message(msg); })
-	, documents(folder, KrunkerWindow::Type::Documents, { 0.4, 0.6 }, (std::wstring(client_title) + L": Documents").c_str(), [this]() { listen_navigation(documents); }, [this](JSMessage msg) -> bool { return on_message(msg); })
+	, game(folder, KrunkerWindow::Type::Game, { 0.8, 0.8 }, client_title, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return on_message(msg, game); }, []() { PostQuitMessage(EXIT_SUCCESS); })
+	, social(folder, KrunkerWindow::Type::Social, { 0.7, 0.7 }, (std::wstring(client_title) + L": Social").c_str(), [this]() { listen_navigation(social); }, [this](JSMessage msg) -> bool { return on_message(msg, social); })
+	, editor(folder, KrunkerWindow::Type::Editor, { 0.7, 0.7 }, (std::wstring(client_title) + L": Editor").c_str(), [this]() { listen_navigation(editor); }, [this](JSMessage msg) -> bool { return on_message(msg, editor); })
+	, documents(folder, KrunkerWindow::Type::Documents, { 0.4, 0.6 }, (std::wstring(client_title) + L": Documents").c_str(), [this]() { listen_navigation(documents); }, [this](JSMessage msg) -> bool { return on_message(msg, documents); })
 	, account(folder)
 	, shcore(LoadLibrary(L"api-ms-win-shcore-scaling-l1-1-1.dll"))
 {}

@@ -6,10 +6,18 @@
 
 using JSON = nlohmann::json;
 
-std::vector<std::string> AccountManager::list() {
-	std::vector<std::string> list;
-	for (auto [key, value] : data.items()) list.push_back(key);
-	return list;
+JSON Account::dump() {
+	JSON output = JSON::object();
+	output["order"] = order;
+	output["color"] = color;
+	output["password"] = password;
+	return output;
+}
+
+Account::Account(JSON data) {
+	order = data["order"];
+	color = data["color"];
+	password = data["password"];
 }
 
 bool AccountManager::encrypt(std::string input, std::string& output) {
@@ -51,18 +59,25 @@ bool AccountManager::decrypt(std::string input, std::string& output) {
 	return false;
 }
 
+JSON AccountManager::dump() {
+	JSON output = JSON::object();
+	
+	for (auto [name, acc] : data) data[name] = acc.dump();
+
+	return output;
+}
+
 bool AccountManager::save() {
-	return IOUtil::write_file(folder->directory + path, data.dump());
+	return IOUtil::write_file(folder->directory + path, dump());
 }
 
 bool AccountManager::load() {
 	std::string read;
 	if (IOUtil::read_file(folder->directory + path, read))try {
-		data = JSON::parse(read);
+		JSON parsed = JSON::parse(read);
+		for (auto [name, data] : parsed.items()) data[name] = data;
 	}
 	catch (JSON::parse_error err) {}
-
-	if (!data.is_object()) data = nlohmann::json::object();
 
 	return true;
 }
@@ -70,19 +85,18 @@ bool AccountManager::load() {
 bool AccountManager::set(std::string name, std::string password) {
 	std::string enc;
 	if (!encrypt(password, enc)) return false;
-	data[name] = enc;
+	data[name].password = enc;
 	return save();
 }
 
 bool AccountManager::remove(std::string name) {
-	data.erase(name);
+	
 	return save();
 }
 
 bool AccountManager::get(std::string name, std::string& password) {
-	if (!data[name].is_string()) return false;
-	std::string enc = data[name];
-	return decrypt(enc, password);
+	if (!data.contains(name)) return false;
+	return decrypt(data[name].password, password);
 }
 
 AccountManager::AccountManager(ClientFolder& f) : folder(&f) {}

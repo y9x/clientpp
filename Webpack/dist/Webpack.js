@@ -7,7 +7,7 @@
   \*******************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_clear:1,rpc_init:2,save_config:3,shell_open:4,fullscreen:5,update_meta:6,revert_meta:7,reload_config:8,browse_file:9,mousedown:10,mouseup:11,mousemove:12,mousewheel:13,pointer:14,open_devtools:15,log:16,relaunch_webview:17,close_window:18,reload_window:19,seek_game:20,toggle_fullscreen:21,update_menu:22,account_list:23,account_set:24,account_get:25,account_remove:26}
+exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_clear:1,rpc_init:2,save_config:3,shell_open:4,fullscreen:5,update_meta:6,revert_meta:7,reload_config:8,browse_file:9,mousedown:10,mouseup:11,mousemove:12,mousewheel:13,pointer:14,open_devtools:15,log:16,relaunch_webview:17,close_window:18,reload_window:19,seek_game:20,toggle_fullscreen:21,update_menu:22,account_list:23,account_set:24,account_remove:25}
 
 /***/ }),
 
@@ -23,6 +23,7 @@ exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_cle
 var utils = __webpack_require__(/*! ./libs/utils */ "./src/libs/utils.js"),
 	site = __webpack_require__(/*! ./Site */ "./src/Site.js"),
 	Window = __webpack_require__(/*! ./libs/MenuUI/Window */ "./src/libs/MenuUI/Window/index.js"),
+	{ IM, ipc } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	{ tick } = __webpack_require__(/*! ./libs/MenuUI/consts */ "./src/libs/MenuUI/consts.js");
 
 class Menu {
@@ -53,7 +54,14 @@ class Menu {
 		
 		this.window.attach(await utils.wait_for(() => document.querySelector('#uiBase')));
 	}
+	async generate(){
+		var list = await ipc.post(IM.account_list);
+		console.log(list);
+		
+		
+	}
 	constructor(){
+		this.generate();
 		this.attach();
 	}
 };
@@ -221,16 +229,11 @@ class FilePicker extends Control.Types.TextBoxControl {
 				width: '100px',
 			},
 			events: {
-				click: () => {
-					var id = ~~(Math.random() * 2147483647);
-					
-					ipc.once(id, (data, error) => {
-						if(error)return;
-						this.value = this.input.value = data;
-					});
-					
+				click: async () => {
 					// send entries instead of an object, c++ json parser removes the order
-					ipc.send(IM.browse_file, id, this.data.title, Object.entries(this.data.filters));
+					var data = await ipc.post(IM.browse_file, this.data.title, Object.entries(this.data.filters));
+					
+					this.value = this.input.value = data;
 				},
 			},
 		});
@@ -377,6 +380,17 @@ class IPC extends Events {
 		if(typeof event != 'number')throw new TypeError(`Event must be a number. Recieved '${event}'`);
 		webview.postMessage(JSON.stringify([ event, ...data ]));
 		return true;
+	}
+	post(event, ...data){
+		var id = ~~(Math.random() * 2147483647);
+		
+		return new Promise((resolve, reject) => {
+			this.once(id, (data, error) => {
+				if(error)reject(error);
+				else resolve(data);
+			});
+			this.send(event, id, ...data);
+		});
 	}
 };
 

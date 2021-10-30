@@ -15,16 +15,11 @@ class FilePicker extends Control.Types.TextBoxControl {
 				width: '100px',
 			},
 			events: {
-				click: () => {
-					var id = ~~(Math.random() * 2147483647);
-					
-					ipc.once(id, (data, error) => {
-						if(error)return;
-						this.value = this.input.value = data;
-					});
-					
+				click: async () => {
 					// send entries instead of an object, c++ json parser removes the order
-					ipc.send(IM.browse_file, id, this.data.title, Object.entries(this.data.filters));
+					var data = await ipc.post(IM.browse_file, this.data.title, Object.entries(this.data.filters));
+					
+					this.value = this.input.value = data;
 				},
 			},
 		});

@@ -34,6 +34,5 @@ enum class IM {
 	update_menu,
 	account_list,
 	account_set,
-	account_get,
 	account_remove,
 };

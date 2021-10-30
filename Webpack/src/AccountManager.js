@@ -3,6 +3,7 @@
 var utils = require('./libs/utils'),
 	site = require('./Site'),
 	Window = require('./libs/MenuUI/Window'),
+	{ IM, ipc } = require('./IPC'),
 	{ tick } = require('./libs/MenuUI/consts');
 
 class Menu {
@@ -33,7 +34,14 @@ class Menu {
 		
 		this.window.attach(await utils.wait_for(() => document.querySelector('#uiBase')));
 	}
+	async generate(){
+		var list = await ipc.post(IM.account_list);
+		console.log(list);
+		
+		
+	}
 	constructor(){
+		this.generate();
 		this.attach();
 	}
 };

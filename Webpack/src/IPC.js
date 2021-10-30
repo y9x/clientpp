@@ -37,6 +37,17 @@ class IPC extends Events {
 		webview.postMessage(JSON.stringify([ event, ...data ]));
 		return true;
 	}
+	post(event, ...data){
+		var id = ~~(Math.random() * 2147483647);
+		
+		return new Promise((resolve, reject) => {
+			this.once(id, (data, error) => {
+				if(error)reject(error);
+				else resolve(data);
+			});
+			this.send(event, id, ...data);
+		});
+	}
 };
 
 var ipc = new IPC();
