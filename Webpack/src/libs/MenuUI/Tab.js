@@ -1,8 +1,8 @@
 'use strict';
 
-var { tick, select } = require('../consts'),
-	utils = require('../../Utils'),
-	Category = require('./Category');
+var { tick, select } = require('./Sound'),
+	utils = require('../Utils'),
+	Category = require('./Window/Category');
 
 class Tab {
 	constructor(window, label){

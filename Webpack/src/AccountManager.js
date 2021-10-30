@@ -2,13 +2,18 @@
 
 var utils = require('./libs/utils'),
 	site = require('./Site'),
-	Window = require('./libs/MenuUI/Window'),
+	Control = require('./libs/MenuUI/Control'),
+	Events = require('./libs/Events'),
+	HeaderWindow = require('./libs/MenuUI/HeaderWindow'),
 	{ IM, ipc } = require('./IPC'),
-	{ tick } = require('./libs/MenuUI/consts');
+	{ tick } = require('./libs/MenuUI/Sound');
 
-class Menu {
-	window = new Window(this);
+require('./TableControl');
+
+class Menu extends Events {
 	save_config(){}
+	config = { test: {} };
+	window = new HeaderWindow(this, 'Accounts');
 	async attach(){
 		var opts = {
 			className: 'button buttonG lgn',
@@ -27,7 +32,6 @@ class Menu {
 		
 		var sin = await utils.wait_for(() => document.querySelector('#signedInHeaderBar')),
 			sout = await utils.wait_for(() => document.querySelector('#signedOutHeaderBar'));
-			
 		
 		tick(utils.add_ele('div', sin, opts));
 		tick(utils.add_ele('div', sout, opts));
@@ -36,14 +40,19 @@ class Menu {
 	}
 	async generate(){
 		var list = await ipc.post(IM.account_list);
-		console.log(list);
 		
-		
+		for(let [ name, data ] of Object.entries(list).sort((p1, p2) => p1.order - p2.order)){
+			
+		}
 	}
 	constructor(){
+		super();
+		
+		this.table = this.window.control('', { type: 'table' });
+		
 		this.generate();
-		this.attach();
 	}
 };
 
-new Menu();
+var menu = new Menu();
+menu.attach();

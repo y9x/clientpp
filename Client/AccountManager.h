@@ -22,5 +22,6 @@ public:
 	std::map<std::string, Account> data;
 	bool save();
 	bool load();
+	bool parse(nlohmann::json data);
 	AccountManager(ClientFolder& folder);
 };

@@ -22,13 +22,18 @@ exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_cle
 
 var utils = __webpack_require__(/*! ./libs/utils */ "./src/libs/utils.js"),
 	site = __webpack_require__(/*! ./Site */ "./src/Site.js"),
-	Window = __webpack_require__(/*! ./libs/MenuUI/Window */ "./src/libs/MenuUI/Window/index.js"),
+	Control = __webpack_require__(/*! ./libs/MenuUI/Control */ "./src/libs/MenuUI/Control.js"),
+	Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
+	HeaderWindow = __webpack_require__(/*! ./libs/MenuUI/HeaderWindow */ "./src/libs/MenuUI/HeaderWindow.js"),
 	{ IM, ipc } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
-	{ tick } = __webpack_require__(/*! ./libs/MenuUI/consts */ "./src/libs/MenuUI/consts.js");
+	{ tick } = __webpack_require__(/*! ./libs/MenuUI/Sound */ "./src/libs/MenuUI/Sound.js");
 
-class Menu {
-	window = new Window(this);
+__webpack_require__(/*! ./TableControl */ "./src/TableControl.js");
+
+class Menu extends Events {
 	save_config(){}
+	config = { test: {} };
+	window = new HeaderWindow(this, 'Accounts');
 	async attach(){
 		var opts = {
 			className: 'button buttonG lgn',
@@ -47,7 +52,6 @@ class Menu {
 		
 		var sin = await utils.wait_for(() => document.querySelector('#signedInHeaderBar')),
 			sout = await utils.wait_for(() => document.querySelector('#signedOutHeaderBar'));
-			
 		
 		tick(utils.add_ele('div', sin, opts));
 		tick(utils.add_ele('div', sout, opts));
@@ -56,17 +60,22 @@ class Menu {
 	}
 	async generate(){
 		var list = await ipc.post(IM.account_list);
-		console.log(list);
 		
-		
+		for(let [ name, data ] of Object.entries(list).sort((p1, p2) => p1.order - p2.order)){
+			
+		}
 	}
 	constructor(){
+		super();
+		
+		this.table = this.window.control('', { type: 'table' });
+		
 		this.generate();
-		this.attach();
 	}
 };
 
-new Menu();
+var menu = new Menu();
+menu.attach();
 
 /***/ }),
 
@@ -627,6 +636,38 @@ module.exports = {
 	'/social.html': 'social',
 	'/editor.html': 'editor',
 }[location.pathname];
+
+/***/ }),
+
+/***/ "./src/TableControl.js":
+/*!*****************************!*\
+  !*** ./src/TableControl.js ***!
+  \*****************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var Control = __webpack_require__(/*! ./libs/MenuUI/Control */ "./src/libs/MenuUI/Control.js"),
+	utils = __webpack_require__(/*! ./libs/Utils */ "./src/libs/Utils.js");
+
+class TableControl extends Control {
+	static id = 'table';
+	create(){
+		this.node = utils.add_ele('table', this.content, {
+			style: {
+				display: 'block',
+			},
+		});
+	}
+	update(init){
+		super.update(init);
+		if(init)this.input.checked = this.value;
+		this.label_text(this.name);
+	}
+};
+
+module.exports = Control.Types.TableControl = TableControl;
 
 /***/ }),
 
@@ -1249,6 +1290,169 @@ module.exports = Control;
 
 /***/ }),
 
+/***/ "./src/libs/MenuUI/HeaderWindow.js":
+/*!*****************************************!*\
+  !*** ./src/libs/MenuUI/HeaderWindow.js ***!
+  \*****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var Tab = __webpack_require__(/*! ./Tab */ "./src/libs/MenuUI/Tab.js"),
+	Window = __webpack_require__(/*! ./Window */ "./src/libs/MenuUI/Window/index.js"),
+	utils = __webpack_require__(/*! ../Utils */ "./src/libs/Utils.js"),
+	Category = __webpack_require__(/*! ./Window/Category */ "./src/libs/MenuUI/Window/Category.js");
+
+class HeaderWindow extends Window {
+	categories = new Set();
+	constructor(menu, label){
+		super(menu);
+		
+		this.window = this;
+		
+		this.content = utils.add_ele('div', this.container, { id: 'settHolder' });
+		
+		utils.add_ele('div', this.content, {
+			id: 'referralHeader',
+			textContent: label,
+		});
+		
+		this.hide();
+	}
+	category(label){
+		var category = this.last_category = new Category(this, label);
+		
+		this.categories.add(category);
+		
+		return category;
+	}
+	control(...args){
+		var category = this.last_category;
+		
+		if(!category || !category.is_default){
+			category = this.category();
+			category.is_default = true;
+		}
+		
+		return category.control(...args);
+	}
+	show(){
+		super.show();
+		for(let category of this.categories)category.fix();
+	}
+	hide(){
+		super.hide();
+	}
+};
+
+module.exports = HeaderWindow;
+
+/***/ }),
+
+/***/ "./src/libs/MenuUI/Sound.js":
+/*!**********************************!*\
+  !*** ./src/libs/MenuUI/Sound.js ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.tick = node => node.addEventListener('mouseenter', () => {
+	try{
+		playTick();
+	}catch(err){}
+});
+
+exports.select = node => node.addEventListener('click', () => {
+	try{
+		SOUND.play('select_0', 0.1);
+	}catch(err){}
+});
+
+/***/ }),
+
+/***/ "./src/libs/MenuUI/Tab.js":
+/*!********************************!*\
+  !*** ./src/libs/MenuUI/Tab.js ***!
+  \********************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var { tick, select } = __webpack_require__(/*! ./Sound */ "./src/libs/MenuUI/Sound.js"),
+	utils = __webpack_require__(/*! ../Utils */ "./src/libs/Utils.js"),
+	Category = __webpack_require__(/*! ./Window/Category */ "./src/libs/MenuUI/Window/Category.js");
+
+class Tab {
+	constructor(window, label){
+		this.window = window;
+		
+		this.button = utils.add_ele('div', this.window.tab_layout, {
+			className: 'settingTab',
+			textContent: label,
+			events: {
+				click: () => this.show(),
+			},
+		});
+		
+		tick(this.button);
+		select(this.button);
+		
+		this.categories = new Set();
+		
+		this.content = utils.add_ele('div', window.container, { id: 'settHolder' });
+		
+		this.hide();
+	}
+	category(label){
+		var category = this.last_category = new Category(this, label);
+		
+		this.categories.add(category);
+		
+		return category;
+	}
+	control(...args){
+		var category = this.last_category;
+		
+		if(!category || !category.is_default){
+			category = this.category();
+			category.is_default = true;
+		}
+		
+		return category.control(...args);
+	}
+	update(init){
+		for(let category of this.categories)category.update(init);
+	}
+	show(){
+		this.visible = true;
+		for(let tab of this.window.tabs)if(tab != this)tab.hide();
+		this.button.classList.add('tabANew');
+		this.show_content();
+		this.window.menu.emit('tab-shown');
+		
+		for(let category of this.categories)category.fix();
+	}
+	hide(){
+		this.visible = false;
+		this.button.classList.remove('tabANew');
+		this.hide_content();
+	}
+	show_content(){
+		this.content.style.display = 'block';
+	}
+	hide_content(){
+		this.content.style.display = 'none';
+	}
+};
+
+module.exports = Tab;
+
+/***/ }),
+
 /***/ "./src/libs/MenuUI/Window/Category.js":
 /*!********************************************!*\
   !*** ./src/libs/MenuUI/Window/Category.js ***!
@@ -1338,86 +1542,6 @@ module.exports = Category;
 
 /***/ }),
 
-/***/ "./src/libs/MenuUI/Window/Tab.js":
-/*!***************************************!*\
-  !*** ./src/libs/MenuUI/Window/Tab.js ***!
-  \***************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var { tick, select } = __webpack_require__(/*! ../consts */ "./src/libs/MenuUI/consts.js"),
-	utils = __webpack_require__(/*! ../../Utils */ "./src/libs/Utils.js"),
-	Category = __webpack_require__(/*! ./Category */ "./src/libs/MenuUI/Window/Category.js");
-
-class Tab {
-	constructor(window, label){
-		this.window = window;
-		
-		this.button = utils.add_ele('div', this.window.tab_layout, {
-			className: 'settingTab',
-			textContent: label,
-			events: {
-				click: () => this.show(),
-			},
-		});
-		
-		tick(this.button);
-		select(this.button);
-		
-		this.categories = new Set();
-		
-		this.content = utils.add_ele('div', window.container, { id: 'settHolder' });
-		
-		this.hide();
-	}
-	category(label){
-		var category = this.last_category = new Category(this, label);
-		
-		this.categories.add(category);
-		
-		return category;
-	}
-	control(...args){
-		var category = this.last_category;
-		
-		if(!category || !category.is_default){
-			category = this.category();
-			category.is_default = true;
-		}
-		
-		return category.control(...args);
-	}
-	update(init){
-		for(let category of this.categories)category.update(init);
-	}
-	show(){
-		this.visible = true;
-		for(let tab of this.window.tabs)if(tab != this)tab.hide();
-		this.button.classList.add('tabANew');
-		this.show_content();
-		this.window.menu.emit('tab-shown');
-		
-		for(let category of this.categories)category.fix();
-	}
-	hide(){
-		this.visible = false;
-		this.button.classList.remove('tabANew');
-		this.hide_content();
-	}
-	show_content(){
-		this.content.style.display = 'block';
-	}
-	hide_content(){
-		this.content.style.display = 'none';
-	}
-};
-
-module.exports = Tab;
-
-/***/ }),
-
 /***/ "./src/libs/MenuUI/Window/index.js":
 /*!*****************************************!*\
   !*** ./src/libs/MenuUI/Window/index.js ***!
@@ -1427,14 +1551,13 @@ module.exports = Tab;
 "use strict";
 
 
-var utils = __webpack_require__(/*! ../../Utils */ "./src/libs/Utils.js"),
-	Tab = __webpack_require__(/*! ./Tab */ "./src/libs/MenuUI/Window/Tab.js");
+var utils = __webpack_require__(/*! ../../Utils */ "./src/libs/Utils.js");
 
 class Window {
 	constructor(menu){
 		this.menu = menu;
 		
-		this.content = utils.crt_ele('div', {
+		this.shadow = utils.crt_ele('div', {
 			style: {
 				position: 'absolute',
 				width: '100%',
@@ -1445,7 +1568,7 @@ class Window {
 			},
 		});
 		
-		this.node = this.content.attachShadow({ mode: 'closed' });
+		this.node = this.shadow.attachShadow({ mode: 'closed' });
 		
 		this.styles = new Set();
 		
@@ -1479,10 +1602,6 @@ class Window {
 			if(event.target == this.holder)this.hide();
 		});
 		
-		this.tabs = new Set();
-		
-		this.tab_layout = utils.add_ele('div', this.header, { id: 'settingsTabLayout' });
-		
 		this.hide();
 	}
 	update_styles(){
@@ -1501,66 +1620,21 @@ class Window {
 			}
 		}
 	}
-	tab(label){
-		var tab = new Tab(this, label);
-		
-		this.tabs.add(tab);
-		
-		return tab;
+	header(label){
+		return new Header(this, label);
 	}
 	attach(ui_base){
-		ui_base.appendChild(this.content);
+		ui_base.append(this.shadow);
 	}
 	show(){
-		this.content.style.display = 'block';
+		this.shadow.style.display = 'block';
 	}
 	hide(){
-		this.content.style.display = 'none';
-	}
-	get main_tab(){
-		var first;
-		
-		for(let tab of this.tabs){
-			first = first || tab;
-			if(tab.visible)return tab;
-		}
-		
-		return first;
-	}
-	update(init){
-		for(let tab of this.tabs){
-			tab.update(init);
-			if(tab != this.main_tab)tab.hide();
-		}
-		
-		this.main_tab.show();
+		this.shadow.style.display = 'none';
 	}
 };
 
 module.exports = Window;
-
-/***/ }),
-
-/***/ "./src/libs/MenuUI/consts.js":
-/*!***********************************!*\
-  !*** ./src/libs/MenuUI/consts.js ***!
-  \***********************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-exports.tick = node => node.addEventListener('mouseenter', () => {
-	try{
-		playTick();
-	}catch(err){}
-});
-
-exports.select = node => node.addEventListener('click', () => {
-	try{
-		SOUND.play('select_0', 0.1);
-	}catch(err){}
-});
 
 /***/ }),
 
@@ -2089,7 +2163,10 @@ class Menu extends ExtendMenu {
 			walk: 'game.seek.map',
 		});
 		
-		var modes = {};
+		var modes = {
+			Any: '',
+		};
+		
 		for(let name of ["Free for All", "Team Deathmatch", "Hardpoint", "Capture the Flag", "Parkour", "Hide & Seek", "Infected", "Race", "Last Man Standing", "Simon Says", "Gun Game", "Prop Hunt", "Boss Hunt", "unused", "unused", "Stalker", "King of the Hill", "One in the Chamber", "Trade", "Kill Confirmed", "Defuse", "Sharp Shooter", "Traitor", "Raid", "Blitz", "Domination", "Squad Deathmatch", "Kranked FFA"])modes[name] = name;
 		
 		Game.control('Seek mode', {

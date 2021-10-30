@@ -160,7 +160,7 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& f
 	if (raw->header.dwType == RIM_TYPEMOUSE) {
 		RAWMOUSE mouse = raw->data.mouse;
 		USHORT flags = mouse.usButtonFlags;
-		
+
 		if (flags & RI_MOUSE_WHEEL) JSMessage(IM::mousewheel, { ((*(short*)&mouse.usButtonData) / WHEEL_DELTA) * -100 }).send(webview);
 		if (flags & RI_MOUSE_BUTTON_1_DOWN) JSMessage(IM::mousedown, { 0 }).send(webview);
 		if (flags & RI_MOUSE_BUTTON_1_UP) JSMessage(IM::mouseup, { 0 }).send(webview);
@@ -226,7 +226,7 @@ std::wstring KrunkerWindow::cmdline() {
 
 	if (folder->config["render"]["uncap_fps"].get<bool>()) {
 		cmds.push_back(L"--disable-frame-rate-limit");
-		/*if (!folder->config["render"]["vsync"])*/
+		// if (!folder->config["render"]["vsync"])
 		cmds.push_back(L"--disable-gpu-vsync");
 	}
 	

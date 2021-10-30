@@ -69,11 +69,15 @@ bool AccountManager::save() {
 	return IOUtil::write_file(folder->directory + path, dump());
 }
 
+bool AccountManager::parse(JSON parsed) {
+	for (auto [name, data] : parsed.items()) data[name] = data;
+	return true;
+}
+
 bool AccountManager::load() {
 	std::string read;
 	if (IOUtil::read_file(folder->directory + path, read))try {
-		JSON parsed = JSON::parse(read);
-		for (auto [name, data] : parsed.items()) data[name] = data;
+		parse(JSON::parse(read));
 	}
 	catch (JSON::parse_error err) {}
 

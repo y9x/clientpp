@@ -118,7 +118,10 @@ class Menu extends ExtendMenu {
 			walk: 'game.seek.map',
 		});
 		
-		var modes = {};
+		var modes = {
+			Any: '',
+		};
+		
 		for(let name of ["Free for All", "Team Deathmatch", "Hardpoint", "Capture the Flag", "Parkour", "Hide & Seek", "Infected", "Race", "Last Man Standing", "Simon Says", "Gun Game", "Prop Hunt", "Boss Hunt", "unused", "unused", "Stalker", "King of the Hill", "One in the Chamber", "Trade", "Kill Confirmed", "Defuse", "Sharp Shooter", "Traitor", "Raid", "Blitz", "Domination", "Squad Deathmatch", "Kranked FFA"])modes[name] = name;
 		
 		Game.control('Seek mode', {

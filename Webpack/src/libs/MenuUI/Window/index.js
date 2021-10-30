@@ -1,13 +1,12 @@
 'use strict';
 
-var utils = require('../../Utils'),
-	Tab = require('./Tab');
+var utils = require('../../Utils');
 
 class Window {
 	constructor(menu){
 		this.menu = menu;
 		
-		this.content = utils.crt_ele('div', {
+		this.shadow = utils.crt_ele('div', {
 			style: {
 				position: 'absolute',
 				width: '100%',
@@ -18,7 +17,7 @@ class Window {
 			},
 		});
 		
-		this.node = this.content.attachShadow({ mode: 'closed' });
+		this.node = this.shadow.attachShadow({ mode: 'closed' });
 		
 		this.styles = new Set();
 		
@@ -52,10 +51,6 @@ class Window {
 			if(event.target == this.holder)this.hide();
 		});
 		
-		this.tabs = new Set();
-		
-		this.tab_layout = utils.add_ele('div', this.header, { id: 'settingsTabLayout' });
-		
 		this.hide();
 	}
 	update_styles(){
@@ -74,39 +69,17 @@ class Window {
 			}
 		}
 	}
-	tab(label){
-		var tab = new Tab(this, label);
-		
-		this.tabs.add(tab);
-		
-		return tab;
+	header(label){
+		return new Header(this, label);
 	}
 	attach(ui_base){
-		ui_base.appendChild(this.content);
+		ui_base.append(this.shadow);
 	}
 	show(){
-		this.content.style.display = 'block';
+		this.shadow.style.display = 'block';
 	}
 	hide(){
-		this.content.style.display = 'none';
-	}
-	get main_tab(){
-		var first;
-		
-		for(let tab of this.tabs){
-			first = first || tab;
-			if(tab.visible)return tab;
-		}
-		
-		return first;
-	}
-	update(init){
-		for(let tab of this.tabs){
-			tab.update(init);
-			if(tab != this.main_tab)tab.hide();
-		}
-		
-		this.main_tab.show();
+		this.shadow.style.display = 'none';
 	}
 };
 
