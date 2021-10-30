@@ -64,9 +64,7 @@ bool KrunkerWindow::create_window(HINSTANCE inst, int cmdshow) {
 
 	ShowWindow(cmdshow);
 	UpdateWindow();
-
-	open = true;
-
+	
 	return true;
 }
 
@@ -452,20 +450,28 @@ void KrunkerWindow::register_events() {
 }
 
 KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {
-	if (folder->config["window"]["meta"]["replace"].get<bool>())
-		title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
+	if (!open) {
+		if (folder->config["window"]["meta"]["replace"].get<bool>())
+			title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
 
-	create_window(inst, cmdshow);
+		create_window(inst, cmdshow);
 
-	SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(background));
-	
-	if (can_fullscreen && folder->config["render"]["fullscreen"]) enter_fullscreen();
+		SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(background));
 
-	if (folder->config["window"]["meta"]["replace"].get<bool>())
-		SetIcon((HICON)LoadImage(inst, folder->resolve_path(Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
-	else SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));
+		if (can_fullscreen && folder->config["render"]["fullscreen"]) enter_fullscreen();
 
-	return call_create_webview(callback);
+		if (folder->config["window"]["meta"]["replace"].get<bool>())
+			SetIcon((HICON)LoadImage(inst, folder->resolve_path(Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
+		else SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));
+		
+		open = true;
+	}
+
+	if (!webview) return call_create_webview(callback);
+	else {
+		callback();
+		return Status::Ok;
+	}
 }
 
 KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> callback) {
@@ -557,12 +563,14 @@ KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> c
 }
 
 KrunkerWindow::Status KrunkerWindow::get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) {
-	if (!open) return create(inst, cmdshow, [this, callback]() {
-		callback(true);
-	});
-	else {
+	if (webview && open) {
 		callback(false);
 		return Status::AlreadyOpen;
+	}
+	else {
+		return create(inst, cmdshow, [this, callback]() {
+			callback(true);
+		});
 	}
 }
 

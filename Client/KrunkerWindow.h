@@ -32,6 +32,7 @@ public:
 		Social,
 		Editor,
 		Documents,
+		Scripting,
 	};
 	static long long now();
 private:

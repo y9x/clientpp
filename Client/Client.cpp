@@ -62,7 +62,7 @@ void Client::listen_navigation(KrunkerWindow& window) {
 	window.webview->add_NewWindowRequested(Callback<ICoreWebView2NewWindowRequestedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {
 		LPWSTR urip;
 		args->get_Uri(&urip);
-		if (navigation_cancelled(sender, urip)) args->put_Handled(true);
+		if (navigation_cancelled(sender, urip)) /* TODO: SET OPENER */ args->put_Handled(true);
 		else {
 			args->put_Handled(true);
 			sender->Navigate(urip);
@@ -206,7 +206,7 @@ Client::Client(HINSTANCE h, int c)
 	, game(folder, KrunkerWindow::Type::Game, { 0.8, 0.8 }, client_title, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return on_message(msg, game); }, []() { PostQuitMessage(EXIT_SUCCESS); })
 	, social(folder, KrunkerWindow::Type::Social, { 0.7, 0.7 }, (std::wstring(client_title) + L": Social").c_str(), [this]() { listen_navigation(social); }, [this](JSMessage msg) -> bool { return on_message(msg, social); })
 	, editor(folder, KrunkerWindow::Type::Editor, { 0.7, 0.7 }, (std::wstring(client_title) + L": Editor").c_str(), [this]() { listen_navigation(editor); }, [this](JSMessage msg) -> bool { return on_message(msg, editor); })
-	, scripting(folder, KrunkerWindow::Type::Social, { 0.6, 0.6 }, (std::wstring(client_title) + L": Scripting").c_str(), [this]() { listen_navigation(scripting); }, [this](JSMessage msg) -> bool { return on_message(msg, scripting); })
+	, scripting(folder, KrunkerWindow::Type::Scripting, { 0.6, 0.6 }, (std::wstring(client_title) + L": Scripting").c_str(), [this]() { listen_navigation(scripting); }, [this](JSMessage msg) -> bool { return on_message(msg, scripting); })
 	, documents(folder, KrunkerWindow::Type::Documents, { 0.4, 0.6 }, (std::wstring(client_title) + L": Documents").c_str(), [this]() { listen_navigation(documents); }, [this](JSMessage msg) -> bool { return on_message(msg, documents); })
 	, accounts(folder)
 	, shcore(LoadLibrary(L"api-ms-win-shcore-scaling-l1-1-1.dll"))
