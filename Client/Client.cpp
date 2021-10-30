@@ -50,6 +50,7 @@ bool Client::navigation_cancelled(ICoreWebView2* sender, Uri uri) {
 		send->get(inst, cmdshow, [this, uri, send](bool newly_created) {
 			if (newly_created) listen_navigation(*send);
 			send->webview->Navigate(uri.href.c_str());
+			send->BringWindowToTop();
 		});
 	}
 
