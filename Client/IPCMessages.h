@@ -35,4 +35,5 @@ enum class IM {
 	account_list,
 	account_set,
 	account_remove,
+	account_set_password,
 };

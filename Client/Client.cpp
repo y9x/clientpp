@@ -132,18 +132,37 @@ bool Client::on_message(JSMessage msg, KrunkerWindow& window) {
 	} break;
 	case IM::account_remove:
 
-		account.data.erase(msg.args[0]);
+		accounts.data.erase(msg.args[0]);
+		accounts.save();
 
 		break;
-	case IM::account_set:
+	case IM::account_set: {
 
-		account.data[msg.args[0]] = msg.args[1];
+		std::string name = msg.args[0];
+		Account& account = accounts.data[name];
+		account.color = msg.args[1];
+		account.order = msg.args[2];
+		accounts.save();
 
-		break;
-	case IM::account_list:{
+	} break;
+	//and creation
+	case IM::account_set_password: {
 
-		JSMessage res((IM)msg.args[0].get<int>(), { account.dump() });
-		if (!res.send(window.webview))clog::error << "Unable to send " << res.dump() << clog::endl;
+		std::string enc;
+		if (accounts.encrypt(msg.args[1], enc)) {
+			Account account;
+			account.color = msg.args[1];
+			account.order = msg.args[2];
+			account.password = enc;
+			accounts.data[msg.args[0]] = account;
+		}
+
+	} break;
+	case IM::account_list: {
+
+		JSMessage res((IM)msg.args[0].get<int>());
+		res.args.push_back(accounts.dump());
+		if (!res.send(window.webview)) clog::error << "Unable to send " << res.dump() << clog::endl;
 		
 	} break;
 
@@ -186,7 +205,7 @@ Client::Client(HINSTANCE h, int c)
 	, social(folder, KrunkerWindow::Type::Social, { 0.7, 0.7 }, (std::wstring(client_title) + L": Social").c_str(), [this]() { listen_navigation(social); }, [this](JSMessage msg) -> bool { return on_message(msg, social); })
 	, editor(folder, KrunkerWindow::Type::Editor, { 0.7, 0.7 }, (std::wstring(client_title) + L": Editor").c_str(), [this]() { listen_navigation(editor); }, [this](JSMessage msg) -> bool { return on_message(msg, editor); })
 	, documents(folder, KrunkerWindow::Type::Documents, { 0.4, 0.6 }, (std::wstring(client_title) + L": Documents").c_str(), [this]() { listen_navigation(documents); }, [this](JSMessage msg) -> bool { return on_message(msg, documents); })
-	, account(folder)
+	, accounts(folder)
 	, shcore(LoadLibrary(L"api-ms-win-shcore-scaling-l1-1-1.dll"))
 {}
 

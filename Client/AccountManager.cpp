@@ -14,11 +14,9 @@ JSON Account::dump() {
 	return output;
 }
 
-Account::Account(JSON data) {
-	order = data["order"];
-	color = data["color"];
-	password = data["password"];
-}
+Account::Account() : order(0), color("#000000"), password("") {}
+
+Account::Account(JSON data) : order(data["order"]), color(data["color"]), password(data["password"]) {}
 
 bool AccountManager::encrypt(std::string input, std::string& output) {
 	DATA_BLOB in;
@@ -62,7 +60,7 @@ bool AccountManager::decrypt(std::string input, std::string& output) {
 JSON AccountManager::dump() {
 	JSON output = JSON::object();
 	
-	for (auto [name, acc] : data) data[name] = acc.dump();
+	for (auto& [name, acc] : data) output[name] = acc.dump();
 
 	return output;
 }
@@ -80,23 +78,6 @@ bool AccountManager::load() {
 	catch (JSON::parse_error err) {}
 
 	return true;
-}
-
-bool AccountManager::set(std::string name, std::string password) {
-	std::string enc;
-	if (!encrypt(password, enc)) return false;
-	data[name].password = enc;
-	return save();
-}
-
-bool AccountManager::remove(std::string name) {
-	
-	return save();
-}
-
-bool AccountManager::get(std::string name, std::string& password) {
-	if (!data.contains(name)) return false;
-	return decrypt(data[name].password, password);
 }
 
 AccountManager::AccountManager(ClientFolder& f) : folder(&f) {}

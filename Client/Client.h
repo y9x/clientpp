@@ -10,7 +10,7 @@
 
 class Client {
 private:
-	AccountManager account;
+	AccountManager accounts;
 	Updater updater;
 	WebView2Installer installer;
 	ClientFolder folder;
