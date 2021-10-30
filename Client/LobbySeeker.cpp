@@ -53,7 +53,7 @@ Game::Game(JSON data)
 {}
 
 bool Game::operator < (Game c) {
-	return players < c.players;
+	return players > c.players;
 }
 
 bool Game::full() {
@@ -70,17 +70,21 @@ std::string LobbySeeker::seek() {
 		
 		std::vector<Game> games;
 
-		for (JSON data : data["games"]) games.push_back(data);
+		for (JSON data : data["games"]) {
+			Game game = data;
 
-		std::sort(games.begin(), games.end());
-		
-		for (Game game : games) {
 			if (game.full()) continue;
 			if (region != -1 && game.region != region) continue;
 			if (mode != -1 && game.mode != mode) continue;
 			if (use_map && Manipulate::lowercase(game.map) != Manipulate::lowercase(map)) continue;
 
-			return game.link();
+			games.push_back(game);
+		}
+
+		if (games.size()) {
+			std::sort(games.begin(), games.end());
+			// for (Game game : games) clog::info << game.players << " / " << game.max_players << clog::endl;
+			return games[0].link();
 		}
 	}
 	catch (JSON::parse_error err) {
@@ -89,7 +93,6 @@ std::string LobbySeeker::seek() {
 	catch (JSON::type_error err) {
 		clog::error << "Unable to process game list: " << err.what() << clog::endl;
 	}
-
 
 	clog::error << "Error finding game" << clog::endl;
 	return "https://krunker.io";
