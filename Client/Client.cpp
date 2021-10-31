@@ -15,6 +15,7 @@ namespace krunker {
 	constexpr const wchar_t* games = L"/games";
 	constexpr const wchar_t* editor = L"/editor.html";
 	constexpr const wchar_t* social = L"/social.html";
+	constexpr const wchar_t* viewer = L"/viewer.html";
 	constexpr const wchar_t* scripting = L"/scripting.html";
 	constexpr const wchar_t* docs = L"/docs/";
 	constexpr const wchar_t* tos = L"/docs/tos.html";

@@ -84,7 +84,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 			}
 			
 			seeker.customs = folder->config["game"]["seek"]["customs"];
-			seeker.map = folder->config["game"]["seek"]["map"];
+			seeker.map = Manipulate::lowercase(folder->config["game"]["seek"]["map"]);
 
 			if (seeker.map.length()) seeker.use_map = true;
 			
@@ -99,6 +99,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 
 		break;
 	case IM::toggle_fullscreen:
+		if (type != Type::Game) break;
 		folder->config["render"]["fullscreen"] = !folder->config["render"]["fullscreen"];
 		folder->save_config();
 

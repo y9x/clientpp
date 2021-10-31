@@ -1,12 +1,11 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <httplib.hpp>
-#include <json.hpp>
+#include <rapidjson/document.h>
 #include "./LobbySeeker.h"
 #include "../Utils/StringUtil.h"
 #include "./Log.h"
 
 using namespace StringUtil;
-using JSON = nlohmann::json;
 
 httplib::Client api("https://matchmaker.krunker.io");
 
@@ -43,13 +42,13 @@ int Game::region_id(std::string region) {
 	return -1;
 }
 
-Game::Game(JSON data)
-	: id(data[0])
-	, region(region_id(data[1]))
-	, map(data[4]["i"])
-	, mode(data[4]["g"])
-	, players(data[2])
-	, max_players(data[3])
+Game::Game(const rapidjson::Value& data)
+	: id(data[0].GetString(), data[0].GetStringLength())
+	, region(region_id(std::string(data[1].GetString(), data[1].GetStringLength())))
+	, map(std::string(data[4]["i"].GetString(), data[4]["i"].GetStringLength()))
+	, mode(data[4]["g"].GetInt())
+	, players(data[2].GetInt())
+	, max_players(data[3].GetInt())
 {}
 
 bool Game::operator < (Game c) {
@@ -64,34 +63,32 @@ std::string Game::link() {
 	return "https://krunker.io/?game=" + id;
 }
 
+long long now() {
+	return duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
 std::string LobbySeeker::seek() {
-	if (auto res = api.Get("/game-list?hostname=krunker.io"))try {
-		JSON data = JSON::parse(res->body);
+	if (auto res = api.Get("/game-list?hostname=krunker.io")) {
+		rapidjson::Document data;
+		data.Parse(res->body.c_str(), res->body.length());
 		
 		std::vector<Game> games;
 
-		for (JSON data : data["games"]) {
+		for (const rapidjson::Value& data : data["games"].GetArray()) {
 			Game game = data;
 
 			if (game.full()) continue;
 			if (region != -1 && game.region != region) continue;
 			if (mode != -1 && game.mode != mode) continue;
-			if (use_map && Manipulate::lowercase(game.map) != Manipulate::lowercase(map)) continue;
+			if (use_map && Manipulate::lowercase(game.map) != map) continue;
 
 			games.push_back(game);
 		}
-
+		
 		if (games.size()) {
 			std::sort(games.begin(), games.end());
-			// for (Game game : games) clog::info << game.players << " / " << game.max_players << clog::endl;
 			return games[0].link();
 		}
-	}
-	catch (JSON::parse_error err) {
-		clog::error << "Unable to parse game list: " << err.what() << clog::endl;
-	}
-	catch (JSON::type_error err) {
-		clog::error << "Unable to process game list: " << err.what() << clog::endl;
 	}
 
 	clog::error << "Error finding game" << clog::endl;

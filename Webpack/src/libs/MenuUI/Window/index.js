@@ -1,12 +1,15 @@
 'use strict';
 
-var utils = require('../../Utils');
+var utils = require('../../Utils'),
+	Events = require('../../Events');
 
-class Window {
+class Window extends Events {
 	constructor(menu){
+		super();
+		
 		this.menu = menu;
 		
-		this.shadow = utils.crt_ele('div', {
+		this.shadow = utils.add_ele('div', () => document.querySelector('#uiBase'), {
 			style: {
 				position: 'absolute',
 				width: '100%',
@@ -72,13 +75,12 @@ class Window {
 	header(label){
 		return new Header(this, label);
 	}
-	attach(ui_base){
-		ui_base.append(this.shadow);
-	}
 	show(){
+		this.emit('show');
 		this.shadow.style.display = 'block';
 	}
 	hide(){
+		this.emit('hide');
 		this.shadow.style.display = 'none';
 	}
 };

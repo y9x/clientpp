@@ -113,9 +113,10 @@ class Menu extends ExtendMenu {
 			walk: 'game.seek.F4',
 		});
 		
-		Game.control('Seek map (Empty = any)', {
+		Game.control('Seek map', {
 			type: 'textbox',
 			walk: 'game.seek.map',
+			placeholder: 'Empty for any map',
 		});
 		
 		var modes = {

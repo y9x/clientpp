@@ -1,18 +1,16 @@
 #pragma once
 #include <functional>
-#include <json.hpp>
+#include <rapidjson/document.h>
 
-class Game {
-private:
+struct Game {
 	int region_id(std::string region);
-public:
 	int mode, region;
 	size_t players, max_players;
 	std::string id, map;
-	Game(nlohmann::json data);
-	bool operator < (Game c);
-	bool full();
 	std::string link();
+	bool full();
+	bool operator < (Game c);
+	Game(const rapidjson::Value& data);
 };
 
 class LobbySeeker {

@@ -30,9 +30,81 @@ var utils = __webpack_require__(/*! ./libs/utils */ "./src/libs/utils.js"),
 
 __webpack_require__(/*! ./TableControl */ "./src/TableControl.js");
 
+class AccountPop {
+	constructor(body, callback){
+		this.callback = callback;
+		
+		this.container = utils.add_ele('div', body, {
+			id: 'importPop',
+			style: { 'z-index': 1e9 },
+		});
+		
+		utils.add_ele('div', this.container, {
+			className: 'pubHed',
+			textContent: 'Add Account',
+		});
+		
+		this.username = utils.add_ele('input', this.container, {
+			type: 'text',
+			placeholder: 'Enter Username',
+			className: 'inputGrey2',
+			style: { width: '379px', 'margin-bottom': '5px', },
+		});
+		
+		this.password = utils.add_ele('input', this.container, {
+			type: 'text',
+			placeholder: 'Enter Password',
+			className: 'inputGrey2',
+			style: { width: '379px' },
+		});
+		
+		utils.add_ele('div', this.container, {
+			className: 'mapFndB',
+			textContent: 'Add',
+			style: {
+				width: '180px',
+				'margin-top': '10px',
+				'margin-left': 0,
+				background: '#4af',
+			},
+			events: {
+				click: () => {
+					try{
+						this.callback(this.username.value, this.password.value);
+					}catch(err){ console.error(err); }
+					
+					this.username.value = '';
+					this.password.value = '';
+					this.hide();
+				},
+			},
+		});
+		
+		utils.add_ele('div', this.container, {
+			className: 'mapFndB',
+			textContent: 'Cancel',
+			style: {
+				width: '180px',
+				'margin-top': '10px',
+				'margin-left': 0,
+				background: '#122',
+			},
+			events: { click: () => this.hide() },
+		});
+		
+		this.hide();
+	}
+	show(){
+		this.container.style.display = 'block';
+	}
+	hide(){
+		this.container.style.display = 'none';
+	}
+};
+
 class Menu extends Events {
 	save_config(){}
-	config = { test: {} };
+	config = {};
 	window = new HeaderWindow(this, 'Accounts');
 	async attach(){
 		var opts = {
@@ -50,13 +122,8 @@ class Menu extends Events {
 			},
 		};
 		
-		var sin = await utils.wait_for(() => document.querySelector('#signedInHeaderBar')),
-			sout = await utils.wait_for(() => document.querySelector('#signedOutHeaderBar'));
-		
-		tick(utils.add_ele('div', sin, opts));
-		tick(utils.add_ele('div', sout, opts));
-		
-		this.window.attach(await utils.wait_for(() => document.querySelector('#uiBase')));
+		tick(utils.add_ele('div', () => document.querySelector('#signedInHeaderBar'), opts));
+		tick(utils.add_ele('div', () => document.querySelector('#signedOutHeaderBar'), opts));
 	}
 	async generate(){
 		var list = await ipc.post(IM.account_list);
@@ -68,13 +135,29 @@ class Menu extends Events {
 	constructor(){
 		super();
 		
+		this.account_pop = new AccountPop(this.window.node, (username, password) => {
+			if(!username || !password)return;
+			
+			
+		});
+		
 		this.table = this.window.control('', { type: 'table' });
+		
+		this.window.control('Account', {
+			type: 'function',
+			text: 'Add',
+			color: 'blue',
+			value: () => this.account_pop.show(),
+		});
+		
+		this.window.on('hide', () => this.account_pop.hide());
 		
 		this.generate();
 	}
 };
 
 var menu = new Menu();
+window.menu = menu;
 menu.attach();
 
 /***/ }),
@@ -1551,13 +1634,16 @@ module.exports = Category;
 "use strict";
 
 
-var utils = __webpack_require__(/*! ../../Utils */ "./src/libs/Utils.js");
+var utils = __webpack_require__(/*! ../../Utils */ "./src/libs/Utils.js"),
+	Events = __webpack_require__(/*! ../../Events */ "./src/libs/Events.js");
 
-class Window {
+class Window extends Events {
 	constructor(menu){
+		super();
+		
 		this.menu = menu;
 		
-		this.shadow = utils.crt_ele('div', {
+		this.shadow = utils.add_ele('div', () => document.querySelector('#uiBase'), {
 			style: {
 				position: 'absolute',
 				width: '100%',
@@ -1623,13 +1709,12 @@ class Window {
 	header(label){
 		return new Header(this, label);
 	}
-	attach(ui_base){
-		ui_base.append(this.shadow);
-	}
 	show(){
+		this.emit('show');
 		this.shadow.style.display = 'block';
 	}
 	hide(){
+		this.emit('hide');
 		this.shadow.style.display = 'none';
 	}
 };
@@ -2158,9 +2243,10 @@ class Menu extends ExtendMenu {
 			walk: 'game.seek.F4',
 		});
 		
-		Game.control('Seek map (Empty = any)', {
+		Game.control('Seek map', {
 			type: 'textbox',
 			walk: 'game.seek.map',
+			placeholder: 'Empty for any map',
 		});
 		
 		var modes = {
