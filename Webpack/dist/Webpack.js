@@ -17,7 +17,7 @@ exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_cle
   \********************************/
 /***/ ((module) => {
 
-module.exports=".account-tiles {\r\n\tdisplay: flex;\r\n\twidth: 100%;\r\n\tbackground: #FFF;\r\n\toverflow: hidden;\r\n\tborder-radius: 5px;\r\n}\r\n\r\n.account-tile {\r\n\tborder: 1px solid #000;\r\n\tjustify-content: center;\r\n\talign-items: center;\r\n\tmin-width: 25%;\r\n\tdisplay: flex;\r\n\theight: 100px;\r\n\tdisplay: flex;\r\n\tflex: auto;\r\n\tcursor: pointer;\r\n\tposition: relative;\r\n}\r\n\r\n.account-tile > .buttons {\r\n\tposition: absolute;\r\n\tright: 0px;\r\n\tbottom: 0px;\r\n}\r\n\r\n.account-tile > .text {\r\n\t--alpha: 1;\r\n\tdisplay: flex;\r\n\tbackground: rgba(0, 0, 0, var(--alpha));\r\n\theight: 100%;\r\n\twidth: 100%;\r\n\tjustify-content: center;\r\n\talign-items: center;\r\n}\r\n\r\n.account-tile > .text:hover {\r\n\t--alpha: 0.7;\r\n}\r\n\r\n.account-tile > .buttons > span {\r\n\tcolor: white;\r\n\tpadding: 6px;\r\n}\r\n\r\n.account-tile > .buttons > span:hover {\r\n\tbackground: rgba(255, 255, 255, 0.3); \r\n}"
+module.exports=".account-tiles {\r\n\tdisplay: flex;\r\n\tflex-wrap: wrap;\r\n\twidth: 100%;\r\n\tbackground: #FFF;\r\n\toverflow: hidden;\r\n\tborder-radius: 5px;\r\n}\r\n\r\n.account-tile {\r\n\tborder: 1px solid #000;\r\n\tjustify-content: center;\r\n\talign-items: center;\r\n\tmin-width: 25%;\r\n\tdisplay: flex;\r\n\theight: 100px;\r\n\tdisplay: flex;\r\n\tflex: auto;\r\n\tcursor: pointer;\r\n\tposition: relative;\r\n}\r\n\r\n.account-tile > .buttons {\r\n\tposition: absolute;\r\n\tright: 0px;\r\n\tbottom: 0px;\r\n}\r\n\r\n.account-tile > .text {\r\n\t--alpha: 1;\r\n\tdisplay: flex;\r\n\tbackground: rgba(0, 0, 0, var(--alpha));\r\n\theight: 100%;\r\n\twidth: 100%;\r\n\tjustify-content: center;\r\n\talign-items: center;\r\n}\r\n\r\n.account-tile > .text:hover {\r\n\t--alpha: 0.7;\r\n}\r\n\r\n.account-tile > .buttons > span {\r\n\tcolor: white;\r\n\tpadding: 6px;\r\n}\r\n\r\n.account-tile > .buttons > span:hover {\r\n\tbackground: rgba(255, 255, 255, 0.3); \r\n}"
 
 /***/ }),
 
@@ -63,7 +63,7 @@ class AccountPop {
 		});
 		
 		this.password = utils.add_ele('input', this.container, {
-			type: 'text',
+			type: 'password',
 			placeholder: 'Enter Password',
 			className: 'inputGrey2',
 			style: { width: '379px' },
@@ -199,7 +199,7 @@ class Menu extends Events {
 		tick(utils.add_ele('div', () => document.querySelector('#signedOutHeaderBar'), opts));
 	}
 	async generate(list){
-		for(let node of this.table.node.children)node.remove();
+		this.table.node.innerHTML = '';
 		
 		for(let [ username, data ] of Object.entries(list).sort((p1, p2) => p1.order - p2.order))new AccountTile(this.table.node, this.window, username, data);
 	}

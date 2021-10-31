@@ -33,7 +33,7 @@ class AccountPop {
 		});
 		
 		this.password = utils.add_ele('input', this.container, {
-			type: 'text',
+			type: 'password',
 			placeholder: 'Enter Password',
 			className: 'inputGrey2',
 			style: { width: '379px' },
@@ -169,7 +169,7 @@ class Menu extends Events {
 		tick(utils.add_ele('div', () => document.querySelector('#signedOutHeaderBar'), opts));
 	}
 	async generate(list){
-		for(let node of this.table.node.children)node.remove();
+		this.table.node.innerHTML = '';
 		
 		for(let [ username, data ] of Object.entries(list).sort((p1, p2) => p1.order - p2.order))new AccountTile(this.table.node, this.window, username, data);
 	}

@@ -1,5 +1,6 @@
 .account-tiles {
 	display: flex;
+	flex-wrap: wrap;
 	width: 100%;
 	background: #FFF;
 	overflow: hidden;
