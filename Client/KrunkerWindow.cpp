@@ -522,6 +522,12 @@ KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> c
 				if (wil::com_ptr<ICoreWebView2Settings3> settings3 = settings.query<ICoreWebView2Settings3>()) {
 					settings3->put_AreBrowserAcceleratorKeysEnabled(false);
 				}
+				if (wil::com_ptr<ICoreWebView2Settings4> settings4 = settings.query<ICoreWebView2Settings4>()) {
+					settings4->put_IsGeneralAutofillEnabled(false);
+					settings4->put_IsPasswordAutosaveEnabled(false);
+				}
+
+				
 			}
 
 			resize_wv();

@@ -167,6 +167,7 @@ class AccountTile {
 	}
 	async click(){
 		var password = await ipc.post(IM.account_password, this.username);
+		if(!window.accName)logoutAcc();
 		window.accName = { value: this.username };
 		window.accPass = { value: this.data.password };
 		loginAcc();
