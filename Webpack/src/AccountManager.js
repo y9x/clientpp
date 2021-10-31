@@ -5,6 +5,7 @@ var utils = require('./libs/utils'),
 	Control = require('./libs/MenuUI/Control'),
 	Events = require('./libs/Events'),
 	HeaderWindow = require('./libs/MenuUI/HeaderWindow'),
+	Hex3 = require('./libs/Hex3'),
 	{ IM, ipc } = require('./IPC'),
 	{ tick } = require('./libs/MenuUI/Sound');
 
@@ -105,11 +106,30 @@ class Menu extends Events {
 		tick(utils.add_ele('div', () => document.querySelector('#signedInHeaderBar'), opts));
 		tick(utils.add_ele('div', () => document.querySelector('#signedOutHeaderBar'), opts));
 	}
-	async generate(){
-		var list = await ipc.post(IM.account_list);
+	async generate(list){
+		for(let node of this.table.node.children)node.remove();
 		
-		for(let [ name, data ] of Object.entries(list).sort((p1, p2) => p1.order - p2.order)){
+		for(let [ username, data ] of Object.entries(list).sort((p1, p2) => p1.order - p2.order)){
+			let hex = new Hex3(data.color);
 			
+			utils.add_ele('div', this.table.node, {
+				textContent: username,
+				className: 'account-tile',
+				style: {
+					'background-color': `rgba(${hex.hex}, var(--alpha))`,
+				},
+				events: {
+					click: async () => {
+						var password = await ipc.post(IM.account_password, username);
+						window.accName = { value: username };
+						window.accPass = { value: password };
+						loginAcc();
+						delete window.accName;
+						delete window.accPass;
+						
+					},
+				},
+			});
 		}
 	}
 	constructor(){
@@ -118,7 +138,7 @@ class Menu extends Events {
 		this.account_pop = new AccountPop(this.window.node, (username, password) => {
 			if(!username || !password)return;
 			
-			
+			ipc.send(IM.account_set_password, username, password, '#2196f3', 0);
 		});
 		
 		this.table = this.window.control('', { type: 'table' });
@@ -132,10 +152,16 @@ class Menu extends Events {
 		
 		this.window.on('hide', () => this.account_pop.hide());
 		
-		this.generate();
+		utils.add_ele('style', this.window.node, {
+			textContent: require('./AccountManager.css'),
+		});
+		
+		ipc.post(IM.account_list).then(list => this.generate(list));
 	}
 };
 
 var menu = new Menu();
 window.menu = menu;
 menu.attach();
+
+ipc.on(IM.account_regen, list => menu.generate(list));

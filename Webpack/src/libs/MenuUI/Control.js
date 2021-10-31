@@ -4,6 +4,13 @@ var utils = require('../Utils'),
 	Events = require('../Events');
 
 class Control extends Events {
+	static resolve(id){
+		if(id instanceof this)return id;
+		else for(let [ cls, type ] of Object.entries(Control.Types))if(type.id == id)return type;
+		
+		return id; // throws neat error
+		// else throw new TypeError('Unknown type: ' + data.type);
+	}
 	constructor(name, data, category){
 		super();
 		

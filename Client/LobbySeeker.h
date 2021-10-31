@@ -8,6 +8,7 @@ struct Game {
 	size_t players, max_players;
 	std::string id, map;
 	std::string link();
+	bool custom;
 	bool full();
 	bool operator < (Game c);
 	Game(const rapidjson::Value& data);

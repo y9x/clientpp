@@ -49,10 +49,11 @@ Game::Game(const rapidjson::Value& data)
 	, mode(data[4]["g"].GetInt())
 	, players(data[2].GetInt())
 	, max_players(data[3].GetInt())
+	, custom(data[4]["c"].GetInt())
 {}
 
 bool Game::operator < (Game c) {
-	return players > c.players;
+	return players > c.players; // && (max_players - 1 < players);
 }
 
 bool Game::full() {
@@ -61,10 +62,6 @@ bool Game::full() {
 
 std::string Game::link() {
 	return "https://krunker.io/?game=" + id;
-}
-
-long long now() {
-	return duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 std::string LobbySeeker::seek() {
@@ -80,6 +77,7 @@ std::string LobbySeeker::seek() {
 			if (game.full()) continue;
 			if (region != -1 && game.region != region) continue;
 			if (mode != -1 && game.mode != mode) continue;
+			if (!customs && game.custom) continue;
 			if (use_map && Manipulate::lowercase(game.map) != map) continue;
 
 			games.push_back(game);

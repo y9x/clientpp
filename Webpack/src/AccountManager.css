@@ -1,0 +1,25 @@
+.account-tiles {
+	display: flex;
+	width: 100%;
+	background: #FFF;
+	overflow: hidden;
+	border-radius: 5px;
+}
+
+.account-tile {
+	border: 1px solid #000;
+	--alpha: 1;
+	background: rgba(0, 0, 0, var(--alpha));
+	justify-content: center;
+	align-items: center;
+	min-width: 25%;
+	display: flex;
+	height: 100px;
+	display: flex;
+	flex: auto;
+	cursor: pointer;
+}
+
+.account-tile:hover {
+	--alpha: 0.7;
+}

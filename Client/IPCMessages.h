@@ -33,7 +33,9 @@ enum class IM {
 	toggle_fullscreen,
 	update_menu,
 	account_list,
+	account_password,
 	account_set,
 	account_remove,
 	account_set_password,
+	account_regen,
 };

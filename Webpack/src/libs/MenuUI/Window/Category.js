@@ -64,15 +64,9 @@ class Category {
 		for(let control of this.controls)control.show_content();
 	}
 	control(name, data){
-		for(let [ cls, type ] of Object.entries(Control.Types))if(type.id == data.type){
-			let control = new type(name, data, this);
-			
-			this.controls.add(control);
-			
-			return control;
-		}
-		
-		throw new TypeError('Unknown type: ' + data.type);
+		var control = new (Control.resolve(data.type))(name, data, this);
+		this.controls.add(control);
+		return control;
 	}
 };
 

@@ -6,10 +6,8 @@ var Control = require('./libs/MenuUI/Control'),
 class TableControl extends Control {
 	static id = 'table';
 	create(){
-		this.node = utils.add_ele('table', this.content, {
-			style: {
-				display: 'block',
-			},
+		this.node = utils.add_ele('div', this.content, {
+			className: 'account-tiles',
 		});
 	}
 	update(init){

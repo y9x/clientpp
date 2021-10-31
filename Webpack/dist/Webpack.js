@@ -7,7 +7,17 @@
   \*******************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_clear:1,rpc_init:2,save_config:3,shell_open:4,fullscreen:5,update_meta:6,revert_meta:7,reload_config:8,browse_file:9,mousedown:10,mouseup:11,mousemove:12,mousewheel:13,pointer:14,open_devtools:15,log:16,relaunch_webview:17,close_window:18,reload_window:19,seek_game:20,toggle_fullscreen:21,update_menu:22,account_list:23,account_set:24,account_remove:25,account_set_password:26}
+exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_clear:1,rpc_init:2,save_config:3,shell_open:4,fullscreen:5,update_meta:6,revert_meta:7,reload_config:8,browse_file:9,mousedown:10,mouseup:11,mousemove:12,mousewheel:13,pointer:14,open_devtools:15,log:16,relaunch_webview:17,close_window:18,reload_window:19,seek_game:20,toggle_fullscreen:21,update_menu:22,account_list:23,account_password:24,account_set:25,account_remove:26,account_set_password:27,account_regen:28}
+
+/***/ }),
+
+/***/ "./src/AccountManager.css":
+/*!********************************!*\
+  !*** ./src/AccountManager.css ***!
+  \********************************/
+/***/ ((module) => {
+
+module.exports=".account-tiles {\r\n\tdisplay: flex;\r\n\twidth: 100%;\r\n\tbackground: #FFF;\r\n\toverflow: hidden;\r\n\tborder-radius: 5px;\r\n}\r\n\r\n.account-tile {\r\n\tborder: 1px solid #000;\r\n\t--alpha: 1;\r\n\tbackground: rgba(0, 0, 0, var(--alpha));\r\n\tjustify-content: center;\r\n\talign-items: center;\r\n\tmin-width: 25%;\r\n\tdisplay: flex;\r\n\theight: 100px;\r\n\tdisplay: flex;\r\n\tflex: auto;\r\n\tcursor: pointer;\r\n}\r\n\r\n.account-tile:hover {\r\n\t--alpha: 0.7;\r\n}"
 
 /***/ }),
 
@@ -25,6 +35,7 @@ var utils = __webpack_require__(/*! ./libs/utils */ "./src/libs/utils.js"),
 	Control = __webpack_require__(/*! ./libs/MenuUI/Control */ "./src/libs/MenuUI/Control.js"),
 	Events = __webpack_require__(/*! ./libs/Events */ "./src/libs/Events.js"),
 	HeaderWindow = __webpack_require__(/*! ./libs/MenuUI/HeaderWindow */ "./src/libs/MenuUI/HeaderWindow.js"),
+	Hex3 = __webpack_require__(/*! ./libs/Hex3 */ "./src/libs/Hex3.js"),
 	{ IM, ipc } = __webpack_require__(/*! ./IPC */ "./src/IPC.js"),
 	{ tick } = __webpack_require__(/*! ./libs/MenuUI/Sound */ "./src/libs/MenuUI/Sound.js");
 
@@ -125,11 +136,30 @@ class Menu extends Events {
 		tick(utils.add_ele('div', () => document.querySelector('#signedInHeaderBar'), opts));
 		tick(utils.add_ele('div', () => document.querySelector('#signedOutHeaderBar'), opts));
 	}
-	async generate(){
-		var list = await ipc.post(IM.account_list);
+	async generate(list){
+		for(let node of this.table.node.children)node.remove();
 		
-		for(let [ name, data ] of Object.entries(list).sort((p1, p2) => p1.order - p2.order)){
+		for(let [ username, data ] of Object.entries(list).sort((p1, p2) => p1.order - p2.order)){
+			let hex = new Hex3(data.color);
 			
+			utils.add_ele('div', this.table.node, {
+				textContent: username,
+				className: 'account-tile',
+				style: {
+					'background-color': `rgba(${hex.hex}, var(--alpha))`,
+				},
+				events: {
+					click: async () => {
+						var password = await ipc.post(IM.account_password, username);
+						window.accName = { value: username };
+						window.accPass = { value: password };
+						loginAcc();
+						delete window.accName;
+						delete window.accPass;
+						
+					},
+				},
+			});
 		}
 	}
 	constructor(){
@@ -138,7 +168,7 @@ class Menu extends Events {
 		this.account_pop = new AccountPop(this.window.node, (username, password) => {
 			if(!username || !password)return;
 			
-			
+			ipc.send(IM.account_set_password, username, password, '#2196f3', 0);
 		});
 		
 		this.table = this.window.control('', { type: 'table' });
@@ -152,13 +182,19 @@ class Menu extends Events {
 		
 		this.window.on('hide', () => this.account_pop.hide());
 		
-		this.generate();
+		utils.add_ele('style', this.window.node, {
+			textContent: __webpack_require__(/*! ./AccountManager.css */ "./src/AccountManager.css"),
+		});
+		
+		ipc.post(IM.account_list).then(list => this.generate(list));
 	}
 };
 
 var menu = new Menu();
 window.menu = menu;
 menu.attach();
+
+ipc.on(IM.account_regen, list => menu.generate(list));
 
 /***/ }),
 
@@ -737,10 +773,8 @@ var Control = __webpack_require__(/*! ./libs/MenuUI/Control */ "./src/libs/MenuU
 class TableControl extends Control {
 	static id = 'table';
 	create(){
-		this.node = utils.add_ele('table', this.content, {
-			style: {
-				display: 'block',
-			},
+		this.node = utils.add_ele('div', this.content, {
+			className: 'account-tiles',
 		});
 	}
 	update(init){
@@ -983,6 +1017,67 @@ module.exports = HTMLProxy;
 
 /***/ }),
 
+/***/ "./src/libs/Hex3.js":
+/*!**************************!*\
+  !*** ./src/libs/Hex3.js ***!
+  \**************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+class Hex3 {
+	hex = [ 0, 0, 0 ];
+	constructor(string = '#000'){
+		this.set_style(string);
+	}
+	add_scalar(scalar){
+		for(let ind in this.hex)this.hex[ind] += scalar;
+		return this.normalize();
+	}
+	sub_scalar(scalar){
+		for(let ind in this.hex)this.hex[ind] -= scalar;
+		return this.normalize();
+	}
+	normalize(){
+		for(let ind in this.hex)this.hex[ind] = Math.max(Math.min(this.hex[ind], 255), 0);
+		return this;
+	}
+	set(r, g, b){
+		this.hex[0] = r;
+		this.hex[1] = g;
+		this.hex[2] = b;
+		
+		return this;
+	}
+	set_style(string){
+		let hex_index = 0,
+			offset = string[0] == '#' ? 1 : 0,
+			chunk = string.length - offset < 5 ? 1 : 2;
+		
+		for(let index = offset; index < string.length; index += chunk){
+			let part = string.substr(index, chunk);
+			
+			if(chunk == 1)part += part;	
+			
+			this.hex[hex_index++] = parseInt(part, 16);
+		}
+		
+		return this;
+	}
+	toString(){
+		var string = '#';
+		
+		for(let color of this.hex)string += color.toString(16).padStart(2, 0);
+		
+		return string;
+	}
+};
+
+module.exports = Hex3;
+
+/***/ }),
+
 /***/ "./src/libs/Keybind.js":
 /*!*****************************!*\
   !*** ./src/libs/Keybind.js ***!
@@ -1053,6 +1148,13 @@ var utils = __webpack_require__(/*! ../Utils */ "./src/libs/Utils.js"),
 	Events = __webpack_require__(/*! ../Events */ "./src/libs/Events.js");
 
 class Control extends Events {
+	static resolve(id){
+		if(id instanceof this)return id;
+		else for(let [ cls, type ] of Object.entries(Control.Types))if(type.id == id)return type;
+		
+		return id; // throws neat error
+		// else throw new TypeError('Unknown type: ' + data.type);
+	}
 	constructor(name, data, category){
 		super();
 		
@@ -1609,15 +1711,9 @@ class Category {
 		for(let control of this.controls)control.show_content();
 	}
 	control(name, data){
-		for(let [ cls, type ] of Object.entries(Control.Types))if(type.id == data.type){
-			let control = new type(name, data, this);
-			
-			this.controls.add(control);
-			
-			return control;
-		}
-		
-		throw new TypeError('Unknown type: ' + data.type);
+		var control = new (Control.resolve(data.type))(name, data, this);
+		this.controls.add(control);
+		return control;
 	}
 };
 

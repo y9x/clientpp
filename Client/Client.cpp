@@ -134,12 +134,26 @@ bool Client::on_message(JSMessage msg, KrunkerWindow& window) {
 		Discord_UpdatePresence(&presence);
 
 	} break;
-	case IM::account_remove:
+	case IM::account_password: {
+		JSMessage res((IM)msg.args[0].get<int>());
+		std::string dec;
+
+		if (!accounts.data.contains(msg.args[1])) res.args[1] = "Account doesn't exist";
+		else if (!accounts.decrypt(accounts.data[msg.args[1]].password, dec)) res.args[1] = "Unknown";
+		else res.args[0] = dec;
+
+		if (!res.send(window.webview)) clog::error << "Unable to send " << res.dump() << clog::endl;
+
+	} break;
+	case IM::account_remove: {
 
 		accounts.data.erase(msg.args[0]);
 		accounts.save();
 
-		break;
+		JSMessage res(IM::account_regen);
+		if (!res.send(window.webview)) clog::error << "Unable to send " << res.dump() << clog::endl;
+
+	} break;
 	case IM::account_set: {
 
 		std::string name = msg.args[0];
@@ -148,6 +162,9 @@ bool Client::on_message(JSMessage msg, KrunkerWindow& window) {
 		account.order = msg.args[2];
 		accounts.save();
 
+		JSMessage res(IM::account_regen);
+		if (!res.send(window.webview)) clog::error << "Unable to send " << res.dump() << clog::endl;
+
 	} break;
 	//and creation
 	case IM::account_set_password: {
@@ -155,10 +172,16 @@ bool Client::on_message(JSMessage msg, KrunkerWindow& window) {
 		std::string enc;
 		if (accounts.encrypt(msg.args[1], enc)) {
 			Account account;
-			account.color = msg.args[1];
-			account.order = msg.args[2];
+			account.color = msg.args[2];
+			account.order = msg.args[3];
 			account.password = enc;
 			accounts.data[msg.args[0]] = account;
+
+			accounts.save();
+
+			JSMessage res(IM::account_regen);
+			res.args.push_back(accounts.dump()); 
+			if (!res.send(window.webview)) clog::error << "Unable to send " << res.dump() << clog::endl;
 		}
 
 	} break;
@@ -225,6 +248,7 @@ bool Client::create() {
 	}
 	
 	folder.load_config();
+	accounts.load();
 
 	if (folder.config["rpc"]["enabled"]) rpc_loading();
 
