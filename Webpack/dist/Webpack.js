@@ -17,7 +17,7 @@ exports.LogType={info:0,error:1,warn:2,debug:3};exports.IM={rpc_update:0,rpc_cle
   \********************************/
 /***/ ((module) => {
 
-module.exports=".account-tiles {\r\n\tdisplay: flex;\r\n\twidth: 100%;\r\n\tbackground: #FFF;\r\n\toverflow: hidden;\r\n\tborder-radius: 5px;\r\n}\r\n\r\n.account-tile {\r\n\tborder: 1px solid #000;\r\n\t--alpha: 1;\r\n\tbackground: rgba(0, 0, 0, var(--alpha));\r\n\tjustify-content: center;\r\n\talign-items: center;\r\n\tmin-width: 25%;\r\n\tdisplay: flex;\r\n\theight: 100px;\r\n\tdisplay: flex;\r\n\tflex: auto;\r\n\tcursor: pointer;\r\n}\r\n\r\n.account-tile:hover {\r\n\t--alpha: 0.7;\r\n}"
+module.exports=".account-tiles {\r\n\tdisplay: flex;\r\n\twidth: 100%;\r\n\tbackground: #FFF;\r\n\toverflow: hidden;\r\n\tborder-radius: 5px;\r\n}\r\n\r\n.account-tile {\r\n\tborder: 1px solid #000;\r\n\tjustify-content: center;\r\n\talign-items: center;\r\n\tmin-width: 25%;\r\n\tdisplay: flex;\r\n\theight: 100px;\r\n\tdisplay: flex;\r\n\tflex: auto;\r\n\tcursor: pointer;\r\n\tposition: relative;\r\n}\r\n\r\n.account-tile > .buttons {\r\n\tposition: absolute;\r\n\tright: 0px;\r\n\tbottom: 0px;\r\n}\r\n\r\n.account-tile > .text {\r\n\t--alpha: 1;\r\n\tdisplay: flex;\r\n\tbackground: rgba(0, 0, 0, var(--alpha));\r\n\theight: 100%;\r\n\twidth: 100%;\r\n\tjustify-content: center;\r\n\talign-items: center;\r\n}\r\n\r\n.account-tile > .text:hover {\r\n\t--alpha: 0.7;\r\n}\r\n\r\n.account-tile > .buttons > span {\r\n\tcolor: white;\r\n\tpadding: 6px;\r\n}\r\n\r\n.account-tile > .buttons > span:hover {\r\n\tbackground: rgba(255, 255, 255, 0.3); \r\n}"
 
 /***/ }),
 
@@ -113,6 +113,68 @@ class AccountPop {
 	}
 };
 
+class AccountTile {
+	constructor(node, window, username, data){
+		this.data = data;
+		this.username = username;
+		this.window = window;
+		
+		this.create(node);
+	}
+	create(node){
+		var hex = new Hex3(this.data.color);
+		
+		this.container = utils.add_ele('div', node, {
+			className: 'account-tile',
+		});
+		
+		this.label = utils.add_ele('div', this.container, {
+			className: 'text',
+			textContent: this.username,
+			events: {
+				click: this.click.bind(this),
+			},
+			style: {
+				'background-color': `rgba(${hex.hex}, var(--alpha))`,
+			},
+		});
+		
+		this.buttons = utils.add_ele('div', this.container, {
+			className: 'buttons',
+		});
+		
+		utils.add_ele('span', this.buttons, {
+			className: 'edit material-icons',
+			textContent: 'edit',
+			events: {
+				click: this.edit.bind(this),
+			},
+		});
+		
+		utils.add_ele('span', this.buttons, {
+			className: 'delete material-icons',
+			textContent: 'delete',
+			events: {
+				click: this.delete.bind(this),
+			},
+		});
+	}
+	delete(){
+		ipc.send(IM.account_remove, this.username);
+	}
+	edit(){
+		
+	}
+	async click(){
+		var password = await ipc.post(IM.account_password, this.username);
+		window.accName = { value: this.username };
+		window.accPass = { value: this.data.password };
+		loginAcc();
+		delete window.accName;
+		delete window.accPass;
+	}
+};
+
 class Menu extends Events {
 	save_config(){}
 	config = {};
@@ -139,28 +201,7 @@ class Menu extends Events {
 	async generate(list){
 		for(let node of this.table.node.children)node.remove();
 		
-		for(let [ username, data ] of Object.entries(list).sort((p1, p2) => p1.order - p2.order)){
-			let hex = new Hex3(data.color);
-			
-			utils.add_ele('div', this.table.node, {
-				textContent: username,
-				className: 'account-tile',
-				style: {
-					'background-color': `rgba(${hex.hex}, var(--alpha))`,
-				},
-				events: {
-					click: async () => {
-						var password = await ipc.post(IM.account_password, username);
-						window.accName = { value: username };
-						window.accPass = { value: password };
-						loginAcc();
-						delete window.accName;
-						delete window.accPass;
-						
-					},
-				},
-			});
-		}
+		for(let [ username, data ] of Object.entries(list).sort((p1, p2) => p1.order - p2.order))new AccountTile(this.table.node, this.window, username, data);
 	}
 	constructor(){
 		super();

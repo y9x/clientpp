@@ -83,6 +83,68 @@ class AccountPop {
 	}
 };
 
+class AccountTile {
+	constructor(node, window, username, data){
+		this.data = data;
+		this.username = username;
+		this.window = window;
+		
+		this.create(node);
+	}
+	create(node){
+		var hex = new Hex3(this.data.color);
+		
+		this.container = utils.add_ele('div', node, {
+			className: 'account-tile',
+		});
+		
+		this.label = utils.add_ele('div', this.container, {
+			className: 'text',
+			textContent: this.username,
+			events: {
+				click: this.click.bind(this),
+			},
+			style: {
+				'background-color': `rgba(${hex.hex}, var(--alpha))`,
+			},
+		});
+		
+		this.buttons = utils.add_ele('div', this.container, {
+			className: 'buttons',
+		});
+		
+		utils.add_ele('span', this.buttons, {
+			className: 'edit material-icons',
+			textContent: 'edit',
+			events: {
+				click: this.edit.bind(this),
+			},
+		});
+		
+		utils.add_ele('span', this.buttons, {
+			className: 'delete material-icons',
+			textContent: 'delete',
+			events: {
+				click: this.delete.bind(this),
+			},
+		});
+	}
+	delete(){
+		ipc.send(IM.account_remove, this.username);
+	}
+	edit(){
+		
+	}
+	async click(){
+		var password = await ipc.post(IM.account_password, this.username);
+		window.accName = { value: this.username };
+		window.accPass = { value: this.data.password };
+		loginAcc();
+		delete window.accName;
+		delete window.accPass;
+	}
+};
+
 class Menu extends Events {
 	save_config(){}
 	config = {};
@@ -109,28 +171,7 @@ class Menu extends Events {
 	async generate(list){
 		for(let node of this.table.node.children)node.remove();
 		
-		for(let [ username, data ] of Object.entries(list).sort((p1, p2) => p1.order - p2.order)){
-			let hex = new Hex3(data.color);
-			
-			utils.add_ele('div', this.table.node, {
-				textContent: username,
-				className: 'account-tile',
-				style: {
-					'background-color': `rgba(${hex.hex}, var(--alpha))`,
-				},
-				events: {
-					click: async () => {
-						var password = await ipc.post(IM.account_password, username);
-						window.accName = { value: username };
-						window.accPass = { value: password };
-						loginAcc();
-						delete window.accName;
-						delete window.accPass;
-						
-					},
-				},
-			});
-		}
+		for(let [ username, data ] of Object.entries(list).sort((p1, p2) => p1.order - p2.order))new AccountTile(this.table.node, this.window, username, data);
 	}
 	constructor(){
 		super();

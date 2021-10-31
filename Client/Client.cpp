@@ -163,6 +163,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow& window) {
 		accounts.save();
 
 		JSMessage res(IM::account_regen);
+		res.args.push_back(accounts.dump());
 		if (!res.send(window.webview)) clog::error << "Unable to send " << res.dump() << clog::endl;
 
 	} break;
