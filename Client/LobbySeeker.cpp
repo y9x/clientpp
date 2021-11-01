@@ -65,6 +65,8 @@ std::string Game::link() {
 }
 
 std::string LobbySeeker::seek() {
+	if (!use_map && mode == -1) return "https://krunker.io";
+	
 	if (auto res = api.Get("/game-list?hostname=krunker.io")) {
 		rapidjson::Document data;
 		data.Parse(res->body.c_str(), res->body.length());
