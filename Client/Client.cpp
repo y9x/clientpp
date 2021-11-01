@@ -5,6 +5,9 @@
 #include <shellapi.h>
 #include <ShellScalingApi.h>
 
+using namespace StringUtil;
+using Microsoft::WRL::Callback;
+
 namespace krunker {
 	constexpr const wchar_t* game = L"/";
 	constexpr const wchar_t* games = L"/games";
@@ -16,10 +19,7 @@ namespace krunker {
 	constexpr const wchar_t* tos = L"/docs/tos.html";
 };
 
-using namespace StringUtil;
-using Microsoft::WRL::Callback;
-
-const long double Client::version = 0.15;
+const long double Client::version = 0.16;
 const char* Client::discord_rpc = "";
 const wchar_t* Client::title = L"Chief Client++";
 
