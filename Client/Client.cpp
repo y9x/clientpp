@@ -5,14 +5,6 @@
 #include <shellapi.h>
 #include <ShellScalingApi.h>
 
-namespace client {
-	constexpr const long double version = 0.15;
-	constexpr const char* discord_rpc = "";
-	// 899137303182716968
-	constexpr const wchar_t* title = L"Chief Client++";
-};
-
-
 namespace krunker {
 	constexpr const wchar_t* game = L"/";
 	constexpr const wchar_t* games = L"/games";
@@ -26,6 +18,10 @@ namespace krunker {
 
 using namespace StringUtil;
 using Microsoft::WRL::Callback;
+
+const long double Client::version = 0.15;
+const char* Client::discord_rpc = "";
+const wchar_t* Client::title = L"Chief Client++";
 
 bool Client::navigation_cancelled(ICoreWebView2* sender, Uri uri) {
 	if (uri.host() == L"chief") return false;
@@ -206,49 +202,49 @@ bool Client::on_message(JSMessage msg, KrunkerWindow& window) {
 }
 
 void Client::install_runtimes() {
-	if (MessageBox(NULL, L"You are missing runtimes. Install the WebView2 Runtime?", client::title, MB_YESNO) == IDYES) {
+	if (MessageBox(NULL, L"You are missing runtimes. Install the WebView2 Runtime?", title, MB_YESNO) == IDYES) {
 		WebView2Installer::Error error;
-		MessageBox(NULL, L"Relaunch the client after installation is complete.", client::title, MB_OK);
+		MessageBox(NULL, L"Relaunch the client after installation is complete.", title, MB_OK);
 		if (!installer.Install(error)) switch (error) {
 		case WebView2Installer::Error::CantOpenProcess:
 			clog::error << "CantOpenProcess during WebView2 installation" << clog::endl;
-			MessageBox(NULL, (L"Unable to open " + installer.bin + L". You will need to run the exe manually.").c_str(), client::title, MB_OK);
+			MessageBox(NULL, (L"Unable to open " + installer.bin + L". You will need to run the exe manually.").c_str(), title, MB_OK);
 			break;
 		case WebView2Installer::Error::NoBytesDownloaded:
 			clog::error << "NoBytesDownloaded during WebView2 installation" << clog::endl;
-			MessageBox(NULL, L"Unable to download MicrosoftEdgeWebview2Setup. Relaunch the client then try again.", client::title, MB_OK);
+			MessageBox(NULL, L"Unable to download MicrosoftEdgeWebview2Setup. Relaunch the client then try again.", title, MB_OK);
 			break;
 		default:
 			clog::error << "Unknown error " << (int)error << " during WebView2 installation" << clog::endl;
-			MessageBox(NULL, L"An unknown error occurred.", client::title, MB_OK);
+			MessageBox(NULL, L"An unknown error occurred.", title, MB_OK);
 			break;
 		}
 	}
-	else MessageBox(NULL, L"Cannot continue without runtimes. Client will now exit.", client::title, MB_OK);
+	else MessageBox(NULL, L"Cannot continue without runtimes. Client will now exit.", title, MB_OK);
 }
 
 Client::Client(HINSTANCE h, int c)
 	: inst(h)
 	, cmdshow(c)
-	, updater(client::version, "https://6ct.github.io", "/serve/updates.json")
+	, updater(version, "https://6ct.github.io", "/serve/updates.json")
 	, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
 	, folder(L"GC++") // test unicode support L"크롬 플래그 새끼"	
-	, game(folder, KrunkerWindow::Type::Game, { 0.8, 0.8 }, client::title, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return on_message(msg, game); }, []() { PostQuitMessage(EXIT_SUCCESS); })
-	, social(folder, KrunkerWindow::Type::Social, { 0.7, 0.7 }, (std::wstring(client::title) + L": Social").c_str(), [this]() { listen_navigation(social); }, [this](JSMessage msg) -> bool { return on_message(msg, social); })
-	, editor(folder, KrunkerWindow::Type::Editor, { 0.7, 0.7 }, (std::wstring(client::title) + L": Editor").c_str(), [this]() { listen_navigation(editor); }, [this](JSMessage msg) -> bool { return on_message(msg, editor); })
-	, scripting(folder, KrunkerWindow::Type::Scripting, { 0.6, 0.6 }, (std::wstring(client::title) + L": Scripting").c_str(), [this]() { listen_navigation(scripting); }, [this](JSMessage msg) -> bool { return on_message(msg, scripting); })
-	, documents(folder, KrunkerWindow::Type::Documents, { 0.4, 0.6 }, (std::wstring(client::title) + L": Documents").c_str(), [this]() { listen_navigation(documents); }, [this](JSMessage msg) -> bool { return on_message(msg, documents); })
+	, game(folder, KrunkerWindow::Type::Game, { 0.8, 0.8 }, title, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return on_message(msg, game); }, []() { PostQuitMessage(EXIT_SUCCESS); })
+	, social(folder, KrunkerWindow::Type::Social, { 0.7, 0.7 }, (std::wstring(title) + L": Social").c_str(), [this]() { listen_navigation(social); }, [this](JSMessage msg) -> bool { return on_message(msg, social); })
+	, editor(folder, KrunkerWindow::Type::Editor, { 0.7, 0.7 }, (std::wstring(title) + L": Editor").c_str(), [this]() { listen_navigation(editor); }, [this](JSMessage msg) -> bool { return on_message(msg, editor); })
+	, scripting(folder, KrunkerWindow::Type::Scripting, { 0.6, 0.6 }, (std::wstring(title) + L": Scripting").c_str(), [this]() { listen_navigation(scripting); }, [this](JSMessage msg) -> bool { return on_message(msg, scripting); })
+	, documents(folder, KrunkerWindow::Type::Documents, { 0.4, 0.6 }, (std::wstring(title) + L": Documents").c_str(), [this]() { listen_navigation(documents); }, [this](JSMessage msg) -> bool { return on_message(msg, documents); })
 	, accounts(folder)
 	, shcore(LoadLibrary(L"api-ms-win-shcore-scaling-l1-1-1.dll"))
 {}
 
 bool Client::create() {
 	memset(&presence_events, 0, sizeof(presence_events));
-	Discord_Initialize(client::discord_rpc, &presence_events, 1, NULL);
+	Discord_Initialize(discord_rpc, &presence_events, 1, NULL);
 	
 	if (!folder.create()) {
 		clog::debug << "Error creating folder" << clog::endl;
-		MessageBox(NULL, L"Error creating folder. See Error.log.", client::title, MB_OK);
+		MessageBox(NULL, L"Error creating folder. See Error.log.", title, MB_OK);
 		return false;
 	}
 	
@@ -258,7 +254,7 @@ bool Client::create() {
 	if (folder.config["rpc"]["enabled"]) rpc_loading();
 
 	HRESULT coinit = CoInitialize(NULL);
-	if (!SUCCEEDED(coinit)) MessageBox(NULL, (L"COM could not be initialized. CoInitialize returned " + Convert::wstring(std::to_string(coinit))).c_str(), client::title, MB_OK);
+	if (!SUCCEEDED(coinit)) MessageBox(NULL, (L"COM could not be initialized. CoInitialize returned " + Convert::wstring(std::to_string(coinit))).c_str(), title, MB_OK);
 
 	clog::info << "Main initialized" << clog::endl;
 
@@ -289,11 +285,11 @@ bool Client::create() {
 		return false;
 	case KrunkerWindow::Status::UserDataExists:
 		clog::error << "Unable to create user data folder." << clog::endl;
-		game.MessageBox(L"Unable to create the user data folder. Delete the GC++ folder in your documents then relaunch the client.", client::title);
+		game.MessageBox(L"Unable to create the user data folder. Delete the GC++ folder in your documents then relaunch the client.", title);
 		break;
 	case KrunkerWindow::Status::RuntimeFatal:
 		clog::error << "Fatal Edge runtime error occured." << clog::endl;
-		game.MessageBox(L"An unknown Edge runtime error occured. Try relaunching the client.", client::title);;
+		game.MessageBox(L"An unknown Edge runtime error occured. Try relaunching the client.", title);;
 		break;
 	case KrunkerWindow::Status::UnknownError:
 	default:
@@ -302,7 +298,7 @@ bool Client::create() {
 		
 		game.MessageBox(
 			(std::wstring(L"An unknown error ocurred during game creation. Create a issue on GitHub ( https://github.com/6ct/clientpp/issues ) and provide the following error details:\n") +
-			L"Error code: 0x" + sstream.str()).c_str(), client::title, MB_ICONERROR);
+			L"Error code: 0x" + sstream.str()).c_str(), title, MB_ICONERROR);
 
 		return false;
 		break;
@@ -311,7 +307,7 @@ bool Client::create() {
 	// checking updates causes delay
 	new std::thread([this]() {
 		UpdaterServing serving;
-		if (updater.UpdatesAvailable(serving) && MessageBox(game.m_hWnd, L"A new client update is available. Download?", client::title, MB_YESNO) == IDYES) {
+		if (updater.UpdatesAvailable(serving) && MessageBox(game.m_hWnd, L"A new client update is available. Download?", title, MB_YESNO) == IDYES) {
 			ShellExecute(game.m_hWnd, L"open", Convert::wstring(serving.url).c_str(), L"", L"", SW_SHOW);
 			exit(EXIT_SUCCESS);
 		}

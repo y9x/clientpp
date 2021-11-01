@@ -10,6 +10,9 @@
 
 class Client {
 private:
+	static const long double version;
+	static const char* discord_rpc;
+	static const wchar_t* title;
 	AccountManager accounts;
 	Updater updater;
 	WebView2Installer installer;
