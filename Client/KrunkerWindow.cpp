@@ -526,8 +526,6 @@ KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> c
 					settings4->put_IsGeneralAutofillEnabled(false);
 					settings4->put_IsPasswordAutosaveEnabled(false);
 				}
-
-				
 			}
 
 			resize_wv();
