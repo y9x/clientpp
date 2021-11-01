@@ -228,7 +228,7 @@ Client::Client(HINSTANCE h, int c)
 	, cmdshow(c)
 	, updater(version, "https://6ct.github.io", "/serve/updates.json")
 	, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
-	, folder(L"GC++") // test unicode support L"크롬 플래그 새끼"	
+	, folder(L"GC++")
 	, game(folder, KrunkerWindow::Type::Game, { 0.8, 0.8 }, title, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return on_message(msg, game); }, []() { PostQuitMessage(EXIT_SUCCESS); })
 	, social(folder, KrunkerWindow::Type::Social, { 0.7, 0.7 }, (std::wstring(title) + L": Social").c_str(), [this]() { listen_navigation(social); }, [this](JSMessage msg) -> bool { return on_message(msg, social); })
 	, editor(folder, KrunkerWindow::Type::Editor, { 0.7, 0.7 }, (std::wstring(title) + L": Editor").c_str(), [this]() { listen_navigation(editor); }, [this](JSMessage msg) -> bool { return on_message(msg, editor); })
