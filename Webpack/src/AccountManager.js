@@ -88,7 +88,6 @@ class AccountTile {
 		this.data = data;
 		this.username = username;
 		this.window = window;
-		
 		this.create(node);
 	}
 	create(node){
@@ -136,14 +135,26 @@ class AccountTile {
 		
 	}
 	async click(){
+		this.window.hide();
+		
 		var password = await ipc.post(IM.account_password, this.username);
+		
 		// MTZ client does this procedure
-		if(!window.accName)logoutAcc();
-		window.accName = { value: this.username };
-		window.accPass = { value: this.data.password };
-		loginAcc();
-		delete window.accName;
-		delete window.accPass;
+		if(!window.accName){
+			logoutAcc();
+			closWind();
+			// should reload "different account used this session"
+		}
+		
+		setTimeout(() => {
+			window.accName = { value: this.username };
+			window.accPass = { value: password };
+			loginAcc();
+			setTimeout(() => {
+				delete window.accName;
+				delete window.accPass;
+			});
+		});
 	}
 };
 
