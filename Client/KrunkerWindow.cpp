@@ -450,28 +450,28 @@ void KrunkerWindow::register_events() {
 }
 
 KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {
-	if (!open) {
-		if (folder->config["window"]["meta"]["replace"].get<bool>())
-			title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
+	bool was_open = open;
+	
+	if (folder->config["window"]["meta"]["replace"].get<bool>())
+		title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
 
-		create_window(inst, cmdshow);
+	create_window(inst, cmdshow);
 
-		SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(background));
+	SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(background));
 
-		if (can_fullscreen && folder->config["render"]["fullscreen"]) enter_fullscreen();
+	if (can_fullscreen && folder->config["render"]["fullscreen"]) enter_fullscreen();
 
-		if (folder->config["window"]["meta"]["replace"].get<bool>())
-			SetIcon((HICON)LoadImage(inst, folder->resolve_path(Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
-		else SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));
-		
-		open = true;
-	}
+	if (folder->config["window"]["meta"]["replace"].get<bool>())
+		SetIcon((HICON)LoadImage(inst, folder->resolve_path(Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
+	else SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));
+	
+	open = true;
 
-	if (!webview) return call_create_webview(callback);
-	else {
+	return call_create_webview(callback);
+	/*else {
 		callback();
 		return Status::Ok;
-	}
+	}*/
 }
 
 KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> callback) {
@@ -567,7 +567,12 @@ KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> c
 }
 
 KrunkerWindow::Status KrunkerWindow::get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) {
-	if (webview && open) {
+	if (open) {
+		// documentation for editor opens twice
+		if (!webview) {
+			return Status::RuntimeFatal;
+		}
+		
 		callback(false);
 		return Status::AlreadyOpen;
 	}
