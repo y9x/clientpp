@@ -20,7 +20,7 @@ namespace krunker {
 };
 
 const long double Client::version = 0.16;
-const char* Client::discord_rpc = "";
+const char* Client::discord_rpc = /*899137303182716968*/"";
 const wchar_t* Client::title = L"Chief Client++";
 
 bool Client::navigation_cancelled(ICoreWebView2* sender, Uri uri) {
