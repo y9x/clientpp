@@ -16,6 +16,9 @@
     <Filter Include="OpenSSL">
       <UniqueIdentifier>{9558abce-6060-4895-b734-2e23217c8a5b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DiscordRPC">
+      <UniqueIdentifier>{45f57e52-2c44-49ab-b911-a179b07bd0fd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Webpack\dist\Webpack.js" />
@@ -216,6 +219,24 @@
     </ClCompile>
     <ClCompile Include="AccountManager.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DiscordRPC\connection_win.cpp">
+      <Filter>DiscordRPC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DiscordRPC\discord_register_win.cpp">
+      <Filter>DiscordRPC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DiscordRPC\discord_rpc.cpp">
+      <Filter>DiscordRPC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DiscordRPC\dllmain.cpp">
+      <Filter>DiscordRPC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DiscordRPC\rpc_connection.cpp">
+      <Filter>DiscordRPC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DiscordRPC\serialization.cpp">
+      <Filter>DiscordRPC</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

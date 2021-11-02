@@ -10,11 +10,6 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup Label="CopyDiscordDLLDebug" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Content Include="..\lib\Debug\discord-rpc.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -69,7 +64,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libz-static.lib;libcrypto-1_1-static.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz-static.lib;libcrypto-1_1-static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -91,7 +86,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libz-static.lib;libcrypto-1_1-static.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz-static.lib;libcrypto-1_1-static.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -105,6 +100,12 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\DiscordRPC\connection_win.cpp" />
+    <ClCompile Include="..\DiscordRPC\discord_register_win.cpp" />
+    <ClCompile Include="..\DiscordRPC\discord_rpc.cpp" />
+    <ClCompile Include="..\DiscordRPC\dllmain.cpp" />
+    <ClCompile Include="..\DiscordRPC\rpc_connection.cpp" />
+    <ClCompile Include="..\DiscordRPC\serialization.cpp" />
     <ClCompile Include="..\Utils\Base64.cpp" />
     <ClCompile Include="..\Utils\IOUtil.cpp" />
     <ClCompile Include="..\Utils\StringUtil.cpp" />
