@@ -9,8 +9,6 @@ var utils = require('./libs/utils'),
 	{ IM, ipc } = require('./IPC'),
 	{ tick } = require('./libs/MenuUI/Sound');
 
-require('./TableControl');
-
 class AccountPop {
 	constructor(body, callback){
 		this.callback = callback;
@@ -84,8 +82,9 @@ class AccountPop {
 };
 
 class AccountTile {
-	constructor(node, window, username, data){
+	constructor(resp, node, window, username, data){
 		this.data = data;
+		this.resp = resp;
 		this.username = username;
 		this.window = window;
 		this.create(node);
@@ -135,26 +134,32 @@ class AccountTile {
 		
 	}
 	async click(){
-		this.window.hide();
+		var thas = this;
+		
+		// this.window.hide();
 		
 		var password = await ipc.post(IM.account_password, this.username);
 		
 		// MTZ client does this procedure
-		if(!window.accName){
-			logoutAcc();
-			closWind();
-			// should reload "different account used this session"
-		}
+		logoutAcc();
+		closWind();
+		
+		window.accName = { value: this.username };
+		window.accPass = { value: password };
+		window.accResp = {
+			set innerHTML(value){
+				thas.resp.node.innerHTML = value;
+				delete window.accResp;
+			}
+		};
+		
+		loginAcc();
 		
 		setTimeout(() => {
-			window.accName = { value: this.username };
-			window.accPass = { value: password };
 			loginAcc();
-			setTimeout(() => {
-				delete window.accName;
-				delete window.accPass;
-			});
-		});
+			delete window.accName;
+			delete window.accPass;
+		}, 500);
 	}
 };
 
@@ -174,7 +179,10 @@ class Menu extends Events {
 			},
 			innerHTML: `Accounts <span class="material-icons" style="vertical-align:middle;color: #fff;font-size:36px;margin-top:-8px;">switch_account</span>`,
 			events: {
-				click: () => this.window.show(),
+				click: () => {
+					this.resp.node.innerHTML = 'For lost Passwords/Accounts contact <span style="color:rgba(255,255,255,0.8)">recovery@yendis.ch';
+					this.window.show();
+				},
 			},
 		};
 		
@@ -184,7 +192,7 @@ class Menu extends Events {
 	async generate(list){
 		this.table.node.innerHTML = '';
 		
-		for(let [ username, data ] of Object.entries(list).sort((p1, p2) => p1.order - p2.order))new AccountTile(this.table.node, this.window, username, data);
+		for(let [ username, data ] of Object.entries(list).sort((p1, p2) => p1.order - p2.order))new AccountTile(this.resp, this.table.node, this.window, username, data);
 	}
 	constructor(){
 		super();
@@ -195,7 +203,43 @@ class Menu extends Events {
 			ipc.send(IM.account_set_password, username, password, '#2196f3', 0);
 		});
 		
-		this.table = this.window.control('', { type: 'table' });
+		this.table = this.window.control('', {
+			type: class extends Control {
+				create(){
+					this.node = utils.add_ele('div', this.content, {
+						className: 'account-tiles',
+					});
+				}
+				update(init){
+					super.update(init);
+					if(init)this.input.checked = this.value;
+					this.label_text(this.name);
+				}
+			},
+		});
+		
+		this.resp = this.window.control('', {
+			type: class extends Control {
+				create(){
+					this.node = utils.add_ele('div', this.content, {
+						id: 'accResp',
+						style: {
+							'min-height': '1em',
+							'margin-top': '20px',
+							'margin-bottom': '20px',
+							'font-size': '18px',
+							'color': 'rgba(255,255,255,0.5)',
+							'text-align': 'center',
+						},
+					});
+				}
+				update(init){
+					super.update(init);
+					if(init)this.input.checked = this.value;
+					this.label_text(this.name);
+				}
+			},
+		});
 		
 		this.window.control('Account', {
 			type: 'function',
