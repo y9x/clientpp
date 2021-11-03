@@ -134,7 +134,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow& window) {
 
 	} break;
 	case IM::account_password: {
-		JSMessage res((IM)msg.args[0].get<int>());
+		JSMessage res(msg.args[0].get<int>());
 		std::string dec;
 
 		if (!accounts.data.contains(msg.args[1])) res.args[1] = "Account doesn't exist";
@@ -188,7 +188,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow& window) {
 	} break;
 	case IM::account_list: {
 
-		JSMessage res((IM)msg.args[0].get<int>());
+		JSMessage res(msg.args[0].get<int>());
 		res.args.push_back(accounts.dump());
 		if (!res.send(window.webview)) clog::error << "Unable to send " << res.dump() << clog::endl;
 		

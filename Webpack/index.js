@@ -39,7 +39,7 @@ var path = require('path'),
 		},
 		module: {
 			rules: [
-				{ test: /IPCMessages\.h$/, use: path.join(__dirname, 'EnumLoader.js') },
+				{ test: /IPCMessages\.h$/, use: path.join(__dirname, 'IPCMessagesLoader.js') },
 				{ test: /\.css$/, use: [ { loader: path.join(__dirname, 'css.js') } ] },
 			],
 		},

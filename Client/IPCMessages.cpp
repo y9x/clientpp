@@ -10,7 +10,7 @@ using JSON = nlohmann::json;
 using namespace StringUtil;
 
 void KrunkerWindow::handle_message(JSMessage msg) {
-	switch ((IM)msg.event) {
+	switch (msg.event) {
 	case IM::save_config:
 		folder->config = msg.args[0];
 		folder->save_config();
@@ -40,7 +40,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 	case IM::log: {
 		std::string log = msg.args[1];
 
-		switch ((LogType)msg.args[0].get<int>()) {
+		switch (msg.args[0].get<int>()) {
 		case LogType::info:
 			clog::info << log << clog::endl;
 			break;
@@ -160,7 +160,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 			ofn.lpstrTitle = title.c_str();
 			ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
 
-			JSMessage res((IM)msg.args[0].get<int>());
+			JSMessage res(msg.args[0].get<int>());
 
 			if (GetOpenFileName(&ofn)) {
 				std::wstring fn;

@@ -10,11 +10,11 @@ JSMessage::JSMessage(JSON a) {
 	args = a;
 }
 
-JSMessage::JSMessage(IM e) {
+JSMessage::JSMessage(int e) {
 	event = e;
 }
 
-JSMessage::JSMessage(IM e, JSON p) {
+JSMessage::JSMessage(int e, JSON p) {
 	event = e;
 	args = p;
 }
@@ -27,7 +27,7 @@ JSMessage::JSMessage(LPWSTR raw) {
 	for (size_t index = 0; index < parsed.size(); index++) {
 		if (index == 0) {
 			if (!parsed[index].is_number()) return;
-			else event = (IM)parsed[index].get<int>();
+			else event = parsed[index].get<int>();
 		}
 		else args.push_back(parsed[index]);
 	}
