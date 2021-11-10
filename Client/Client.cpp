@@ -108,29 +108,33 @@ bool Client::on_message(JSMessage msg, KrunkerWindow& window) {
 
 		break;
 	case IM::rpc_update: {
+		try {
+			if (!folder.config["rpc"]["enabled"]) break;
 
-		if (!folder.config["rpc"]["enabled"]) break;
+			DiscordRichPresence presence;
+			memset(&presence, 0, sizeof(presence));
 
-		DiscordRichPresence presence;
-		memset(&presence, 0, sizeof(presence));
+			int64_t start = msg.args[0];
 
-		int64_t start = msg.args[0];
+			std::string
+				user = msg.args[1],
+				map = msg.args[2],
+				mode = msg.args[3];
 
-		std::string
-			user = msg.args[1],
-			map = msg.args[2],
-			mode = msg.args[3];
+			presence.startTimestamp = start;
+			presence.largeImageKey = "icon";
 
-		presence.startTimestamp = start;
-		presence.largeImageKey = "icon";
+			presence.state = mode.c_str();
+			presence.details = map.c_str();
 
-		presence.state = mode.c_str();
-		presence.details = map.c_str();
+			if (folder.config["rpc"]["name"]) presence.largeImageText = user.c_str();
+			else presence.state = "In game";
 
-		if (folder.config["rpc"]["name"]) presence.largeImageText = user.c_str();
-		else presence.state = "In game";
-
-		Discord_UpdatePresence(&presence);
+			Discord_UpdatePresence(&presence);
+		}
+		catch (nlohmann::json::type_error e) {
+			clog::error << "Unable to parse arguments: " << e.what() << clog::endl;
+		}
 
 	} break;
 	case IM::account_password: {
