@@ -12,21 +12,21 @@ using namespace StringUtil;
 void KrunkerWindow::handle_message(JSMessage msg) {
 	switch (msg.event) {
 	case IM::save_config:
-		folder->config = msg.args[0];
-		folder->save_config();
+		folder.config = msg.args[0];
+		folder.save_config();
 
 		break;
 	case IM::open_devtools:
-		if (folder->config["client"]["devtools"]) webview->OpenDevToolsWindow();
+		if (folder.config["client"]["devtools"]) webview->OpenDevToolsWindow();
 		break;
 	case IM::shell_open: {
 		std::wstring open;
 
-		if (msg.args[0] == "root")open = folder->directory;
-		else if (msg.args[0] == "logs") open = folder->directory + folder->p_logs;
-		else if (msg.args[0] == "scripts") open = folder->directory + folder->p_scripts;
-		else if (msg.args[0] == "styles") open = folder->directory + folder->p_styles;
-		else if (msg.args[0] == "swapper") open = folder->directory + folder->p_swapper;
+		if (msg.args[0] == "root")open = folder.directory;
+		else if (msg.args[0] == "logs") open = folder.directory + folder.p_logs;
+		else if (msg.args[0] == "scripts") open = folder.directory + folder.p_scripts;
+		else if (msg.args[0] == "styles") open = folder.directory + folder.p_styles;
+		else if (msg.args[0] == "swapper") open = folder.directory + folder.p_swapper;
 		else if (msg.args[0] == "url") open = Convert::wstring(msg.args[1].get<std::string>());
 
 		ShellExecute(m_hWnd, L"open", open.c_str(), L"", L"", SW_SHOW);
@@ -70,12 +70,12 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 
 		break;
 	case IM::seek_game:
-		if (type == Type::Game && !seeking && folder->config["game"]["seek"]["F4"]) new std::thread([this](std::string sregion) {
+		if (type == Type::Game && !seeking && folder.config["game"]["seek"]["F4"]) new std::thread([this](std::string sregion) {
 			seeking = true;
 
 			LobbySeeker seeker;
 
-			for (size_t mi = 0; mi < LobbySeeker::modes.size(); mi++) if (LobbySeeker::modes[mi] == folder->config["game"]["seek"]["mode"]) {
+			for (size_t mi = 0; mi < LobbySeeker::modes.size(); mi++) if (LobbySeeker::modes[mi] == folder.config["game"]["seek"]["mode"]) {
 				seeker.mode = mi;
 			}
 			
@@ -83,8 +83,8 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 				seeker.region = ri;
 			}
 			
-			seeker.customs = folder->config["game"]["seek"]["customs"];
-			seeker.map = Manipulate::lowercase(folder->config["game"]["seek"]["map"]);
+			seeker.customs = folder.config["game"]["seek"]["customs"];
+			seeker.map = Manipulate::lowercase(folder.config["game"]["seek"]["map"]);
 
 			if (seeker.map.length()) seeker.use_map = true;
 			
@@ -100,21 +100,21 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 		break;
 	case IM::toggle_fullscreen:
 		if (type != Type::Game) break;
-		folder->config["render"]["fullscreen"] = !folder->config["render"]["fullscreen"];
-		folder->save_config();
+		folder.config["render"]["fullscreen"] = !folder.config["render"]["fullscreen"];
+		folder.save_config();
 
 		{
 			JSMessage msg(IM::update_menu);
-			msg.args.push_back(folder->config);
+			msg.args.push_back(folder.config);
 			if (!msg.send(webview))clog::error << "Unable to send " << msg.dump() << clog::endl;
 		}
 	case IM::fullscreen:
-		if (folder->config["render"]["fullscreen"]) enter_fullscreen();
+		if (folder.config["render"]["fullscreen"]) enter_fullscreen();
 		else exit_fullscreen();
 		break;
 	case IM::update_meta:
-		title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
-		SetIcon((HICON)LoadImage(get_hinstance(), folder->resolve_path(Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
+		title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
+		SetIcon((HICON)LoadImage(get_hinstance(), folder.resolve_path(Convert::wstring(folder.config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
 		SetWindowText(title.c_str());
 
 		break;
@@ -125,7 +125,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 
 		break;
 	case IM::reload_config:
-		folder->load_config();
+		folder.load_config();
 
 		break;
 	case IM::browse_file:
@@ -168,7 +168,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 				fn = filename;
 
 				// make relative
-				res.args[0] = Convert::string(folder->relative_path(fn));
+				res.args[0] = Convert::string(folder.relative_path(fn));
 				res.args[1] = false;
 			}
 			else res.args[1] = true;

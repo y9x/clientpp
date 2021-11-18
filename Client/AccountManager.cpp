@@ -66,7 +66,7 @@ JSON AccountManager::dump() {
 }
 
 bool AccountManager::save() {
-	return IOUtil::write_file(folder->directory + path, dump().dump());
+	return IOUtil::write_file(folder.directory + path, dump().dump());
 }
 
 bool AccountManager::parse(JSON parsed) {
@@ -76,10 +76,10 @@ bool AccountManager::parse(JSON parsed) {
 
 bool AccountManager::load() {
 	std::string read;
-	if (IOUtil::read_file(folder->directory + path, read))try { parse(JSON::parse(read)); }
+	if (IOUtil::read_file(folder.directory + path, read))try { parse(JSON::parse(read)); }
 	catch (JSON::parse_error err) {}
 
 	return true;
 }
 
-AccountManager::AccountManager(ClientFolder& f) : folder(&f) {}
+AccountManager::AccountManager(ClientFolder& f) : folder(f) {}

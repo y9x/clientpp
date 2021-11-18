@@ -19,16 +19,16 @@ long long KrunkerWindow::now() {
 	return duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
-KrunkerWindow::KrunkerWindow(ClientFolder& folder_, Type type_, Vector2 s, std::wstring title_, std::function<void()> on_startup_, std::function<bool(JSMessage)> on_unknown_message_, std::function<void()> on_destroy_callback_)
-	: type(type_)
-	, title(title_)
-	, og_title(title_)
+KrunkerWindow::KrunkerWindow(ClientFolder& _folder, Type _type, Vector2 s, std::wstring _title, std::function<void()> _on_startup, std::function<bool(JSMessage)> _on_unknown_message, std::function<void()> _on_destroy_callback)
+	: type(_type)
+	, title(_title)
+	, og_title(_title)
 	, scale(s)
-	, folder(&folder_)
+	, folder(_folder)
 	, last_pointer_poll(now())
-	, on_webview2_startup(on_startup_)
-	, on_unknown_message(on_unknown_message_)
-	, on_destroy_callback(on_destroy_callback_)
+	, on_webview2_startup(_on_startup)
+	, on_unknown_message(_on_unknown_message)
+	, on_destroy_callback(_on_destroy_callback)
 {
 	raw_input.usUsagePage = 0x01;
 	raw_input.usUsage = 0x02;
@@ -222,14 +222,14 @@ std::wstring KrunkerWindow::cmdline() {
 
 	for (std::wstring cmd : additional_command_line) cmds.push_back(cmd);
 
-	if (folder->config["render"]["uncap_fps"].get<bool>()) {
+	if (folder.config["render"]["uncap_fps"].get<bool>()) {
 		cmds.push_back(L"--disable-frame-rate-limit");
-		// if (!folder->config["render"]["vsync"])
+		// if (!folder.config["render"]["vsync"])
 		cmds.push_back(L"--disable-gpu-vsync");
 	}
 	
-	if (folder->config["render"]["angle"] != "default") cmds.push_back(L"--use-angle=" + Convert::wstring(folder->config["render"]["angle"]));
-	if (folder->config["render"]["color"] != "default") cmds.push_back(L"--force-color-profile=" + Convert::wstring(folder->config["render"]["color"]));
+	if (folder.config["render"]["angle"] != "default") cmds.push_back(L"--use-angle=" + Convert::wstring(folder.config["render"]["angle"]));
+	if (folder.config["render"]["color"] != "default") cmds.push_back(L"--force-color-profile=" + Convert::wstring(folder.config["render"]["color"]));
 	
 	std::wstring cmdline;
 	bool first = false;
@@ -424,7 +424,7 @@ void KrunkerWindow::register_events() {
 			if (pathname == L"/error") send_resource(args, HTML_ERROR, L"text/html");
 			else if (pathname == L"/GameFont.ttf") send_resource(args, FONT_GAME, L"font/ttf");
 		}else if (uri.host_owns(L"krunker.io")) {
-			std::wstring swap = folder->directory + folder->p_swapper + pathname;
+			std::wstring swap = folder.directory + folder.p_swapper + pathname;
 
 			if (IOUtil::file_exists(swap)) {
 				clog::info << "Swapping " << Convert::string(pathname) << clog::endl;
@@ -452,17 +452,17 @@ void KrunkerWindow::register_events() {
 KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {
 	bool was_open = open;
 	
-	if (folder->config["window"]["meta"]["replace"].get<bool>())
-		title = Convert::wstring(folder->config["window"]["meta"]["title"].get<std::string>());
+	if (folder.config["window"]["meta"]["replace"].get<bool>())
+		title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
 
 	create_window(inst, cmdshow);
 
 	SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(background));
 
-	if (can_fullscreen && folder->config["render"]["fullscreen"]) enter_fullscreen();
+	if (can_fullscreen && folder.config["render"]["fullscreen"]) enter_fullscreen();
 
-	if (folder->config["window"]["meta"]["replace"].get<bool>())
-		SetIcon((HICON)LoadImage(inst, folder->resolve_path(Convert::wstring(folder->config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
+	if (folder.config["window"]["meta"]["replace"].get<bool>())
+		SetIcon((HICON)LoadImage(inst, folder.resolve_path(Convert::wstring(folder.config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
 	else SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));
 	
 	open = true;
@@ -479,7 +479,7 @@ KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> c
 
 	options->put_AdditionalBrowserArguments(cmdline().c_str());
 
-	HRESULT create = CreateCoreWebView2EnvironmentWithOptions(nullptr, (folder->directory + folder->p_profile).c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Environment* envp) -> HRESULT {
+	HRESULT create = CreateCoreWebView2EnvironmentWithOptions(nullptr, (folder.directory + folder.p_profile).c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Environment* envp) -> HRESULT {
 		if (envp == nullptr) {
 			clog::error << "Env was nullptr" << clog::endl;
 

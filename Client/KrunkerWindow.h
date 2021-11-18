@@ -88,7 +88,7 @@ public:
 	Status create_webview(std::wstring cmdline, std::wstring directory, std::function<void()> callback);
 	bool can_fullscreen = false;
 	COLORREF background = RGB(28, 28, 28);
-	ClientFolder* folder;
+	ClientFolder& folder;
 	Status create(HINSTANCE inst, int cmdshow, std::function<void()> callback = nullptr);
 	Status get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr);
 	void on_dispatch();

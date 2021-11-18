@@ -40,7 +40,7 @@ void KrunkerWindow::load_userscripts(JSON* data) {
 
 	JSON default_userscript = JSON::parse(sdefault_userscript);
 
-	for (IOUtil::WDirectoryIterator it(folder->directory + folder->p_scripts, L"*.js"); ++it;) {
+	for (IOUtil::WDirectoryIterator it(folder.directory + folder.p_scripts, L"*.js"); ++it;) {
 		std::string buffer;
 
 		if (IOUtil::read_file(it.path().c_str(), buffer)) {
@@ -62,7 +62,7 @@ void KrunkerWindow::load_userscripts(JSON* data) {
 
 					std::string author = metadata["author"];
 					JSON& features = metadata["features"];
-					JSON& userscripts = folder->config["userscripts"];
+					JSON& userscripts = folder.config["userscripts"];
 					JSON raw_features = JSON::object();
 
 					if (raw_metadata.contains("features")) raw_features = raw_metadata["features"];
@@ -86,7 +86,7 @@ void KrunkerWindow::load_userscripts(JSON* data) {
 					else userscripts[author] = TraverseCopy(userscripts[author], config, true, &changed);
 					if (changed) {
 						clog::info << "Changed" << clog::endl;
-						folder->save_config();
+						folder.save_config();
 					}
 
 					buffer.replace(match[0].first, match[0].second, "const metadata = _metadata;");
@@ -122,7 +122,7 @@ JSON KrunkerWindow::runtime_data() {
 
 	load_userscripts(&data["js"]);
 
-	for (IOUtil::WDirectoryIterator it(folder->directory + folder->p_styles, L"*.css"); ++it;) {
+	for (IOUtil::WDirectoryIterator it(folder.directory + folder.p_styles, L"*.css"); ++it;) {
 		std::string buffer;
 		if (IOUtil::read_file(it.path().c_str(), buffer))
 			data["css"][Convert::string(it.file()).c_str()] = buffer;
@@ -132,7 +132,7 @@ JSON KrunkerWindow::runtime_data() {
 	if (load_resource(CSS_CLIENT, cli_css)) data["css"]["client/builtin.css"] = cli_css;
 	else clog::error << "Unable to load built-in CSS" << clog::endl;
 
-	data["config"] = folder->config;
+	data["config"] = folder.config;
 
 	return data;
 }

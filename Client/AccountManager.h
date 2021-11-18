@@ -12,7 +12,7 @@ struct Account {
 
 class AccountManager {
 private:
-	ClientFolder* folder;
+	ClientFolder& folder;
 	std::wstring path = L"\\passwords.json";
 public:
 	// returns a base64 encoded array of bytes returned from CryptProtectData
