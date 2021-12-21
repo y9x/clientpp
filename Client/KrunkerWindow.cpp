@@ -182,9 +182,7 @@ LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lP
 
 void KrunkerWindow::hook_mouse() {
 	clog::debug << "Hooking mouse" << clog::endl;
-	raw_input.dwFlags = RIDEV_INPUTSINK;
-	raw_input.hwndTarget = m_hWnd;
-
+	
 	INPUT input = {};
 	input.type = INPUT_MOUSE;
 	input.mi.dx = 0;
@@ -193,16 +191,21 @@ void KrunkerWindow::hook_mouse() {
 	input.mi.dwFlags = (MOUSEEVENTF_MOVE | MOUSEEVENTF_LEFTUP | MOUSEEVENTF_RIGHTUP | MOUSEEVENTF_MIDDLEUP);
 	SendInput(1, &input, sizeof(INPUT));
 
+	raw_input.dwFlags = RIDEV_INPUTSINK;
+	raw_input.hwndTarget = m_hWnd;
 	RegisterRawInputDevices(&raw_input, 1, sizeof(raw_input));
+	
 	mouse_hook = SetWindowsHookEx(WH_MOUSE_LL, *mouse_message, get_hinstance(), NULL);
 	mouse_hooked = true;
 }
 
 void KrunkerWindow::unhook_mouse() {
 	clog::debug << "Unhooked mouse" << clog::endl;
+
 	raw_input.dwFlags = RIDEV_REMOVE;
 	raw_input.hwndTarget = NULL;
 	RegisterRawInputDevices(&raw_input, 1, sizeof(raw_input));
+
 	UnhookWindowsHookEx(mouse_hook);
 	mouse_hooked = false;
 }
