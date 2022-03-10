@@ -28,14 +28,19 @@ class ExtendMenu extends Events {
 		
 		if(!this.window)throw new Error(`Unable to find header '${this.header}'`);
 		
-		this.index = this.window.tabs.push({
-			name: this.label,
-			categories: [],
-		}) - 1;
+		var getSettings = this.window.getSettings,
+            indexes = {};
 		
-		this.getSettings = this.window.getSettings;
-		
-		this.window.getSettings = () => this.window.tabIndex == this.index ? this.html.get() : this.getSettings.call(this.window);
+		for(let i in settings.tabs){
+			indexes[i] = settings.tabs[i].length;
+			
+			settings.tabs[i].push({
+				name: this.label,
+				categories: [],
+			});
+		}
+
+		this.window.getSettings = () => this.window.tabIndex == indexes[this.window.settingType] ? this.html.get() : getSettings.call(this.window);
 	}
 	detach(){
 		if(!(this.window instanceof Object))throw new Error('Not attached');
