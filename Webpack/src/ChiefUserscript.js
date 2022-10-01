@@ -25,13 +25,7 @@ export default class ChiefUserscript {
 
     try {
       // cannot use import/export, fix soon
-      run = eval(
-        `(function(${Object.keys(
-          context
-        )}){${script}\n//# sourceURL=https://krunker.io/userscripts:/${
-          this.name
-        }\n})`
-      );
+      run = new Function("script", ...Object.keys(context), `eval(script)`);
     } catch (err) {
       console.warn(`Error parsing userscript: ${this.name}\n`, err);
       ipc.console.error(`Error parsing userscript ${this.name}:\n${err}`);
@@ -50,7 +44,10 @@ export default class ChiefUserscript {
     }
 
     try {
-      run(...Object.values(context));
+      run(
+        `${script}\n//# sourceURL=userscript://./${this.name}`,
+        ...Object.values(context)
+      );
     } catch (err) {
       console.error(`Error executing userscript ${this.name}:\n`, err);
       ipc.console.error(`Error executing userscript ${name}:\n${err}`);
