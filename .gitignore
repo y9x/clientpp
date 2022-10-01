@@ -1,8 +1,7 @@
 /.vs
 /Client/Client.vcxproj.user
 /packages
-/webpack/node_modules
-/webpack/package-lock.json
+/Webpack/node_modules
 /enc_temp_folder
 /Release
 /Debug

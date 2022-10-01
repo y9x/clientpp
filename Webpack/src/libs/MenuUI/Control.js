@@ -346,7 +346,7 @@ class ColorControl extends Control {
 }
 
 export function resolveControl(id) {
-  if (id instanceof this) return id;
+  if (id instanceof Control) return id;
   else
     for (let [cls, type] of Object.entries(controlTypes))
       if (type.id == id) return type;

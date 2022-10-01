@@ -1,9 +1,10 @@
+export const keybinds = new Set();
+
 export default class Keybind {
-  static keybinds = new Set();
   constructor(key, callback) {
     this.keys = new Set();
     this.callbacks = new Set();
-    Keybind.keybinds.add(this);
+    keybinds.add(this);
 
     if (typeof key == "string") {
       this.key(key);
@@ -13,7 +14,7 @@ export default class Keybind {
     if (typeof key == "function") this.callback(callback);
   }
   delete() {
-    Keybind.keybinds.delete(this);
+    keybinds.delete(this);
   }
   set_key(...args) {
     return (this.keys = new Set()), this.key(...args);
@@ -32,15 +33,15 @@ export default class Keybind {
 }
 window.addEventListener("keydown", (event) => {
   if (event.repeat) return;
-  for (let node of [...event.composedPath()])
+  for (const node of [...event.composedPath()])
     if (node.tagName)
-      for (let part of ["INPUT", "TEXTAREA"])
+      for (const part of ["INPUT", "TEXTAREA"])
         if (node.tagName.includes(part)) return;
 
   //  || keybind.repeat
-  for (let keybind of Keybind.keybinds)
+  for (const keybind of keybinds)
     if (!event.repeat && keybind.keys.has(event.code)) {
       event.preventDefault();
-      for (let callback of keybind.callbacks) callback(event);
+      for (const callback of keybind.callbacks) callback(event);
     }
 });

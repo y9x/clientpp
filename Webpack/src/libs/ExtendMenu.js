@@ -28,13 +28,13 @@ export default class ExtendMenu extends Events {
 
     if (!this.window) throw new Error(`Unable to find header '${this.header}'`);
 
-    var getSettings = this.window.getSettings,
-      indexes = {};
+    const getSettings = this.window.getSettings;
+    const indexes = {};
 
-    for (let i in settings.tabs) {
-      indexes[i] = settings.tabs[i].length;
+    for (const i in this.window.tabs) {
+      indexes[i] = this.window.tabs[i].length;
 
-      settings.tabs[i].push({
+      this.window.tabs[i].push({
         name: this.label,
         categories: [],
       });
