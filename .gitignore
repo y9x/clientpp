@@ -2,6 +2,7 @@
 /Client/Client.vcxproj.user
 /packages
 /Webpack/node_modules
+/Webpack/dist
 /enc_temp_folder
 /Release
 /Debug
