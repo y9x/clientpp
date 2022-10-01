@@ -1,15 +1,19 @@
-'use strict';
+function ipcMessagesLoader(code) {
+  const ns = {};
 
-module.exports = code => {
-	var ns = [];
-	
-	code.replace(/\/\/.*?$/gm, '').replace(/namespace\s+(\w+)\s*?{([^]*?)}/g, (match, namespace, data) => {
-		var add = [];
-		data.replace(/(\w+)\s*?=\s*?(\d+)/g, (match, label, value) => add.push(label + ':' + value));
-		ns.push(`${namespace}:{${add}}`);
-	});
-	
-	console.log(`module.exports={${ns}}`);
-	
-	return `module.exports={${ns}}`;
-};
+  code
+    .replace(/\/\/.*?$/gm, "")
+    .replace(/namespace\s+(\w+)\s*?{([^]*?)}/g, (match, namespace, data) => {
+      var add = {};
+      data.replace(/(\w+)\s*?=\s*?(\d+)/g, (match, label, value) => {
+        add[label] = JSON.parse(value);
+      });
+      ns[namespace] = add;
+    });
+
+  return `const {${Object.keys(ns).join(",")}}=${JSON.stringify(
+    ns
+  )}; export {${Object.keys(ns).join(",")}};`;
+}
+
+module.exports = ipcMessagesLoader;

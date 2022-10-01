@@ -1,21 +1,19 @@
-'use strict';
+"use strict";
 
-var Events  = require('../Events');
+import Events from "../Events";
 
-class Addon extends Events {
-	constructor(menu, args){
-		super();
-		
-		this.menu = menu;
-		this.window = menu.window;
-		
-		this.create(...args);
-	}
-	ready(){
-		console.info(this.name, 'loaded');
-		this.emit('ready');
-	}
-	create(){}
-};
+export default class Addon extends Events {
+  constructor(menu, args) {
+    super();
 
-module.exports = Addon;
+    this.menu = menu;
+    this.window = menu.window;
+
+    this.create(...args);
+  }
+  ready() {
+    console.info(this.name, "loaded");
+    this.emit("ready");
+  }
+  create() {}
+}

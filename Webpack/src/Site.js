@@ -1,7 +1,12 @@
-'use strict';
+const paths = {
+  "/": "game",
+  "/social.html": "social",
+  "/editor.html": "editor",
+};
 
-module.exports = {
-	'/': 'game',
-	'/social.html': 'social',
-	'/editor.html': 'editor',
-}[location.pathname];
+/**
+ * @type {"game"|"social"|"editor"|undefined}
+ */
+const currentSite = paths[location.pathname];
+
+export default currentSite;

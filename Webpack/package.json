@@ -1,9 +1,15 @@
 {
-	"name": "Chief Client++ Webpacker",
-	"dependencies": {
-		"webpack": "^5.54.0"
-	},
-	"scripts": {
-		"build-once": "node ./index.js"
-	}
+  "name": "frontend",
+  "type": "module",
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "eslint": "^8.24.0",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production webpack-cli",
+    "build:dev": "cross-env NODE_ENV=development webpack-cli",
+    "build:watch": "cross-env NODE_ENV=development webpack-cli --watch"
+  }
 }

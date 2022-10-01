@@ -1,8 +1,5 @@
-'use strict';
+function cssLoader(source) {
+  return `const css = ${JSON.stringify(source)}; export default css;`;
+}
 
-var fs = require('fs'),
-	path = require('path');
-
-module.exports = source => {
-	return 'module.exports=' + JSON.stringify(source + '');
-};
+module.exports = cssLoader;
