@@ -26,14 +26,14 @@ export default class Tab {
     this.hide();
   }
   category(label) {
-    var category = (this.last_category = new Category(this, label));
+    const category = (this.last_category = new Category(this, label));
 
     this.categories.add(category);
 
     return category;
   }
   control(...args) {
-    var category = this.last_category;
+    let category = this.last_category;
 
     if (!category || !category.is_default) {
       category = this.category();
@@ -43,16 +43,16 @@ export default class Tab {
     return category.control(...args);
   }
   update(init) {
-    for (let category of this.categories) category.update(init);
+    for (const category of this.categories) category.update(init);
   }
   show() {
     this.visible = true;
-    for (let tab of this.window.tabs) if (tab != this) tab.hide();
+    for (const tab of this.window.tabs) if (tab != this) tab.hide();
     this.button.classList.add("tabANew");
     this.show_content();
     this.window.menu.emit("tab-shown");
 
-    for (let category of this.categories) category.fix();
+    for (const category of this.categories) category.fix();
   }
   hide() {
     this.visible = false;

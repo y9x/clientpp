@@ -6,7 +6,7 @@ let buffer = {};
 
 const cloneConsole = {};
 
-for (let method of methods) {
+for (const method of methods) {
   initial[method] = console[method].bind(console);
   cloneConsole[method] = (...data) => {
     if (!buffer[method]) buffer[method] = [];
@@ -17,10 +17,10 @@ for (let method of methods) {
 // devtools hooks after
 
 setTimeout(() => {
-  for (let method of methods) {
+  for (const method of methods) {
     cloneConsole[method] = initial[method];
     if (buffer[method])
-      for (let data of buffer[method]) cloneConsole[method](...data);
+      for (const data of buffer[method]) cloneConsole[method](...data);
   }
 
   buffer = null;

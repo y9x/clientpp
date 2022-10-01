@@ -10,7 +10,7 @@ export default class ChiefUserscript {
     // utils.assign_type(this.template, metadata);
     // done in host c++
 
-    var { libs, gui } = this.metadata.features;
+    const { libs } = this.metadata.features;
 
     if (libs.utils) libs.utils = utils;
   }
@@ -19,9 +19,9 @@ export default class ChiefUserscript {
     if (!this.metadata.locations.some((s) => s == site || s == "all"))
       return false;
 
-    var exports = {},
-      run,
-      context = { _metadata: this.metadata, exports, console };
+    const exports = {};
+    let run;
+    const context = { _metadata: this.metadata, exports, console };
 
     try {
       // cannot use import/export, fix soon
@@ -39,7 +39,7 @@ export default class ChiefUserscript {
     }
 
     if (menu) {
-      let { userscripts } = menu.config,
+      const { userscripts } = menu.config,
         { author, features } = this.metadata;
 
       Object.defineProperty(features, "config", {
@@ -57,29 +57,30 @@ export default class ChiefUserscript {
       return false;
     }
 
-    var { gui } = this.metadata.features;
+    const { gui } = this.metadata.features;
 
     if (menu)
-      for (let [labelct, controls] of Object.entries(gui)) {
+      for (const [labelct, controls] of Object.entries(gui)) {
         let category;
 
         // use existing category when possible
-        for (let ct of menu.categories) if (ct.label == labelct) category = ct;
+        for (const ct of menu.categories)
+          if (ct.label == labelct) category = ct;
         if (!category) category = menu.category(labelct);
 
-        for (let [labelco, data] of Object.entries(controls)) {
-          let change_callback = data.change;
+        for (const [labelco, data] of Object.entries(controls)) {
+          const change_callback = data.change;
 
           delete data.change;
 
           if (typeof data.walk == "string")
             data.walk = `userscripts.${this.metadata.author}.${data.walk}`;
 
-          let control = category.control(labelco, data);
+          const control = category.control(labelco, data);
 
           if (change_callback)
             control.on("change", (value, init) => {
-              var func = exports[change_callback];
+              const func = exports[change_callback];
 
               if (func) func(value, init);
             });

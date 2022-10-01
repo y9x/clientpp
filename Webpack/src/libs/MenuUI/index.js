@@ -12,9 +12,9 @@ export default class MenuUI extends Events {
 
     this.config_key = key;
 
-    new MutationObserver((mutations, observer) => {
-      for (let mutation of mutations)
-        for (let node of mutation.addedNodes) {
+    new MutationObserver((mutations) => {
+      for (const mutation of mutations)
+        for (const node of mutation.addedNodes) {
           if (node.id == "menuItemContainer") this.button.attach(node);
           else if (node.id == "uiBase") this.window.attach(node);
         }
@@ -43,7 +43,7 @@ export default class MenuUI extends Events {
   }
   load_addon(addon, ...args) {
     try {
-      var result = new addon(this, args);
+      const result = new addon(this, args);
 
       this.addons.add(result);
     } catch (err) {

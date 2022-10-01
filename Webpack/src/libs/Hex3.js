@@ -4,15 +4,15 @@ export default class Hex3 {
     this.set_style(string);
   }
   add_scalar(scalar) {
-    for (let ind in this.hex) this.hex[ind] += scalar;
+    for (const ind in this.hex) this.hex[ind] += scalar;
     return this.normalize();
   }
   sub_scalar(scalar) {
-    for (let ind in this.hex) this.hex[ind] -= scalar;
+    for (const ind in this.hex) this.hex[ind] -= scalar;
     return this.normalize();
   }
   normalize() {
-    for (let ind in this.hex)
+    for (const ind in this.hex)
       this.hex[ind] = Math.max(Math.min(this.hex[ind], 255), 0);
     return this;
   }
@@ -24,9 +24,9 @@ export default class Hex3 {
     return this;
   }
   set_style(string) {
-    let hex_index = 0,
-      offset = string[0] == "#" ? 1 : 0,
-      chunk = string.length - offset < 5 ? 1 : 2;
+    let hex_index = 0;
+    const offset = string[0] == "#" ? 1 : 0;
+    const chunk = string.length - offset < 5 ? 1 : 2;
 
     for (let index = offset; index < string.length; index += chunk) {
       let part = string.substr(index, chunk);
@@ -39,9 +39,9 @@ export default class Hex3 {
     return this;
   }
   toString() {
-    var string = "#";
+    let string = "#";
 
-    for (let color of this.hex) string += color.toString(16).padStart(2, 0);
+    for (const color of this.hex) string += color.toString(16).padStart(2, 0);
 
     return string;
   }

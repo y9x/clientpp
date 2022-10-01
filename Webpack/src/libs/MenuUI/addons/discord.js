@@ -11,11 +11,9 @@ export default class DiscordAddon extends Addon {
 
     input = (await input) + "";
 
-    var match = input.match(this.invite);
+    const [, code] = input.match(this.invite) || [];
 
-    if (!match || !match[1]) throw new Error("Invalid invite code: " + input);
-
-    var code = match[1];
+    if (!code) throw new Error("Invalid invite code: " + input);
 
     console.log("Discord code:", code);
 
@@ -49,7 +47,7 @@ export default class DiscordAddon extends Addon {
 
     utils.add_ele("style", node, { textContent: discordAddonCSS });
 
-    var nodes = utils.node_tree(
+    const nodes = utils.node_tree(
       {
         container: "^ > .content",
         icon: "$ > .icon",

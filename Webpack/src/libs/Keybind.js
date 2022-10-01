@@ -23,11 +23,11 @@ export default class Keybind {
     return (this.callbacks = new Set()), this.key(...args);
   }
   key(...keys) {
-    for (let key of keys) this.keys.add(key);
+    for (const key of keys) this.keys.add(key);
     return this;
   }
   callback(...funcs) {
-    for (let func of funcs) this.callbacks.add(func);
+    for (const func of funcs) this.callbacks.add(func);
     return this;
   }
 }

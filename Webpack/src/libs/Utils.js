@@ -8,7 +8,7 @@ export default class utils {
     return Math.round(n * Math.pow(10, r)) / Math.pow(10, r);
   }
   static add_ele(node_name, parent, attributes = {}) {
-    var crt = this.crt_ele(node_name, attributes);
+    const crt = this.crt_ele(node_name, attributes);
 
     if (typeof parent == "function")
       this.wait_for(parent).then((data) => data.append(crt));
@@ -19,85 +19,86 @@ export default class utils {
     return crt;
   }
   static crt_ele(node_name, attributes = {}) {
-    var after = {},
-      assign = {};
+    const after = {};
+    const assign = {};
 
-    for (let prop in attributes)
+    for (const prop in attributes)
       if (typeof attributes[prop] == "object" && attributes[prop] != null)
         after[prop] = attributes[prop];
       else assign[prop] = attributes[prop];
 
-    var node;
+    let node;
 
     if (node_name == "raw")
       node = this.crt_ele("div", { innerHTML: assign.html }).firstChild;
     else if (node_name == "text") node = document.createTextNode("");
     else node = document.createElement(node_name);
 
-    var cls = assign.className;
+    const cls = assign.className;
 
     if (cls) {
       delete assign.className;
       node.setAttribute("class", cls);
     }
 
-    var events = after.events;
+    const events = after.events;
 
     if (events) {
       delete after.events;
-      for (let event in events) node.addEventListener(event, events[event]);
+      for (const event in events) node.addEventListener(event, events[event]);
     }
 
     Object.assign(node, assign);
 
-    for (let prop in after) Object.assign(node[prop], after[prop]);
+    for (const prop in after) Object.assign(node[prop], after[prop]);
 
     return node;
   }
   static wait_for(check, time) {
     return new Promise((resolve) => {
-      var interval,
-        run = () => {
-          try {
-            var result = check();
+      const run = () => {
+        try {
+          const result = check();
 
-            if (result) {
-              if (interval) clearInterval(interval);
-              resolve(result);
+          if (result) {
+            if (interval) clearInterval(interval);
+            resolve(result);
 
-              return true;
-            }
-          } catch (err) {
-            console.log(err);
+            return true;
           }
-        };
+        } catch (err) {
+          console.log(err);
+        }
+      };
 
+      // eslint-disable-next-line prefer-const
+      let interval;
       interval = run() || setInterval(run, time || 50);
     });
   }
   static sanitize(string) {
-    var node = document.createElement("div");
+    const node = document.createElement("div");
 
     node.textContent = string;
 
     return node.innerHTML;
   }
   static unsanitize(string) {
-    var node = document.createElement("div");
+    const node = document.createElement("div");
 
     node.innerHTML = string;
 
     return node.textContent;
   }
   static node_tree(nodes, parent = document) {
-    var output = {
-        parent: parent,
-      },
-      match_container = /^\$\s+>?/g,
-      match_parent = /^\^\s+>?/g;
+    const output = {
+      parent: parent,
+    };
+    const match_container = /^\$\s+>?/g;
+    const match_parent = /^\^\s+>?/g;
 
-    for (var label in nodes) {
-      var value = nodes[label];
+    for (const label in nodes) {
+      const value = nodes[label];
 
       if (value instanceof Node) output[label] = value;
       else if (typeof value == "object")
@@ -137,8 +138,8 @@ export default class utils {
     return JSON.parse(JSON.stringify(obj));
   }
   static assign_deep(target, ...objects) {
-    for (let ind in objects)
-      for (let key in objects[ind]) {
+    for (const ind in objects)
+      for (const key in objects[ind]) {
         if (
           typeof objects[ind][key] == "object" &&
           objects[ind][key] != null &&
@@ -156,7 +157,7 @@ export default class utils {
     return target;
   }
   static filter_deep(target, match) {
-    for (let key in target) {
+    for (const key in target) {
       if (!(key in match)) delete target[key];
 
       if (typeof match[key] == "object" && match[key] != null)
@@ -166,7 +167,7 @@ export default class utils {
     return target;
   }
   static redirect(name, from, to) {
-    var proxy = Symbol();
+    const proxy = Symbol();
 
     to.addEventListener(name, (event) => {
       if (event[proxy]) return;
@@ -183,8 +184,10 @@ export default class utils {
     );
   }
   static promise() {
-    var temp,
-      promise = new Promise((resolve, reject) => (temp = { resolve, reject }));
+    let temp;
+    const promise = new Promise(
+      (resolve, reject) => (temp = { resolve, reject })
+    );
 
     Object.assign(promise, temp);
 

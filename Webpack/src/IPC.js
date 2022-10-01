@@ -1,3 +1,4 @@
+/*global webview*/
 // webview is chrome.webview but captured by bootstrap.js
 
 import Events from "./libs/Events";
@@ -36,7 +37,7 @@ class IPC extends Events {
     return true;
   }
   post(event, ...data) {
-    var id = ~~(Math.random() * 2147483647);
+    const id = ~~(Math.random() * 2147483647);
 
     return new Promise((resolve, reject) => {
       this.once(id, (data, error) => {
@@ -48,7 +49,7 @@ class IPC extends Events {
   }
 }
 
-var ipc = new IPC();
+const ipc = new IPC();
 
 webview.addEventListener("message", ({ data }) => ipc.emit(...data));
 

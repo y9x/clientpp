@@ -1,4 +1,4 @@
-import Control, { controlTypes } from "./libs/MenuUI/Control";
+import { controlTypes } from "./libs/MenuUI/Control";
 import utils from "./libs/Utils";
 import { IM, ipc } from "./IPC";
 
@@ -15,7 +15,7 @@ export default class FilePicker extends controlTypes.TextBoxControl {
       events: {
         click: async () => {
           // send entries instead of an object, c++ json parser removes the order
-          var data = await ipc.post(
+          const data = await ipc.post(
             IM.browse_file,
             this.data.title,
             Object.entries(this.data.filters)

@@ -28,11 +28,11 @@ export default class Control extends Events {
     this.content.remove();
   }
   walk(data) {
-    var state = this.menu.config,
-      last_state,
-      last_key;
+    let state = this.menu.config;
+    let last_state;
+    let last_key;
 
-    for (let key of data.split("."))
+    for (const key of data.split("."))
       state = (last_state = state)[(last_key = key)] || {};
 
     return [last_state, last_key];
@@ -40,20 +40,18 @@ export default class Control extends Events {
   get value() {
     if (typeof this.data.value == "function") return this.data.value;
 
-    var walked = this.walk(this.data.walk);
+    const walked = this.walk(this.data.walk);
 
     return walked[0][walked[1]];
   }
   set value(value) {
-    var walked = this.walk(this.data.walk);
+    const walked = this.walk(this.data.walk);
 
     walked[0][walked[1]] = value;
 
     this.menu.save_config();
 
     this.emit("change", value);
-
-    return value;
   }
   create() {}
   interact() {
@@ -111,7 +109,7 @@ class SelectControl extends Control {
       () => (this.value = this.select.value)
     );
 
-    for (let value in this.data.value)
+    for (const value in this.data.value)
       utils.add_ele("option", this.select, {
         value: value,
         textContent: this.data.value[value],
@@ -136,7 +134,7 @@ class DropdownControl extends Control {
       this.value = this.data.value[this.select.value];
     });
 
-    for (let key in this.data.value)
+    for (const key in this.data.value)
       utils.add_ele("option", this.select, {
         textContent: key,
         value: key,
@@ -146,7 +144,7 @@ class DropdownControl extends Control {
     super.update(init);
 
     if (init)
-      for (let [key, value] of Object.entries(this.data.value)) {
+      for (const [key, value] of Object.entries(this.data.value)) {
         if (value == this.value) {
           this.select.value = key;
           this.key = key;
@@ -261,7 +259,7 @@ class TextBoxControl extends Control {
 class SliderControl extends Control {
   static id = "slider";
   create() {
-    var slider = {
+    const slider = {
       min: this.data.min,
       max: this.data.max,
       step: this.data.step,
@@ -303,7 +301,7 @@ class SliderControl extends Control {
     );
   }
   interact() {
-    var label =
+    const label =
       (!this.input_focused &&
         this.data.labels &&
         this.data.labels[this.value]) ||
@@ -348,7 +346,7 @@ class ColorControl extends Control {
 export function resolveControl(id) {
   if (id instanceof Control) return id;
   else
-    for (let [cls, type] of Object.entries(controlTypes))
+    for (const [, type] of Object.entries(controlTypes))
       if (type.id == id) return type;
 
   return id; // throws neat error
@@ -365,6 +363,5 @@ export const controlTypes = {
   TextBoxControl,
   SliderControl,
   ColorControl,
-  LinkControl,
   LinkFunctionControl,
 };

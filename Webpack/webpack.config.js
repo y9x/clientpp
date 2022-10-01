@@ -1,3 +1,4 @@
+/*global process*/
 import TerserPlugin from "terser-webpack-plugin";
 import { fileURLToPath } from "node:url";
 

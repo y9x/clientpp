@@ -1,7 +1,7 @@
 "use strict";
 
 import utils from "../../Utils";
-import Control, { resolveControl } from "../Control";
+import { resolveControl } from "../Control";
 
 export default class Category {
   constructor(tab, label) {
@@ -52,7 +52,7 @@ export default class Category {
         "keyboard_arrow_" + (this.collapsed ? "right" : "down");
     }
 
-    for (let control of this.controls) control.update(init);
+    for (const control of this.controls) control.update(init);
   }
   show() {
     this.expand();
@@ -64,10 +64,10 @@ export default class Category {
   }
   fix() {
     this.update();
-    for (let control of this.controls) control.show_content();
+    for (const control of this.controls) control.show_content();
   }
   control(name, data) {
-    var control = new (resolveControl(data.type))(name, data, this);
+    const control = new (resolveControl(data.type))(name, data, this);
     this.controls.add(control);
     return control;
   }

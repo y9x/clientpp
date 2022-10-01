@@ -45,7 +45,7 @@ export default class SettingsAddon extends Addon {
           File.pick({
             accept: "menu.json",
           }).then(async (file) => {
-            var data = await file.read();
+            const data = await file.read();
 
             try {
               await this.menu.insert_config(JSON.parse(data), true);
@@ -90,13 +90,13 @@ export default class SettingsAddon extends Addon {
         input: () => {
           if (!this.search.value) return [...this.menu.window.tabs][0].show();
 
-          for (let tab of this.menu.window.tabs) {
+          for (const tab of this.menu.window.tabs) {
             tab.hide();
 
-            for (let category of tab.categories) {
+            for (const category of tab.categories) {
               category.hide();
 
-              for (let control of category.controls) {
+              for (const control of category.controls) {
                 control.hide_content();
 
                 if (
@@ -138,9 +138,9 @@ export default class SettingsAddon extends Addon {
     this.ready();
   }
   handle_config() {
-    var string = JSON.stringify(this.menu.config);
+    const string = JSON.stringify(this.menu.config);
 
-    for (let [preset, value] of this.menu.presets)
+    for (const [preset, value] of this.menu.presets)
       if (
         JSON.stringify(
           utils.assign_deep(

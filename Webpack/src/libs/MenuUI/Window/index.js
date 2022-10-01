@@ -1,5 +1,4 @@
-"use strict";
-
+import Category from "./Category";
 import utils from "../../Utils";
 import Events from "../../Events";
 
@@ -28,9 +27,9 @@ export default class Window extends Events {
 
     this.styles = new Set();
 
-    new MutationObserver((mutations, observer) => {
-      for (let mutation of mutations)
-        for (let node of mutation.addedNodes)
+    new MutationObserver((mutations) => {
+      for (const mutation of mutations)
+        for (const node of mutation.addedNodes)
           if (["LINK", "STYLE"].includes(node.tagName)) this.update_styles();
     }).observe(document, { childList: true, subtree: true });
 
@@ -65,10 +64,10 @@ export default class Window extends Events {
     this.hide();
   }
   update_styles() {
-    for (let style of this.styles) style.remove(), this.styles.delete(style);
+    for (const style of this.styles) style.remove(), this.styles.delete(style);
 
-    for (let sheet of document.styleSheets) {
-      let style = utils.add_ele("style", this.node);
+    for (const sheet of document.styleSheets) {
+      const style = utils.add_ele("style", this.node);
 
       this.styles.add(style);
 
@@ -77,7 +76,7 @@ export default class Window extends Events {
           "@import url(" + JSON.stringify(sheet.href) + ");\n";
       else
         try {
-          for (let rule of sheet.cssRules)
+          for (const rule of sheet.cssRules)
             style.textContent += rule.cssText + "\n";
         } catch (err) {
           console.error(err);
@@ -85,7 +84,7 @@ export default class Window extends Events {
     }
   }
   header(label) {
-    return new Header(this, label);
+    return new Category(this, label);
   }
   show() {
     this.emit("show");

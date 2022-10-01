@@ -6,10 +6,10 @@ import LegacyUserscript from "./LegacyUserscript";
 import ChiefUserscript from "./ChiefUserscript";
 
 const add_css = () => {
-  for (let [name, data] of Object.entries(css)) {
-    let url = URL.createObjectURL(new Blob([data], { type: "text/css" }));
+  for (const [, data] of Object.entries(css)) {
+    const url = URL.createObjectURL(new Blob([data], { type: "text/css" }));
 
-    let link = document.head.appendChild(
+    const link = document.head.appendChild(
       Object.assign(document.createElement("link"), {
         rel: "stylesheet",
         href: url,
@@ -25,22 +25,22 @@ const add_css = () => {
 };
 
 function init(menu) {
-  for (let [name, [data, metadata, errors]] of Object.entries(js)) {
+  for (const [name, [data, metadata, errors]] of Object.entries(js)) {
     if (metadata) {
-      if (errors) for (let error of errors) console.error(error);
+      if (errors) for (const error of errors) console.error(error);
       else new ChiefUserscript(name, metadata).run(data, site, menu);
     } else {
       // legacy idkr, unknown
       // quick fix
       if (data.includes("// ==UserScript==") && site != "game") continue;
 
-      let module = { exports: {} },
-        func,
-        context = {
-          module,
-          exports: module.exports,
-          console,
-        };
+      const module = { exports: {} };
+      let func;
+      const context = {
+        module,
+        exports: module.exports,
+        console,
+      };
 
       try {
         func = eval(
@@ -57,7 +57,7 @@ function init(menu) {
       try {
         func(...Object.values(context));
 
-        let userscript = new LegacyUserscript(module.exports);
+        const userscript = new LegacyUserscript(module.exports);
 
         userscript.run();
       } catch (err) {
@@ -72,8 +72,8 @@ function init(menu) {
 export default init;
 
 new MutationObserver((mutations, observer) => {
-  for (let mutation of mutations) {
-    for (let node of mutation.addedNodes) {
+  for (const mutation of mutations) {
+    for (const node of mutation.addedNodes) {
       if (
         node.nodeName == "LINK" &&
         new URL(node.href || "/", location).pathname == "/css/main_custom.css"

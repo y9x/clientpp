@@ -1,3 +1,4 @@
+/*global loginAcc,logoutAcc,closWind*/
 import utils from "./libs/Utils";
 import Control from "./libs/MenuUI/Control";
 import Events from "./libs/Events";
@@ -91,7 +92,7 @@ class AccountTile {
     this.create(node);
   }
   create(node) {
-    var hex = new Hex3(this.data.color);
+    const hex = new Hex3(this.data.color);
 
     this.container = utils.add_ele("div", node, {
       className: "account-tile",
@@ -133,11 +134,11 @@ class AccountTile {
   }
   edit() {}
   async click() {
-    var thas = this;
+    const that = this;
 
     // this.window.hide();
 
-    var password = await ipc.post(IM.account_password, this.username);
+    const password = await ipc.post(IM.account_password, this.username);
 
     // MTZ client does this procedure
     logoutAcc();
@@ -147,7 +148,7 @@ class AccountTile {
     window.accPass = { value: password };
     window.accResp = {
       set innerHTML(value) {
-        thas.resp.node.innerHTML = value;
+        that.resp.node.innerHTML = value;
         delete window.accResp;
       },
     };
@@ -167,7 +168,7 @@ class Menu extends Events {
   config = {};
   window = new HeaderWindow(this, "Accounts");
   async attach() {
-    var opts = {
+    const opts = {
       className: "button buttonG lgn",
       style: {
         width: "200px",
@@ -204,7 +205,7 @@ class Menu extends Events {
   async generate(list) {
     this.table.node.innerHTML = "";
 
-    for (let [username, data] of Object.entries(list).sort(
+    for (const [username, data] of Object.entries(list).sort(
       (p1, p2) => p1.order - p2.order
     ))
       new AccountTile(this.resp, this.table.node, this.window, username, data);
@@ -277,7 +278,7 @@ class Menu extends Events {
 }
 
 if (currentSite === "game") {
-  var menu = new Menu();
+  const menu = new Menu();
   window.menu = menu;
   menu.attach();
 

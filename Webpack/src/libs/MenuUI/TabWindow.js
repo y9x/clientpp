@@ -1,5 +1,6 @@
 "use strict";
 
+import Tab from "./Tab";
 import Window from "./Window";
 import utils from "../Utils";
 
@@ -16,16 +17,16 @@ export default class TabWindow extends Window {
     });
   }
   tab(label) {
-    var tab = new Tab(this, label);
+    const tab = new Tab(this, label);
 
     this.tabs.add(tab);
 
     return tab;
   }
   get main_tab() {
-    var first;
+    let first;
 
-    for (let tab of this.tabs) {
+    for (const tab of this.tabs) {
       first = first || tab;
       if (tab.visible) return tab;
     }
@@ -33,7 +34,7 @@ export default class TabWindow extends Window {
     return first;
   }
   update(init) {
-    for (let tab of this.tabs) {
+    for (const tab of this.tabs) {
       tab.update(init);
       if (tab != this.main_tab) tab.hide();
     }

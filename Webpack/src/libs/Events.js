@@ -2,7 +2,7 @@ export default class Events {
   static original = Symbol();
   #events = new Map();
   #resolve(event) {
-    var callbacks = this.#events.get(event);
+    let callbacks = this.#events.get(event);
 
     if (!callbacks) {
       callbacks = new Set();
@@ -20,7 +20,7 @@ export default class Events {
     return this;
   }
   once(event, callback) {
-    var cb = function (...data) {
+    const cb = function (...data) {
       this.off(event, callback);
       callback.call(this, ...data);
     };
@@ -35,18 +35,18 @@ export default class Events {
 
     if (callback[Events.original]) callback = callback[Events.original];
 
-    var list = this.#resolve(event);
+    const list = this.#resolve(event);
 
     return list.delete(callback);
   }
   emit(event, ...data) {
-    var set = this.#resolve(event);
+    const set = this.#resolve(event);
 
     if (!set.size) {
       if (event == "error") throw data[0];
       return false;
     } else
-      for (let item of set)
+      for (const item of set)
         try {
           item.call(this, ...data);
         } catch (err) {

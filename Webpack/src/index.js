@@ -8,7 +8,9 @@ try {
       },
     },
   });
-} catch (err) {}
+} catch (err) {
+  //
+}
 
 import "./FilePicker";
 
@@ -16,7 +18,7 @@ import ExtendMenu from "./libs/ExtendMenu";
 import Keybind from "./libs/Keybind";
 import RPC from "./RPC";
 import { ipc, IM } from "./IPC";
-import { config as runtime_config, js } from "./Runtime";
+import { config as runtime_config } from "./Runtime";
 import site from "./Site";
 import run_resources from "./Resources";
 // import default_config from "../../Resources/Config.json";
@@ -51,7 +53,7 @@ class Menu extends ExtendMenu {
       walk: "client.devtools",
     });
 
-    var Folder = this.category("Folders");
+    const Folder = this.category("Folders");
 
     Folder.control("Scripts", {
       type: "function",
@@ -71,7 +73,7 @@ class Menu extends ExtendMenu {
       value: () => ipc.send(IM.shell_open, "swapper"),
     });
 
-    var Render = this.category("Rendering");
+    const Render = this.category("Rendering");
 
     Render.control("Fullscreen", {
       type: "boolean",
@@ -105,7 +107,7 @@ class Menu extends ExtendMenu {
       },
     }).on("change", (value, init) => !init && ipc.send(IM.relaunch_webview));
 
-    var Game = this.category("Game");
+    const Game = this.category("Game");
 
     Game.control("Seek new Lobby [F4]", {
       type: "boolean",
@@ -118,11 +120,11 @@ class Menu extends ExtendMenu {
       placeholder: "Empty for any map",
     });
 
-    var modes = {
+    const modes = {
       Any: "",
     };
 
-    for (let name of [
+    for (const name of [
       "Free for All",
       "Team Deathmatch",
       "Hardpoint",
@@ -168,7 +170,7 @@ class Menu extends ExtendMenu {
       walk: "game.seek.customs",
     });
 
-    var RPC = this.category("Discord RPC");
+    const RPC = this.category("Discord RPC");
 
     RPC.control("Enabled", {
       type: "boolean",
@@ -187,7 +189,7 @@ class Menu extends ExtendMenu {
       walk: "rpc.name",
     }).on("change", (value, init) => !init && this.rpc.update(true));
 
-    var Window = this.category("Window");
+    const Window = this.category("Window");
 
     Window.control("Replace Icon & Title", {
       type: "boolean",
@@ -221,7 +223,7 @@ class Menu extends ExtendMenu {
     this.attach();
   }
   update() {
-    for (let category of this.categories) category.update(true);
+    for (const category of this.categories) category.update(true);
   }
 }
 
@@ -234,7 +236,7 @@ new Keybind("F11", () => {
   ipc.send(IM.toggle_fullscreen);
 });
 
-new Keybind("F10", (event) => {
+new Keybind("F10", () => {
   ipc.send(IM.open_devtools);
 });
 
@@ -242,7 +244,7 @@ import "./Fixes";
 import "./AccountManager";
 
 if (site == "game") {
-  let menu = (window.TEST = new Menu());
+  const menu = new Menu();
   run_resources(menu);
   menu.update();
 

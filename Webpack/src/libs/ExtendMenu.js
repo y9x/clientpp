@@ -1,3 +1,4 @@
+/*global windows*/
 import utils from "../libs/Utils";
 import Events from "./Events";
 import HTMLProxy from "./HTMLProxy";
@@ -20,7 +21,7 @@ export default class ExtendMenu extends Events {
   async attach() {
     if (this.window instanceof Object) throw new Error("Already attached");
 
-    var array = await utils.wait_for(
+    const array = await utils.wait_for(
       () => typeof windows == "object" && windows
     );
 
@@ -54,12 +55,12 @@ export default class ExtendMenu extends Events {
   }
   categories = new Set();
   category(label) {
-    var cat = new Category(this.tab, label);
+    const cat = new Category(this.tab, label);
     this.categories.add(cat);
     return cat;
   }
   update(init = false) {
-    for (let category of this.categories) category.update(init);
+    for (const category of this.categories) category.update(init);
   }
   constructor(header, label) {
     super();

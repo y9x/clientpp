@@ -16,7 +16,7 @@ export default class RPC {
   update(force = false) {
     if (!window.getGameActivity) return;
 
-    var activity;
+    let activity;
 
     try {
       activity = window.getGameActivity();
@@ -24,9 +24,9 @@ export default class RPC {
       return;
     }
 
-    var { user, map, mode } = activity,
-      args = [user, map, mode],
-      jargs = JSON.stringify(args);
+    const { user, map, mode } = activity;
+    const args = [user, map, mode];
+    const jargs = JSON.stringify(args);
 
     if (!force && jargs != this.last) {
       ipc.send(IM.rpc_update, this.start, ...args);

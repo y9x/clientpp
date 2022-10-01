@@ -10,20 +10,20 @@ export default class HTMLProxy {
   constructor() {
     this.id = "a-" + Math.random().toString().slice(2);
 
-    var children = this.children;
+    const children = this.children;
 
     customElements.define(
       this.id,
       class extends HTMLElement {
         connectedCallback() {
-          for (let node of children) this.parentNode.insertBefore(node, this);
+          for (const node of children) this.parentNode.insertBefore(node, this);
           this.remove();
         }
       }
     );
   }
   get() {
-    var html = `<${this.id}></${this.id}>`;
+    const html = `<${this.id}></${this.id}>`;
 
     // html += '<!-- ';
     // for(let node of this.children)html += node.outerHTML.replace(/-->/g, '->');

@@ -21,14 +21,14 @@ export default class HeaderWindow extends Window {
     this.hide();
   }
   category(label) {
-    var category = (this.last_category = new Category(this, label));
+    const category = (this.last_category = new Category(this, label));
 
     this.categories.add(category);
 
     return category;
   }
   control(...args) {
-    var category = this.last_category;
+    let category = this.last_category;
 
     if (!category || !category.is_default) {
       category = this.category();
@@ -39,7 +39,7 @@ export default class HeaderWindow extends Window {
   }
   show() {
     super.show();
-    for (let category of this.categories) category.fix();
+    for (const category of this.categories) category.fix();
   }
   hide() {
     super.hide();
