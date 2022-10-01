@@ -1,5 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <Windows.h>
+#include <ShlObj_core.h>
 #include "./ClientFolder.h"
 #include "./TraverseCopy.h"
 #include "../Utils/StringUtil.h"
@@ -58,10 +59,14 @@ bool ClientFolder::create_directory(std::wstring directory) {
 		clog::info << "Created " << Convert::string(directory) << clog::endl;
 		return true;
 	}
-	else if (GetLastError() == ERROR_ALREADY_EXISTS)return true;
 	else {
-		clog::error << "Unable to create " << Convert::string(directory) << clog::endl;
-		return false;
+		DWORD last_error = GetLastError();
+
+		if (last_error == ERROR_ALREADY_EXISTS)return true;
+		else {
+			clog::error << "Unable to create " << Convert::string(directory) << ", GetLastError() was " << last_error << clog::endl;
+			return false;
+		}
 	}
 }
 
@@ -87,21 +92,32 @@ std::wstring ClientFolder::relative_path(std::wstring path) {
 
 bool ClientFolder::create() {
 	bool ret = true;
+
+	PWSTR ppsz_path;
+	HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &ppsz_path);
+
+	if (!SUCCEEDED(hr)) return false;
 	
-	directory = _wgetenv(L"USERPROFILE");
-	directory += L"\\Documents\\" + name;
+	std::wstring directory = ppsz_path;      // make a local copy of the path
+
+	CoTaskMemFree(ppsz_path);    // free up the path memory block
+	
+	directory += L"\\" + name;
 
 	if (create_directory(directory)) {
 		if (write_resource(directory + p_chief, ICON_CHIEF)) clog::info << "Created " << Convert::string(directory + p_chief) << clog::endl;
 		if (write_resource(directory + p_krunker, ICON_KRUNKER)) clog::info << "Created " << Convert::string(directory + p_krunker) << clog::endl;
-		
+
 		for (std::wstring sdir : directories) {
 			if (!create_directory(directory + sdir)) ret = false;
 		}
-		
+
 		clog::logs = directory + p_logs;
 	}
-	else clog::error << "Unable to create root folder" << clog::endl, ret = false;
+	else {
+		clog::error << "Unable to create root folder" << clog::endl;
+		ret = false;
+	}
 
 	std::string config_buffer;
 	
