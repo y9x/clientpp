@@ -98,9 +98,9 @@ bool ClientFolder::create() {
 
 	if (!SUCCEEDED(hr)) return false;
 	
-	std::wstring directory = ppsz_path;      // make a local copy of the path
+	directory = ppsz_path;
 
-	CoTaskMemFree(ppsz_path);    // free up the path memory block
+	CoTaskMemFree(ppsz_path);
 	
 	directory += L"\\" + name;
 
