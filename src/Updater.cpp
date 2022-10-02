@@ -1,6 +1,7 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <net.h>
 #include <json.hpp>
+#include <semver.hpp>
 #include "../utils/StringUtil.h"
 #include "./Updater.h"
 #include "./Log.h"
@@ -17,7 +18,7 @@ bool Updater::GetServing(UpdaterServing &serving)
 		JSON client = parsed["client"];
 
 		serving.url = client["url"];
-		serving.version = client["version"];
+		serving.version = client["semver"];
 
 		return true;
 	}
@@ -37,7 +38,7 @@ bool Updater::UpdatesAvailable(UpdaterServing &serving)
 {
 	if (!GetServing(serving))
 		return false;
-	return version < serving.version;
+	return semver::version(version) < semver::version(serving.version);
 }
 
-Updater::Updater(long double v, std::wstring u) : version(v), url(u) {}
+Updater::Updater(std::string v, std::wstring u) : version(v), url(u) {}

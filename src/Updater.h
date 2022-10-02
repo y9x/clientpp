@@ -1,16 +1,20 @@
 #pragma once
 #include <string>
 
-struct UpdaterServing {
+struct UpdaterServing
+{
 	std::string url;
-	double version = 0;
+	std::string version;
 };
 
-class Updater {
-public:
+class Updater
+{
+private:
 	std::wstring url;
-	Updater(long double version, std::wstring url);
-	long double version;
-	bool GetServing(UpdaterServing& serving);
-	bool UpdatesAvailable(UpdaterServing& serving);
+	std::string version;
+
+public:
+	Updater(std::string version, std::wstring url);
+	bool GetServing(UpdaterServing &serving);
+	bool UpdatesAvailable(UpdaterServing &serving);
 };
