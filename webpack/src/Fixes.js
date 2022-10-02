@@ -66,15 +66,15 @@ if (currentSite === "game") {
     const style =
       height_scale < width_scale
         ? {
-            transform: height_scale,
-            width: width / height_scale,
-            height: min_height,
-          }
+          transform: height_scale,
+          width: width / height_scale,
+          height: min_height,
+        }
         : {
-            transform: width_scale,
-            width: min_width,
-            height: height / width_scale,
-          };
+          transform: width_scale,
+          width: min_width,
+          height: height / width_scale,
+        };
 
     utils
       .wait_for(() => document.querySelector("#uiBase"))

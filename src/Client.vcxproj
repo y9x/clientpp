@@ -88,13 +88,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\Resources\Bootstrap.js" />
-    <None Include="..\Resources\Client.css" />
-    <None Include="..\Resources\Config.json" />
-    <None Include="..\Resources\DefaultUserscript.json" />
-    <None Include="..\Resources\Error.html" />
-    <None Include="..\Webpack\dist\Webpack.js" />
-    <None Include="..\Webpack\dist\Webpack.js.map" />
+    <None Include="..\resources\Bootstrap.js" />
+    <None Include="..\resources\Client.css" />
+    <None Include="..\resources\Config.json" />
+    <None Include="..\resources\DefaultUserscript.json" />
+    <None Include="..\resources\Error.html" />
+    <None Include="..\webpack\dist\main.js" />
+    <None Include="..\webpack\dist\main.js.map" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -149,7 +149,7 @@
     <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Font Include="..\Resources\GameFont.ttf" />
+    <Font Include="..\resources\GameFont.ttf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

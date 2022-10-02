@@ -13,15 +13,16 @@ try {
 }
 
 import "./FilePicker";
-
+import "./Fixes";
+import "./AccountManager";
 import ExtendMenu from "./libs/ExtendMenu";
 import Keybind from "./libs/Keybind";
 import RPC from "./RPC";
 import { ipc, IM } from "./IPC";
 import { config as runtime_config } from "./Runtime";
-import site from "./Site";
+import currentSite from "./Site";
 import run_resources from "./Resources";
-// import default_config from "../../Resources/Config.json";
+// import default_config from "../../resources/Config.json";
 
 class Menu extends ExtendMenu {
   rpc = new RPC();
@@ -240,10 +241,7 @@ new Keybind("F10", () => {
   ipc.send(IM.open_devtools);
 });
 
-import "./Fixes";
-import "./AccountManager";
-
-if (site == "game") {
+if (currentSite === "game") {
   const menu = new Menu();
   run_resources(menu);
   menu.update();

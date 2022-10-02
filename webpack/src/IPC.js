@@ -2,7 +2,7 @@
 // webview is chrome.webview but captured by bootstrap.js
 
 import Events from "./libs/Events";
-import { IM, LogType } from "../../Client/IPCMessages.h";
+import { IM, LogType } from "../../src/IPCMessages.h";
 
 class IPCConsole {
   constructor(ipc) {

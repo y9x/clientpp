@@ -1,6 +1,6 @@
 // Legacy IDKR userscript
 
-import site from "./Site";
+import currentSite from "./Site";
 
 export default class Userscript {
   #field(compare, value) {
@@ -32,7 +32,10 @@ export default class Userscript {
     this.settings = this.#field(this.settings, data.settings);
   }
   async run() {
-    if (!this.locations.includes("all") && !this.locations.includes(site))
+    if (
+      !this.locations.includes("all") &&
+      !this.locations.includes(currentSite)
+    )
       return false;
 
     try {

@@ -1,6 +1,7 @@
 {
     "extends": ["eslint:recommended"],
     "env": {
+        "node": true,
         "browser": true,
         "es6": true
     },
@@ -9,6 +10,9 @@
         "ecmaVersion": "latest"
     },
     "rules": {
+        "quotes": ["error", "double"],
+        "indent": ["error", 2],
+        "no-implicit-globals": "error",
         "prefer-const": "error"
     }
 }

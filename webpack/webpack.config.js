@@ -1,6 +1,6 @@
-/*global process*/
 import TerserPlugin from "terser-webpack-plugin";
 import { fileURLToPath } from "node:url";
+import ESLintPlugin from "eslint-webpack-plugin";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -11,7 +11,6 @@ const config = {
   entry: fileURLToPath(new URL("./src/index.js", import.meta.url)),
   output: {
     path: fileURLToPath(new URL("./dist/", import.meta.url)),
-    filename: "Webpack.js",
   },
   // inline work can be done from the client
   // base64 strings are 3x larger
@@ -54,6 +53,7 @@ const config = {
       },
     ],
   },
+  plugins: [new ESLintPlugin()],
 };
 
 export default config;

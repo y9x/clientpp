@@ -18,8 +18,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\webpack\dist\Webpack.js" />
-    <None Include="..\webpack\dist\Webpack.js.map" />
+    <None Include="..\webpack\dist\main.js" />
+    <None Include="..\webpack\dist\main.js.map" />
     <None Include="packages.config" />
     <None Include="..\resources\config.json" />
     <None Include="..\resources\bootstrap.js" />

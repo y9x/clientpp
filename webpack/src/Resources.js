@@ -1,5 +1,5 @@
 import { css, js } from "./Runtime";
-import site from "./Site";
+import currentSite from "./Site";
 import { ipc } from "./IPC";
 import console from "./Console";
 import LegacyUserscript from "./LegacyUserscript";
@@ -24,15 +24,15 @@ const add_css = () => {
   }
 };
 
-function init(menu) {
+export default function run_resources(menu) {
   for (const [name, [data, metadata, errors]] of Object.entries(js)) {
     if (metadata) {
       if (errors) for (const error of errors) console.error(error);
-      else new ChiefUserscript(name, metadata).run(data, site, menu);
+      else new ChiefUserscript(name, metadata).run(data, currentSite, menu);
     } else {
       // legacy idkr, unknown
       // quick fix
-      if (data.includes("// ==UserScript==") && site != "game") continue;
+      if (data.includes("// ==UserScript==") && currentSite != "game") continue;
 
       const module = { exports: {} };
       let func;
@@ -68,8 +68,6 @@ function init(menu) {
     }
   }
 }
-
-export default init;
 
 new MutationObserver((mutations, observer) => {
   for (const mutation of mutations) {

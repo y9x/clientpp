@@ -64,7 +64,10 @@ export default class Window extends Events {
     this.hide();
   }
   update_styles() {
-    for (const style of this.styles) style.remove(), this.styles.delete(style);
+    for (const style of this.styles) {
+      style.remove();
+      this.styles.delete(style);
+    }
 
     for (const sheet of document.styleSheets) {
       const style = utils.add_ele("style", this.node);

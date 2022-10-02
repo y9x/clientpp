@@ -62,13 +62,13 @@ MAINICON                ICON                    "..\\images\\Icon.ico"
 
 ICON_CHIEF              RCDATA                  "..\\images\\icon.ico"
 
-JS_WEBPACK              RCDATA                  "..\\webpack\\dist\\Webpack.js"
+JS_WEBPACK              RCDATA                  "..\\webpack\\dist\\main.js"
 
 JSON_CONFIG             RCDATA                  "..\\resources\\Config.json"
 
 JS_BOOTSTRAP            RCDATA                  "..\\resources\\Bootstrap.js"
 
-JS_WEBPACK_MAP          RCDATA                  "..\\webpack\\dist\\Webpack.js.map"
+JS_WEBPACK_MAP          RCDATA                  "..\\webpack\\dist\\main.js.map"
 
 ICON_KRUNKER            RCDATA                  "..\\images\\krunker.ico"
 

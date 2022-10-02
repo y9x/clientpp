@@ -25,7 +25,7 @@ export default class ChiefUserscript {
 
     try {
       // cannot use import/export, fix soon
-      run = new Function("script", ...Object.keys(context), `eval(script)`);
+      run = new Function("script", ...Object.keys(context), "eval(script)");
     } catch (err) {
       console.warn(`Error parsing userscript: ${this.name}\n`, err);
       ipc.console.error(`Error parsing userscript ${this.name}:\n${err}`);
