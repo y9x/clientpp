@@ -8,8 +8,8 @@ struct UpdaterServing {
 
 class Updater {
 public:
-	std::string host, path;
-	Updater(long double version, std::string host, std::string path);
+	std::wstring url;
+	Updater(long double version, std::wstring url);
 	long double version;
 	bool GetServing(UpdaterServing& serving);
 	bool UpdatesAvailable(UpdaterServing& serving);

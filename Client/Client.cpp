@@ -230,8 +230,8 @@ void Client::install_runtimes() {
 Client::Client(HINSTANCE h, int c)
 	: inst(h)
 	, cmdshow(c)
-	, updater(version, "https://6ct.github.io", "/serve/updates.json")
-	, installer("https://go.microsoft.com", "/fwlink/p/?LinkId=2124703")
+	, updater(version, L"https://6ct.github.io/serve/updates.json")
+	, installer(L"https://go.microsoft.com/fwlink/p/?LinkId=2124703")
 	, folder(L"GC++")
 	, game(folder, KrunkerWindow::Type::Game, { 0.8, 0.8 }, title, [this]() { listen_navigation(game); }, [this](JSMessage msg) -> bool { return on_message(msg, game); }, []() { PostQuitMessage(EXIT_SUCCESS); })
 	, social(folder, KrunkerWindow::Type::Social, { 0.7, 0.7 }, (std::wstring(title) + L": Social").c_str(), [this]() { listen_navigation(social); }, [this](JSMessage msg) -> bool { return on_message(msg, social); })
@@ -308,6 +308,7 @@ bool Client::create() {
 		break;
 	};
 
+#ifndef DEBUG
 	// checking updates causes delay
 	new std::thread([this]() {
 		UpdaterServing serving;
@@ -316,6 +317,7 @@ bool Client::create() {
 			exit(EXIT_SUCCESS);
 		}
 	});
+#endif // DEBUG
 
 	return true;
 }

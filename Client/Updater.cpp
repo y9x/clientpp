@@ -1,33 +1,32 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
-#include <httplib.hpp>
+#include <net.h>
 #include <json.hpp>
+#include "../Utils/StringUtil.h"
 #include "./Updater.h"
 #include "./Log.h"
 
 using JSON = nlohmann::json;
 
 bool Updater::GetServing(UpdaterServing& serving) {
-	httplib::Client cli(host);
-	
-	if (auto res = cli.Get(path.c_str()))
-		try {
-			JSON parsed = JSON::parse(res->body);
-			JSON client = parsed["client"];
+	try {
+		auto data = net::fetch_request(net::url(url));
 			
-			serving.url = client["url"];
-			serving.version = client["version"];
+		JSON parsed = JSON::parse(std::string(data.begin(), data.end()));
+		JSON client = parsed["client"];
+			
+		serving.url = client["url"];
+		serving.version = client["version"];
 
-			return true;
-		}
-		catch (JSON::parse_error err) {
-			clog::error << "Error parsing serving: " << err.what() << clog::endl;
-		}
-	else {
-		httplib::Error error = res.error();
-		clog::error << "Error checking updates: 0x" << std::hex << error << clog::endl;
+		return true;
 	}
-
-	return false;
+	catch (JSON::parse_error err) {
+		clog::error << "Error parsing serving: " << err.what() << clog::endl;
+		return false;
+	}
+	catch (net::error& err) {
+		clog::error << "Error checking updates: " << err.what() << clog::endl;
+		return false;
+	}
 }
 
 bool Updater::UpdatesAvailable(UpdaterServing& serving) {
@@ -35,4 +34,4 @@ bool Updater::UpdatesAvailable(UpdaterServing& serving) {
 	return version < serving.version;
 }
 
-Updater::Updater(long double d, std::string h, std::string p) : version(d), host(h), path(p) {}
+Updater::Updater(long double v, std::wstring u) : version(v), url(u) {}

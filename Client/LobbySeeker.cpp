@@ -1,13 +1,11 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
-#include <httplib.hpp>
+#include <net.h>
 #include <rapidjson/document.h>
 #include "./LobbySeeker.h"
 #include "../Utils/StringUtil.h"
 #include "./Log.h"
 
 using namespace StringUtil;
-
-httplib::Client api("https://matchmaker.krunker.io");
 
 // config.js
 std::vector<std::string> LobbySeeker::modes = { "Free for All", "Team Deathmatch", "Hardpoint", "Capture the Flag", "Parkour", "Hide & Seek", "Infected", "Race", "Last Man Standing", "Simon Says", "Gun Game", "Prop Hunt", "Boss Hunt", "unused", "unused", "Stalker", "King of the Hill", "One in the Chamber", "Trade", "Kill Confirmed", "Defuse", "Sharp Shooter", "Traitor", "Raid", "Blitz", "Domination", "Squad Deathmatch", "Kranked FFA" };
@@ -67,10 +65,12 @@ std::string Game::link() {
 std::string LobbySeeker::seek() {
 	if (!use_map && mode == -1) return "https://krunker.io";
 	
-	if (auto res = api.Get("/game-list?hostname=krunker.io")) {
-		rapidjson::Document data;
-		data.Parse(res->body.c_str(), res->body.length());
+	try {
+		auto res = net::fetch_request(net::url(L"https://matchmaker.krunker.io/game-list?hostname=krunker.io"));
 		
+		rapidjson::Document data;
+		data.Parse(res.data(), res.size());
+
 		std::vector<Game> games;
 
 		for (const rapidjson::Value& data : data["games"].GetArray()) {
@@ -84,11 +84,14 @@ std::string LobbySeeker::seek() {
 
 			games.push_back(game);
 		}
-		
+
 		if (games.size()) {
 			std::sort(games.begin(), games.end());
 			return games[0].link();
 		}
+	}
+	catch (net::error& err) {
+		clog::error << "Failure requesting matchmaker: " << err.what() << clog::endl;
 	}
 
 	clog::error << "Error finding game" << clog::endl;

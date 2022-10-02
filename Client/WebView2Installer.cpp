@@ -1,5 +1,5 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
-#include <httplib.hpp>
+#include <net.h>
 #include "./WebView2Installer.h"
 #include "../Utils/StringUtil.h"
 #include "Log.h"
@@ -10,7 +10,7 @@
 
 using namespace StringUtil;
 
-WebView2Installer::WebView2Installer(std::string h, std::string p) : host(h), path(p) {}
+WebView2Installer::WebView2Installer(std::wstring u) : url(u) {}
 
 std::wstring WebView2Installer::BinPath() {
 	std::wstring path;
@@ -24,11 +24,9 @@ bool WebView2Installer::Install(Error& error) {
 	error = Error::OK;
 	
 	std::wstring bin_path = BinPath();
-	httplib::Client cli(host);
-	cli.set_follow_location(true);
-	auto res = cli.Get(path.c_str());
+	auto res = net::fetch_request(net::url(url));
 	
-	if (!res->body.length()) {
+	if (!res.size()) {
 		error = Error::NoBytesDownloaded;
 		return false;
 	}
@@ -37,7 +35,7 @@ bool WebView2Installer::Install(Error& error) {
 
 	if (file != INVALID_HANDLE_VALUE) {
 		DWORD bytes;
-		WriteFile(file, res->body.data(), res->body.length(), &bytes, nullptr);
+		WriteFile(file, res.data(), res.size(), &bytes, nullptr);
 		CloseHandle(file);
 		clog::info << "Downloaded " << Convert::string(bin_path) << clog::endl;
 	}

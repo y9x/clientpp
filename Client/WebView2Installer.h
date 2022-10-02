@@ -11,10 +11,10 @@ public:
 		CantOpenProcess,
 		NoBytesDownloaded
 	};
-	std::string host, path;
+	std::wstring url;
 	std::wstring bin = L"MicrosoftEdgeWebview2Setup.exe";
 	std::wstring BinPath();
-	WebView2Installer(std::string host, std::string path);
+	WebView2Installer(std::wstring url);
 	bool Installed();
 	bool Install(Error& error);
 };

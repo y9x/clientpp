@@ -64,7 +64,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libz-static.lib;libcrypto-1_1-static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>crypt32.lib;winhttp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -86,7 +86,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libz-static.lib;libcrypto-1_1-static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>crypt32.lib;winhttp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -116,6 +116,7 @@
     <ClCompile Include="JSMessage.cpp" />
     <ClCompile Include="KrunkerWindow.cpp" />
     <ClCompile Include="LobbySeeker.cpp" />
+    <ClCompile Include="net.cpp" />
     <ClCompile Include="RuntimeData.cpp" />
     <ClCompile Include="LoadRes.cpp" />
     <ClCompile Include="Log.cpp" />
@@ -127,6 +128,7 @@
     <ClCompile Include="WebView2Installer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\net.h" />
     <ClInclude Include="AccountManager.h" />
     <ClInclude Include="JSMessage.h" />
     <ClInclude Include="LobbySeeker.h" />
@@ -152,7 +154,6 @@
     <Font Include="..\Resources\GameFont.ttf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <Import Project="..\OpenSSL\OpenSSL.props" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\Microsoft.Web.WebView2.1.0.992.28\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.992.28\build\native\Microsoft.Web.WebView2.targets')" />
     <Import Project="..\packages\Microsoft.Windows.ImplementationLibrary.1.0.211019.2\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.211019.2\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
