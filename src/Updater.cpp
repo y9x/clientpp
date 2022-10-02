@@ -2,11 +2,11 @@
 #include "./Updater.h"
 #include "../utils/StringUtil.h"
 #include "./Log.h"
-#include <nlohmann/json.hpp>
+#include <rapidjson/error/en.h>
+#include <rapidjson/allocators.h>
+#include <rapidjson/document.h>
 #include <net.h>
 #include <semver.hpp>
-
-using JSON = nlohmann::json;
 
 bool Updater::GetServing(UpdaterServing &serving)
 {
@@ -14,18 +14,28 @@ bool Updater::GetServing(UpdaterServing &serving)
 	{
 		auto data = net::fetch_request(net::url(url));
 
-		JSON parsed = JSON::parse(std::string(data.begin(), data.end()));
-		JSON client = parsed["client"];
+		rapidjson::Document document;
+		rapidjson::ParseResult ok = document.Parse(data.data(), data.size());
 
-		serving.url = client["url"];
-		serving.version = client["semver"];
+		if (!ok)
+		{
+			clog::error << "Error parsing serving: " << GetParseError_En(ok.Code()) << " (" << ok.Offset() << ")" << clog::endl;
+			return false;
+		}
+
+		rapidjson::Document::Object client = document["client"].GetObj();
+
+		serving.url = {
+			client["url"].GetString(),
+			client["url"].GetStringLength(),
+		};
+
+		serving.version = {
+			client["semver"].GetString(),
+			client["semver"].GetStringLength(),
+		};
 
 		return true;
-	}
-	catch (JSON::parse_error err)
-	{
-		clog::error << "Error parsing serving: " << err.what() << clog::endl;
-		return false;
 	}
 	catch (net::error &err)
 	{
