@@ -612,6 +612,7 @@ KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> c
 
 			wil::com_ptr<ICoreWebView2Settings> settings;
 			if (SUCCEEDED(webview->get_Settings(&settings))) {
+				settings->put_AreDefaultContextMenusEnabled(false);
 				settings->put_IsScriptEnabled(true);
 				settings->put_AreDefaultScriptDialogsEnabled(true);
 				settings->put_IsWebMessageEnabled(true);
