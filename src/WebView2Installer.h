@@ -6,15 +6,11 @@
 // Installs the WebView2 runtime
 class WebView2Installer {
 public:
-	enum class Error {
-		OK,
-		CantOpenProcess,
-		NoBytesDownloaded
-	};
-	std::wstring url;
-	std::wstring bin = L"MicrosoftEdgeWebview2Setup.exe";
-	std::wstring BinPath();
-	WebView2Installer(std::wstring url);
-	bool Installed();
-	bool Install(Error& error);
+  enum class Error { OK, CantOpenProcess, NoBytesDownloaded };
+  std::wstring url;
+  std::wstring bin = L"MicrosoftEdgeWebview2Setup.exe";
+  std::wstring BinPath();
+  WebView2Installer(std::wstring url);
+  bool Installed();
+  bool Install(Error &error);
 };

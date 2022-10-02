@@ -3,98 +3,87 @@
 #include <Windows.h>
 #include <chrono>
 
-namespace clog
-{
-	char endl = '\n';
-	std::wstring logs;
+namespace clog {
+char endl = '\n';
+std::wstring logs;
 
 #if _DEBUG == 1
-	constexpr bool vdebug = true;
+constexpr bool vdebug = true;
 #else
-	constexpr bool vdebug = false;
+constexpr bool vdebug = false;
 #endif
 
-	int FileOut::overflow(int c)
-	{
-		if (!work || c == EOF)
-			return 0;
+int FileOut::overflow(int c) {
+  if (!work || c == EOF)
+    return 0;
 
-		buffer += c;
+  buffer += c;
 
-		if (c == endl)
-		{
-			std::string prefix;
+  if (c == endl) {
+    std::string prefix;
 
-			if (vdebug || badge_file)
-				prefix += "[" + badge + "] ";
+    if (vdebug || badge_file)
+      prefix += "[" + badge + "] ";
 
-			if (!vdebug)
-			{
-				std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-				std::string ts = std::ctime(&now);
-				ts.pop_back();
-				prefix += "[" + ts + "] ";
-			}
+    if (!vdebug) {
+      std::time_t now = std::chrono::system_clock::to_time_t(
+          std::chrono::system_clock::now());
+      std::string ts = std::ctime(&now);
+      ts.pop_back();
+      prefix += "[" + ts + "] ";
+    }
 
-			prefix.pop_back();
+    prefix.pop_back();
 
-			buffer = prefix + ": " + buffer;
+    buffer = prefix + ": " + buffer;
 
-			if (vdebug)
-			{
-				std::cout << buffer;
-			}
-			else
-			{
-				FILE *handle = _wfopen((logs + file).c_str(), L"a");
-				if (handle)
-				{
-					fwrite(buffer.data(), sizeof(char), buffer.size(), handle);
-					fclose(handle);
-				}
-			}
+    if (vdebug) {
+      std::cout << buffer;
+    } else {
+      FILE *handle = _wfopen((logs + file).c_str(), L"a");
+      if (handle) {
+        fwrite(buffer.data(), sizeof(char), buffer.size(), handle);
+        fclose(handle);
+      }
+    }
 
-			buffer.erase();
-		}
+    buffer.erase();
+  }
 
-		return 0;
-	}
+  return 0;
+}
 
-	bool console_attached = false;
+bool console_attached = false;
 
-	bool attach_console()
-	{
-		if (console_attached)
-			return true;
+bool attach_console() {
+  if (console_attached)
+    return true;
 
 #if _DEBUG == 1
-		SetConsoleCtrlHandler(0, true);
-		if (AllocConsole())
-		{
-			freopen("CONOUT$", "w", stdout);
-			freopen("CONOUT$", "w", stderr);
-			freopen("CONIN$", "r", stdin);
+  SetConsoleCtrlHandler(0, true);
+  if (AllocConsole()) {
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+    freopen("CONIN$", "r", stdin);
 
-			std::cout.clear();
-			std::cin.clear();
-		}
-		else
-		{
-			MessageBox(NULL, L"Failure attatching console", L"Debugger", MB_OK);
-			return false;
-		}
+    std::cout.clear();
+    std::cin.clear();
+  } else {
+    MessageBox(NULL, L"Failure attatching console", L"Debugger", MB_OK);
+    return false;
+  }
 #endif
-		return true;
-	}
+  return true;
+}
 
-	FileOut::FileOut(std::string b, std::wstring f, bool bf, bool work) : work(work), badge(b), badge_file(bf), file(f), std::ostream(this)
-	{
-		console_attached = attach_console();
-	}
+FileOut::FileOut(std::string b, std::wstring f, bool bf, bool work)
+    : work(work), badge(b), badge_file(bf), file(f), std::ostream(this) {
+  console_attached = attach_console();
+}
 
-	// badges for shared log files
-	FileOut info("Info", L"\\info.log", true);
-	FileOut warn("Warning", L"\\info.log", true);
-	FileOut error("Error", L"\\error.log");
-	FileOut debug("Debug", L"\\debug.log", false, vdebug);
-};
+// badges for shared log files
+FileOut info("Info", L"\\info.log", true);
+FileOut warn("Warning", L"\\info.log", true);
+FileOut error("Error", L"\\error.log");
+FileOut debug("Debug", L"\\debug.log", false, vdebug);
+}; // namespace clog

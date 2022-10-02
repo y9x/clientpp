@@ -4,168 +4,182 @@
 #include <windows.h>
 
 namespace IOUtil {
-	bool DirectoryIterator::test_filename() {
-		std::string f = file();
-		return f == "." || f == "..";
-	}
-	DirectoryIterator::DirectoryIterator(std::string f, std::string filter) : folder(f) {
-		std::string wsfind = folder;
-		if (wsfind.back() != '\\')wsfind += '\\';
-		wsfind += filter;
-		folder_ws = StringUtil::Convert::wstring(wsfind);
-	}
+bool DirectoryIterator::test_filename() {
+  std::string f = file();
+  return f == "." || f == "..";
+}
+DirectoryIterator::DirectoryIterator(std::string f, std::string filter)
+    : folder(f) {
+  std::string wsfind = folder;
+  if (wsfind.back() != '\\')
+    wsfind += '\\';
+  wsfind += filter;
+  folder_ws = StringUtil::Convert::wstring(wsfind);
+}
 
-	DirectoryIterator::~DirectoryIterator() {
-		stop();
-	}
+DirectoryIterator::~DirectoryIterator() { stop(); }
 
-	void DirectoryIterator::stop() {
-		if (stopped)return;
+void DirectoryIterator::stop() {
+  if (stopped)
+    return;
 
-		stopped = true;
-		FindClose(find);
-	}
-	
-	std::string DirectoryIterator::file() {
-		if (frame_filen)return filen;
-		else return filen = StringUtil::Convert::string(find_data.cFileName);
-	}
-	std::string DirectoryIterator::path() {
-		return folder + "\\" + file();
-	}
+  stopped = true;
+  FindClose(find);
+}
 
-	bool DirectoryIterator::operator++ () {
-		frame_filen = false;
-		cnext = false;
+std::string DirectoryIterator::file() {
+  if (frame_filen)
+    return filen;
+  else
+    return filen = StringUtil::Convert::string(find_data.cFileName);
+}
+std::string DirectoryIterator::path() { return folder + "\\" + file(); }
 
-		if (first) {
-			first = false;
-			if ((find = FindFirstFile(folder_ws.c_str(), &find_data)) == INVALID_HANDLE_VALUE) return stopped = true, false;
-		}
-		else if (!FindNextFile(find, &find_data))return false;
+bool DirectoryIterator::operator++() {
+  frame_filen = false;
+  cnext = false;
 
-		if (test_filename())return operator++();
+  if (first) {
+    first = false;
+    if ((find = FindFirstFile(folder_ws.c_str(), &find_data)) ==
+        INVALID_HANDLE_VALUE)
+      return stopped = true, false;
+  } else if (!FindNextFile(find, &find_data))
+    return false;
 
-		return cnext = true;
-	}
+  if (test_filename())
+    return operator++();
 
-	bool WDirectoryIterator::test_filename() {
-		std::wstring f = file();
-		return f == L"." || f == L"..";
-	}
+  return cnext = true;
+}
 
-	WDirectoryIterator::WDirectoryIterator(std::wstring f, std::wstring filter) : folder(f), filter(filter) {
-		if (folder.back() == '\\')folder.pop_back();
-	}
+bool WDirectoryIterator::test_filename() {
+  std::wstring f = file();
+  return f == L"." || f == L"..";
+}
 
-	WDirectoryIterator::~WDirectoryIterator() {
-		stop();
-	}
+WDirectoryIterator::WDirectoryIterator(std::wstring f, std::wstring filter)
+    : folder(f), filter(filter) {
+  if (folder.back() == '\\')
+    folder.pop_back();
+}
 
-	void WDirectoryIterator::stop() {
-		if (stopped)return;
+WDirectoryIterator::~WDirectoryIterator() { stop(); }
 
-		stopped = true;
-		FindClose(find);
-	}
+void WDirectoryIterator::stop() {
+  if (stopped)
+    return;
 
-	std::wstring WDirectoryIterator::file() {
-		if (frame_filen)return filen;
-		else return filen = find_data.cFileName;
-	}
-	std::wstring WDirectoryIterator::path() {
-		return folder + L"\\" + file();
-	}
+  stopped = true;
+  FindClose(find);
+}
 
-	bool WDirectoryIterator::operator++ () {
-		frame_filen = false;
-		cnext = false;
+std::wstring WDirectoryIterator::file() {
+  if (frame_filen)
+    return filen;
+  else
+    return filen = find_data.cFileName;
+}
+std::wstring WDirectoryIterator::path() { return folder + L"\\" + file(); }
 
-		if (first) {
-			first = false;
-			if ((find = FindFirstFile((folder + L"\\" + filter).c_str(), &find_data)) == INVALID_HANDLE_VALUE) return stopped = true, false;
-		}
-		else if (!FindNextFile(find, &find_data))return false;
+bool WDirectoryIterator::operator++() {
+  frame_filen = false;
+  cnext = false;
 
-		if (test_filename())return operator++();
+  if (first) {
+    first = false;
+    if ((find = FindFirstFile((folder + L"\\" + filter).c_str(), &find_data)) ==
+        INVALID_HANDLE_VALUE)
+      return stopped = true, false;
+  } else if (!FindNextFile(find, &find_data))
+    return false;
 
-		return cnext = true;
-	}
+  if (test_filename())
+    return operator++();
 
-	bool file_exists(std::string path) {
-		FILE* file = fopen(path.c_str(), "r");
-		if (!file)return false;
-		fclose(file);
-		return true;
-	}
+  return cnext = true;
+}
 
-	bool file_exists(std::wstring path) {
-		FILE* file = _wfopen(path.c_str(), L"r");
-		if (!file)return false;
-		fclose(file);
-		return true;
-	}
+bool file_exists(std::string path) {
+  FILE *file = fopen(path.c_str(), "r");
+  if (!file)
+    return false;
+  fclose(file);
+  return true;
+}
 
-	bool read_file(std::string path, std::string& buffer) {
-		FILE* file = fopen(path.c_str(), "r");
+bool file_exists(std::wstring path) {
+  FILE *file = _wfopen(path.c_str(), L"r");
+  if (!file)
+    return false;
+  fclose(file);
+  return true;
+}
 
-		if (!file)return false;
+bool read_file(std::string path, std::string &buffer) {
+  FILE *file = fopen(path.c_str(), "r");
 
-		fseek(file, 0, SEEK_END);
-		size_t size = ftell(file);
-		rewind(file);
+  if (!file)
+    return false;
 
-		buffer.resize(size);
+  fseek(file, 0, SEEK_END);
+  size_t size = ftell(file);
+  rewind(file);
 
-		// size_t bytes_read = 
-		// buffer.resize(
-		buffer.resize(fread(&buffer[0], 1, size, file));
+  buffer.resize(size);
 
-		fclose(file);
+  // size_t bytes_read =
+  // buffer.resize(
+  buffer.resize(fread(&buffer[0], 1, size, file));
 
-		return true;
-	}
+  fclose(file);
 
-	bool read_file(std::wstring path, std::string& buffer) {
-		FILE* file = _wfopen(path.c_str(), L"r");
+  return true;
+}
 
-		if (!file)return false;
-		
-		fseek(file, 0, SEEK_END);
-		size_t size = ftell(file);
-		rewind(file);
+bool read_file(std::wstring path, std::string &buffer) {
+  FILE *file = _wfopen(path.c_str(), L"r");
 
-		buffer.resize(size);
+  if (!file)
+    return false;
 
-		buffer.resize(fread(&buffer[0], 1, size, file));
+  fseek(file, 0, SEEK_END);
+  size_t size = ftell(file);
+  rewind(file);
 
-		fclose(file);
+  buffer.resize(size);
 
-		return true;
-	}
+  buffer.resize(fread(&buffer[0], 1, size, file));
 
-	// for small data
-	bool write_file(std::string path, std::string buffer) {
-		FILE* file = fopen(path.c_str(), "w");
+  fclose(file);
 
-		if (!file)return false;
+  return true;
+}
 
-		fwrite(buffer.data(), sizeof(char), buffer.length(), file);
+// for small data
+bool write_file(std::string path, std::string buffer) {
+  FILE *file = fopen(path.c_str(), "w");
 
-		fclose(file);
+  if (!file)
+    return false;
 
-		return true;
-	}
-	
-	bool write_file(std::wstring path, std::string buffer) {
-		FILE* file = _wfopen(path.c_str(), L"w");
+  fwrite(buffer.data(), sizeof(char), buffer.length(), file);
 
-		if (!file)return false;
+  fclose(file);
 
-		fwrite(buffer.data(), sizeof(char), buffer.length(), file);
+  return true;
+}
 
-		fclose(file);
+bool write_file(std::wstring path, std::string buffer) {
+  FILE *file = _wfopen(path.c_str(), L"w");
 
-		return true;
-	}
-};
+  if (!file)
+    return false;
+
+  fwrite(buffer.data(), sizeof(char), buffer.length(), file);
+
+  fclose(file);
+
+  return true;
+}
+}; // namespace IOUtil
