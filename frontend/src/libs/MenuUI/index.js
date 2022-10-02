@@ -15,8 +15,8 @@ export default class MenuUI extends Events {
     new MutationObserver((mutations) => {
       for (const mutation of mutations)
         for (const node of mutation.addedNodes) {
-          if (node.id == "menuItemContainer") this.button.attach(node);
-          else if (node.id == "uiBase") this.window.attach(node);
+          if (node.id === "menuItemContainer") this.button.attach(node);
+          else if (node.id === "uiBase") this.window.attach(node);
         }
     }).observe(document, { childList: true, subtree: true });
 

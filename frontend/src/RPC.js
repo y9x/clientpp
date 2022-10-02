@@ -28,7 +28,7 @@ export default class RPC {
     const args = [user, map, mode];
     const jargs = JSON.stringify(args);
 
-    if (!force && jargs != this.last) {
+    if (!force && jargs !== this.last) {
       ipc.send(IM.rpc_update, this.start, ...args);
       this.last = jargs;
     }

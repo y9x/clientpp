@@ -23,8 +23,8 @@ if (currentSite === "game") {
   });
 
   setInterval(() => {
-    ipc.send(IM.pointer, document.pointerLockElement != void []);
-  }, 250);
+    ipc.send(IM.pointer, !!document.pointerLockElement);
+  }, 200);
 
   ipc.on(IM.mousewheel, (deltaY) => {
     locked_node?.dispatchEvent(new WheelEvent("wheel", { deltaY }));
@@ -44,15 +44,16 @@ if (currentSite === "game") {
     );
   });
 
-  if (localStorage.kro_setngss_scaleUI == void [])
-    localStorage.kro_setngss_scaleUI = 0.7;
+  if (!localStorage.kro_setngss_scaleUI)
+    localStorage.kro_setngss_scaleUI = "0.7";
 
   const MIN_WIDTH = 1700;
   const MIN_HEIGHT = 900;
 
   if (localStorage.kro_setngss_uiScaling !== "false") {
-    const ls = localStorage.kro_setngss_scaleUI;
-    let scale_ui = ls != void [] ? parseInt(ls) : 0.7;
+    let scale_ui = localStorage.kro_setngss_scaleUI
+      ? parseInt(localStorage.kro_setngss_scaleUI)
+      : 0.7;
 
     scale_ui = Math.min(1, Math.max(0.1, Number(scale_ui)));
     scale_ui = 1 + (1 - scale_ui);

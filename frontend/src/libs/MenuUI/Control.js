@@ -38,7 +38,7 @@ export default class Control extends Events {
     return [last_state, last_key];
   }
   get value() {
-    if (typeof this.data.value == "function") return this.data.value;
+    if (typeof this.data.value === "function") return this.data.value;
 
     const walked = this.walk(this.data.walk);
 
@@ -53,7 +53,7 @@ export default class Control extends Events {
 
     this.emit("change", value);
   }
-  create() {}
+  create() { }
   interact() {
     console.warn("No defined interaction for", this);
   }
@@ -145,7 +145,7 @@ class DropdownControl extends Control {
 
     if (init)
       for (const [key, value] of Object.entries(this.data.value)) {
-        if (value == this.value) {
+        if (value === this.value) {
           this.select.value = key;
           this.key = key;
         }
@@ -216,7 +216,7 @@ class KeybindControl extends Control {
 
     this.input.addEventListener("keydown", (event) => {
       event.preventDefault();
-      this.value = event.code == "Escape" ? null : event.code;
+      this.value = event.code === "Escape" ? null : event.code;
       this.input.blur();
     });
 
@@ -307,7 +307,7 @@ class SliderControl extends Control {
         this.data.labels[this.value]) ||
       this.value;
 
-    this.input.type = typeof label == "string" ? "text" : "number";
+    this.input.type = typeof label === "string" ? "text" : "number";
 
     this.input.value = label;
 
@@ -347,7 +347,7 @@ export function resolveControl(id) {
   if (id instanceof Control) return id;
   else
     for (const [, type] of Object.entries(controlTypes))
-      if (type.id == id) return type;
+      if (type.id === id) return type;
 
   return id; // throws neat error
   // else throw new TypeError('Unknown type: ' + data.type);

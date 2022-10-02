@@ -66,7 +66,7 @@ export default class SettingsAddon extends Addon {
       },
       events: {
         change: () => {
-          if (this.preset.value == "Custom") return;
+          if (this.preset.value === "Custom") return;
 
           this.menu.load_preset(this.preset.value);
         },
@@ -147,7 +147,7 @@ export default class SettingsAddon extends Addon {
             utils.clone_obj(this.menu.presets.get("Default")),
             value
           )
-        ) == string
+        ) === string
       )
         return (this.preset.value = preset);
 

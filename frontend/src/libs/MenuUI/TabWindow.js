@@ -36,7 +36,7 @@ export default class TabWindow extends Window {
   update(init) {
     for (const tab of this.tabs) {
       tab.update(init);
-      if (tab != this.main_tab) tab.hide();
+      if (tab !== this.main_tab) tab.hide();
     }
 
     this.main_tab.show();

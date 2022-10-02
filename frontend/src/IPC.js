@@ -31,7 +31,7 @@ class IPC extends Events {
   }
   console = new IPCConsole(this);
   send(event, ...data) {
-    if (typeof event != "number")
+    if (typeof event !== "number")
       throw new TypeError(`Event must be a number. Recieved '${event}'`);
     webview.postMessage(JSON.stringify([event, ...data]));
     return true;

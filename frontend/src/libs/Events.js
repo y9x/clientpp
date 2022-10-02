@@ -12,7 +12,7 @@ export default class Events {
     return callbacks;
   }
   on(event, callback) {
-    if (typeof callback != "function")
+    if (typeof callback !== "function")
       throw new TypeError("Callback is not a function.");
 
     this.#resolve(event).add(callback);
@@ -30,7 +30,7 @@ export default class Events {
     return this.on(event, cb);
   }
   off(event, callback) {
-    if (typeof callback != "function")
+    if (typeof callback !== "function")
       throw new TypeError("Callback is not a function.");
 
     if (callback[Events.original]) callback = callback[Events.original];
@@ -43,7 +43,7 @@ export default class Events {
     const set = this.#resolve(event);
 
     if (!set.size) {
-      if (event == "error") throw data[0];
+      if (event === "error") throw data[0];
       return false;
     } else
       for (const item of set)

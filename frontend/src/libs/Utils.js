@@ -1,7 +1,7 @@
 export default class utils {
   static is_host(url, ...hosts) {
     return hosts.some(
-      (host) => url.hostname == host || url.hostname.endsWith("." + host)
+      (host) => url.hostname === host || url.hostname.endsWith("." + host)
     );
   }
   static round(n, r) {
@@ -10,9 +10,9 @@ export default class utils {
   static add_ele(node_name, parent, attributes = {}) {
     const crt = this.crt_ele(node_name, attributes);
 
-    if (typeof parent == "function")
+    if (typeof parent === "function")
       this.wait_for(parent).then((data) => data.append(crt));
-    else if (typeof parent == "object" && parent != null && parent.append)
+    else if (typeof parent === "object" && parent && parent.append)
       parent.append(crt);
     else throw new Error("Parent is not resolvable to a DOM element");
 
@@ -23,15 +23,15 @@ export default class utils {
     const assign = {};
 
     for (const prop in attributes)
-      if (typeof attributes[prop] == "object" && attributes[prop] != null)
+      if (typeof attributes[prop] === "object" && attributes[prop] !== null)
         after[prop] = attributes[prop];
       else assign[prop] = attributes[prop];
 
     let node;
 
-    if (node_name == "raw")
+    if (node_name === "raw")
       node = this.crt_ele("div", { innerHTML: assign.html }).firstChild;
-    else if (node_name == "text") node = document.createTextNode("");
+    else if (node_name === "text") node = document.createTextNode("");
     else node = document.createElement(node_name);
 
     const cls = assign.className;
@@ -101,7 +101,7 @@ export default class utils {
       const value = nodes[label];
 
       if (value instanceof Node) output[label] = value;
-      else if (typeof value == "object")
+      else if (typeof value === "object")
         output[label] = this.node_tree(value, output.container);
       else if (match_container.test(nodes[label])) {
         if (!output.container) {
@@ -141,12 +141,12 @@ export default class utils {
     for (const ind in objects)
       for (const key in objects[ind]) {
         if (
-          typeof objects[ind][key] == "object" &&
-          objects[ind][key] != null &&
+          typeof objects[ind][key] === "object" &&
+          objects[ind][key] !== null &&
           key in target
         )
           this.assign_deep(target[key], objects[ind][key]);
-        else if (typeof target == "object" && target != null)
+        else if (typeof target === "object" && target !== null)
           Object.defineProperty(
             target,
             key,
@@ -160,7 +160,7 @@ export default class utils {
     for (const key in target) {
       if (!(key in match)) delete target[key];
 
-      if (typeof match[key] == "object" && match[key] != null)
+      if (typeof match[key] === "object" && match[key] !== null)
         this.filter_deep(target[key], match[key]);
     }
 

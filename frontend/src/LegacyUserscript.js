@@ -7,13 +7,13 @@ export default class Userscript {
     if (Array.isArray(compare)) {
       if (!Array.isArray(value)) value = [].concat(value);
 
-      if (!value.length || value.some((data) => typeof data != "string"))
+      if (!value.length || value.some((data) => typeof data !== "string"))
         return compare;
-    } else if (typeof compare != typeof value) return compare;
+    } else if (typeof compare !== typeof value) return compare;
 
     return value;
   }
-  #run = () => {};
+  #run = () => { };
   name = "Unnamed userscript";
   version = "Unknown version";
   author = "Unknown author";

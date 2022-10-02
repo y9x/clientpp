@@ -58,7 +58,7 @@ export default class Window extends Events {
     });
 
     this.holder.addEventListener("click", (event) => {
-      if (event.target == this.holder) this.hide();
+      if (event.target === this.holder) this.hide();
     });
 
     this.hide();

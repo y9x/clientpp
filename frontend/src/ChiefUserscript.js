@@ -16,7 +16,7 @@ export default class ChiefUserscript {
   }
   // returns false if the script failed to execute, otherwise true
   async run(script, site, menu) {
-    if (!this.metadata.locations.some((s) => s == site || s == "all"))
+    if (!this.metadata.locations.some((s) => s === site || s === "all"))
       return false;
 
     const exports = {};
@@ -62,7 +62,7 @@ export default class ChiefUserscript {
 
         // use existing category when possible
         for (const ct of menu.categories)
-          if (ct.label == labelct) category = ct;
+          if (ct.label === labelct) category = ct;
         if (!category) category = menu.category(labelct);
 
         for (const [labelco, data] of Object.entries(controls)) {
@@ -70,7 +70,7 @@ export default class ChiefUserscript {
 
           delete data.change;
 
-          if (typeof data.walk == "string")
+          if (typeof data.walk === "string")
             data.walk = `userscripts.${this.metadata.author}.${data.walk}`;
 
           const control = category.control(labelco, data);

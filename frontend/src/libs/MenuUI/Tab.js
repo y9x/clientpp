@@ -47,7 +47,7 @@ export default class Tab {
   }
   show() {
     this.visible = true;
-    for (const tab of this.window.tabs) if (tab != this) tab.hide();
+    for (const tab of this.window.tabs) if (tab !== this) tab.hide();
     this.button.classList.add("tabANew");
     this.show_content();
     this.window.menu.emit("tab-shown");

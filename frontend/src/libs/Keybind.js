@@ -6,12 +6,12 @@ export default class Keybind {
     this.callbacks = new Set();
     keybinds.add(this);
 
-    if (typeof key == "string") {
+    if (typeof key === "string") {
       this.key(key);
       key = callback;
     }
 
-    if (typeof key == "function") this.callback(callback);
+    if (typeof key === "function") this.callback(callback);
   }
   delete() {
     keybinds.delete(this);

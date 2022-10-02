@@ -13,6 +13,7 @@
         "quotes": ["error", "double"],
         "indent": ["error", 2],
         "no-implicit-globals": "error",
-        "prefer-const": "error"
+        "prefer-const": "error",
+        "eqeqeq": "error"
     }
 }

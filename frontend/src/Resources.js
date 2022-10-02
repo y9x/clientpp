@@ -32,7 +32,7 @@ export default function run_resources(menu) {
     } else {
       // legacy idkr, unknown
       // quick fix
-      if (data.includes("// ==UserScript==") && currentSite != "game") continue;
+      if (data.includes("// ==UserScript==") && currentSite !== "game") continue;
 
       const module = { exports: {} };
       let func;
@@ -73,8 +73,8 @@ new MutationObserver((mutations, observer) => {
   for (const mutation of mutations) {
     for (const node of mutation.addedNodes) {
       if (
-        node.nodeName == "LINK" &&
-        new URL(node.href || "/", location).pathname == "/css/main_custom.css"
+        node instanceof HTMLLinkElement &&
+        new URL(node.href || "/", location).pathname === "/css/main_custom.css"
       ) {
         add_css();
         observer.disconnect();

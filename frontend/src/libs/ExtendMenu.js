@@ -22,10 +22,10 @@ export default class ExtendMenu extends Events {
     if (this.window instanceof Object) throw new Error("Already attached");
 
     const array = await utils.wait_for(
-      () => typeof windows == "object" && windows
+      () => typeof windows === "object" && windows
     );
 
-    this.window = array.find((window) => window.header == this.header);
+    this.window = array.find((window) => window.header === this.header);
 
     if (!this.window) throw new Error(`Unable to find header '${this.header}'`);
 
@@ -42,7 +42,7 @@ export default class ExtendMenu extends Events {
     }
 
     this.window.getSettings = () =>
-      this.window.tabIndex == indexes[this.window.settingType]
+      this.window.tabIndex === indexes[this.window.settingType]
         ? this.html.get()
         : getSettings.call(this.window);
   }

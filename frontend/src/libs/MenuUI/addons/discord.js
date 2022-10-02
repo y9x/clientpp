@@ -59,7 +59,7 @@ export default class DiscordAddon extends Addon {
       node
     );
 
-    if (data.code == 10006) {
+    if (data.code === 10006) {
       nodes.container.classList.add("invalid");
 
       nodes.name.textContent = "Invalid Invite";
@@ -69,10 +69,10 @@ export default class DiscordAddon extends Addon {
           "url(" +
           JSON.stringify(
             "https://cdn.discordapp.com/icons/" +
-              data.guild.id +
-              "/" +
-              data.guild.icon +
-              "?size=64"
+            data.guild.id +
+            "/" +
+            data.guild.icon +
+            "?size=64"
           ) +
           ")";
       else

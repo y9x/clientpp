@@ -25,13 +25,13 @@ export default class Hex3 {
   }
   set_style(string) {
     let hex_index = 0;
-    const offset = string[0] == "#" ? 1 : 0;
+    const offset = string[0] === "#" ? 1 : 0;
     const chunk = string.length - offset < 5 ? 1 : 2;
 
     for (let index = offset; index < string.length; index += chunk) {
       let part = string.substr(index, chunk);
 
-      if (chunk == 1) part += part;
+      if (chunk === 1) part += part;
 
       this.hex[hex_index++] = parseInt(part, 16);
     }
