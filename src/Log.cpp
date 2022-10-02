@@ -3,7 +3,8 @@
 #include <Windows.h>
 #include <chrono>
 
-namespace clog {
+namespace clog
+{
 	char endl = '\n';
 	std::wstring logs;
 
@@ -13,17 +14,22 @@ namespace clog {
 	constexpr bool vdebug = false;
 #endif
 
-	int FileOut::overflow(int c) {
-		if (!work || c == EOF) return 0;
+	int FileOut::overflow(int c)
+	{
+		if (!work || c == EOF)
+			return 0;
 
 		buffer += c;
 
-		if (c == endl) {
+		if (c == endl)
+		{
 			std::string prefix;
 
-			if (vdebug || badge_file) prefix += "[" + badge + "] ";
+			if (vdebug || badge_file)
+				prefix += "[" + badge + "] ";
 
-			if (!vdebug) {
+			if (!vdebug)
+			{
 				std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 				std::string ts = std::ctime(&now);
 				ts.pop_back();
@@ -31,15 +37,18 @@ namespace clog {
 			}
 
 			prefix.pop_back();
-			
+
 			buffer = prefix + ": " + buffer;
 
-			if(vdebug){
+			if (vdebug)
+			{
 				std::cout << buffer;
 			}
-			else {
-				FILE* handle = _wfopen((logs + file).c_str(), L"a");
-				if (handle) {
+			else
+			{
+				FILE *handle = _wfopen((logs + file).c_str(), L"a");
+				if (handle)
+				{
 					fwrite(buffer.data(), sizeof(char), buffer.size(), handle);
 					fclose(handle);
 				}
@@ -53,12 +62,15 @@ namespace clog {
 
 	bool console_attached = false;
 
-	bool attach_console() {
-		if (console_attached) return true;
+	bool attach_console()
+	{
+		if (console_attached)
+			return true;
 
 #if _DEBUG == 1
 		SetConsoleCtrlHandler(0, true);
-		if (AllocConsole()) {
+		if (AllocConsole())
+		{
 			freopen("CONOUT$", "w", stdout);
 			freopen("CONOUT$", "w", stderr);
 			freopen("CONIN$", "r", stdin);
@@ -66,7 +78,8 @@ namespace clog {
 			std::cout.clear();
 			std::cin.clear();
 		}
-		else {
+		else
+		{
 			MessageBox(NULL, L"Failure attatching console", L"Debugger", MB_OK);
 			return false;
 		}
@@ -74,13 +87,14 @@ namespace clog {
 		return true;
 	}
 
-	FileOut::FileOut(std::string b, std::wstring f, bool bf, bool work) : work(work), badge(b), badge_file(bf), file(f), std::ostream(this) {
+	FileOut::FileOut(std::string b, std::wstring f, bool bf, bool work) : work(work), badge(b), badge_file(bf), file(f), std::ostream(this)
+	{
 		console_attached = attach_console();
 	}
 
 	// badges for shared log files
-	FileOut info("Info", L"\\Info.log", true);
-	FileOut warn("Warning", L"\\Info.log", true);
-	FileOut error("Error", L"\\Error.log");
-	FileOut debug("Debug", L"\\Debug.log", false, vdebug);
+	FileOut info("Info", L"\\info.log", true);
+	FileOut warn("Warning", L"\\info.log", true);
+	FileOut error("Error", L"\\error.log");
+	FileOut debug("Debug", L"\\debug.log", false, vdebug);
 };
