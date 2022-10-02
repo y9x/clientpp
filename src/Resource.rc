@@ -60,9 +60,9 @@ MAINICON                ICON                    "..\\images\\Icon.ico"
 // RCDATA
 //
 
-JS_WEBPACK              RCDATA                  "..\\frontend\\dist\\main.js"
+JS_FRONTEND              RCDATA                  "..\\frontend\\dist\\main.js"
 
-JS_WEBPACK_MAP          RCDATA                  "..\\frontend\\dist\\main.js.map"
+JS_FRONTEND_MAP          RCDATA                  "..\\frontend\\dist\\main.js.map"
 
 JS_BOOTSTRAP            RCDATA                  "..\\resources\\Bootstrap.js"
 

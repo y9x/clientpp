@@ -452,14 +452,15 @@ void KrunkerWindow::register_events()
 			Uri uri(urip);
 
 			if (uri.host_owns(L"krunker.io")) {
-				std::string js_webpack = "throw Error('Failure loading Webpack.js');";
-				load_resource(JS_WEBPACK, js_webpack);
-				std::string js_webpack_map;
-				if (load_resource(JS_WEBPACK_MAP, js_webpack_map)) js_webpack += "\n//# sourceMappingURL=data:application/json;base64," + Base64::Encode(js_webpack_map);
+				std::string js_frontend = "throw Error('Failure loading frontend');";
+				load_resource(JS_FRONTEND, js_frontend);
+				std::string js_frontend_map;
+				if (load_resource(JS_FRONTEND_MAP, js_frontend_map))
+					js_frontend += "\n//# sourceMappingURL=data:application/json;base64," + Base64::Encode(js_frontend_map);
 
 				std::string bootstrap;
 				if (load_resource(JS_BOOTSTRAP, bootstrap)) {
-					bootstrap = Manipulate::replace_all(bootstrap, "$WEBPACK", JSON(js_webpack).dump());
+					bootstrap = Manipulate::replace_all(bootstrap, "$FRONTEND", JSON(js_frontend).dump());
 					bootstrap = Manipulate::replace_all(bootstrap, "$RUNTIME", runtime_data().dump());
 
 					webview->ExecuteScript(Convert::wstring(bootstrap).c_str(), nullptr);
