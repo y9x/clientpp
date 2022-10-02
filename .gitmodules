@@ -1,0 +1,12 @@
+[submodule "rapidjson"]
+	path = rapidjson
+	url = https://github.com/Tencent/rapidjson
+[submodule "semver"]
+	path = semver
+	url = https://github.com/Neargye/semver.git
+[submodule "discord-rpc"]
+	path = discord-rpc
+	url = https://github.com/discord/discord-rpc.git
+[submodule "json"]
+	path = json
+	url = https://github.com/nlohmann/json.git

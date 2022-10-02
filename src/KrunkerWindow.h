@@ -9,15 +9,17 @@
 #include <atlenc.h>
 #include <atlwin.h>
 #include <functional>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 #include <mutex>
 #include <string>
 #include <wil/com.h>
 #include <wrl.h>
 
-class KrunkerWindow : public CWindowImpl<KrunkerWindow> {
+class KrunkerWindow : public CWindowImpl<KrunkerWindow>
+{
 public:
-  enum class Status {
+  enum class Status
+  {
     Ok,
     UserDataExists,
     FailCreateUserData,
@@ -27,7 +29,8 @@ public:
     AlreadyOpen,
     NotImplemented,
   };
-  enum class Type {
+  enum class Type
+  {
     Game,
     Social,
     Editor,

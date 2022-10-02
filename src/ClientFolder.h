@@ -1,8 +1,9 @@
 #pragma once
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 #include <string>
 
-class ClientFolder {
+class ClientFolder
+{
 public:
   std::wstring directory;
   std::wstring p_profile = L"\\Profile";

@@ -1,4 +1,4 @@
-include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${DISCORD_RPC}/include)
 
 option(ENABLE_IO_THREAD "Start up a separate I/O thread, otherwise I'd need to call an update function" ON)
 option(USE_STATIC_CRT "Use /MT[d] for dynamic library" OFF)
@@ -7,27 +7,27 @@ option(WARNINGS_AS_ERRORS "When enabled, compiles with `-Werror` (on *nix platfo
 set(CMAKE_CXX_STANDARD 14)
 
 set(BASE_RPC_SRC
-    ${PROJECT_SOURCE_DIR}/include/discord_rpc.h
-    discord_rpc.cpp
-    ${PROJECT_SOURCE_DIR}/include/discord_register.h
-    rpc_connection.h
-    rpc_connection.cpp
-    serialization.h
-    serialization.cpp
-    connection.h
-    backoff.h
-    msg_queue.h
+    ${DISCORD_RPC}/include/discord_rpc.h
+    ${DISCORD_RPC}/src/discord_rpc.cpp
+    ${DISCORD_RPC}/include/discord_register.h
+    ${DISCORD_RPC}/src/rpc_connection.h
+    ${DISCORD_RPC}/src/rpc_connection.cpp
+    ${DISCORD_RPC}/src/serialization.h
+    ${DISCORD_RPC}/src/serialization.cpp
+    ${DISCORD_RPC}/src/connection.h
+    ${DISCORD_RPC}/src/backoff.h
+    ${DISCORD_RPC}/src/msg_queue.h
 )
 
 if (${BUILD_SHARED_LIBS})
     if(WIN32)
-        set(BASE_RPC_SRC ${BASE_RPC_SRC} dllmain.cpp)
+        set(BASE_RPC_SRC ${BASE_RPC_SRC} ${DISCORD_RPC}/src/dllmain.cpp)
     endif(WIN32)
 endif(${BUILD_SHARED_LIBS})
 
 if(WIN32)
     add_definitions(-DDISCORD_WINDOWS)
-    set(BASE_RPC_SRC ${BASE_RPC_SRC} connection_win.cpp discord_register_win.cpp)
+    set(BASE_RPC_SRC ${BASE_RPC_SRC} ${DISCORD_RPC}/src/connection_win.cpp ${DISCORD_RPC}/src/discord_register_win.cpp)
     add_library(discord-rpc ${BASE_RPC_SRC})
     if (MSVC)
         if(USE_STATIC_CRT)
@@ -119,10 +119,6 @@ if (${BUILD_SHARED_LIBS})
     target_compile_definitions(discord-rpc PUBLIC -DDISCORD_DYNAMIC_LIB)
     target_compile_definitions(discord-rpc PRIVATE -DDISCORD_BUILDING_SDK)
 endif(${BUILD_SHARED_LIBS})
-
-if (CLANG_FORMAT_CMD)
-    add_dependencies(discord-rpc clangformat)
-endif(CLANG_FORMAT_CMD)
 
 # install
 
