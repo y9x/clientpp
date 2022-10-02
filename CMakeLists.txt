@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.16)
+project (CLIENT VERSION 0.18 LANGUAGES CXX)
+add_definitions(-DUNICODE -DWIN32)
+
+set(CLIENT_MAJOR_VERSION "0")
+set(CLIENT_MINOR_VERSION "18")
+set(CLIENT_PATCH_VERSION "0")
+set(CLIENT_VERSION_STRING "${CLIENT_MAJOR_VERSION}.${CLIENT_MINOR_VERSION}.${CLIENT_PATCH_VERSION}")
+
+add_subdirectory (src)
+add_subdirectory (discord_rpc)

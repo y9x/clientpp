@@ -2,7 +2,6 @@
 /packages
 /enc_temp_folder
 /build
-/dist
 /src/Resource.aps
 /src/MicrosoftEdgeWebview2Setup.exe
 /src/Client.vcxproj.user
