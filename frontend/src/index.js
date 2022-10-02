@@ -22,7 +22,7 @@ import { ipc, IM } from "./IPC";
 import { config as runtime_config } from "./Runtime";
 import currentSite from "./Site";
 import run_resources from "./Resources";
-// import default_config from "../../resources/Config.json";
+// import default_config from "../../resources/config.json";
 
 class Menu extends ExtendMenu {
   rpc = new RPC();

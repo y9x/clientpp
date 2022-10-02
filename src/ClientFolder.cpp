@@ -148,6 +148,8 @@ bool ClientFolder::create()
 
 	if (load_resource(JSON_CONFIG, config_buffer))
 		default_config = JSON::parse(config_buffer);
+	else
+		clog::error << "Unable to load default config" << clog::endl;
 
 	return ret;
 }
@@ -167,20 +169,6 @@ bool ClientFolder::load_config()
 	catch (JSON::exception err)
 	{
 		new_config = default_config;
-	}
-
-	try
-	{
-		if (new_config["client"].contains("uncap_fps"))
-		{
-			new_config["render"]["uncap_fps"] = new_config["client"]["uncap_fps"];
-			new_config["render"]["fullscreen"] = new_config["client"]["fullscreen"];
-			clog::info << "Config upgraded" << clog::endl;
-		}
-	}
-	catch (JSON::type_error err)
-	{
-		clog::error << "Unable to upgrade config: " << err.what() << clog::endl;
 	}
 
 	config = TraverseCopy(new_config, default_config);
