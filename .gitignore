@@ -1,8 +1,8 @@
 /.vs
 /src/Client.vcxproj.user
 /packages
-/webpack/node_modules
-/webpack/dist
+/frontend/node_modules
+/frontend/dist
 /enc_temp_folder
 /Release
 /Debug

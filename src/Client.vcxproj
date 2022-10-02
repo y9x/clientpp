@@ -93,8 +93,8 @@
     <None Include="..\resources\Config.json" />
     <None Include="..\resources\DefaultUserscript.json" />
     <None Include="..\resources\Error.html" />
-    <None Include="..\webpack\dist\main.js" />
-    <None Include="..\webpack\dist\main.js.map" />
+    <None Include="..\frontend\dist\main.js" />
+    <None Include="..\frontend\dist\main.js.map" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
