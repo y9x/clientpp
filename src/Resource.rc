@@ -104,12 +104,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Chief Software"
             VALUE "FileDescription", "Krunker Client"
-            VALUE "FileVersion", "0.0.4.0"
+            VALUE "FileVersion", CLIENT_VERSION_STRING
             VALUE "InternalName", "Client.exe"
             VALUE "LegalCopyright", "Copyright (C) 2021 Chief Software"
             VALUE "OriginalFilename", "Client.exe"
             VALUE "ProductName", "Chief Client++"
-            VALUE "ProductVersion", "0.0.4.0"
+            VALUE "ProductVersion", CLIENT_VERSION_STRING
         END
     END
     BLOCK "VarFileInfo"
