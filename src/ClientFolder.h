@@ -9,7 +9,7 @@ public:
 	std::wstring p_scripts = L"\\Scripts";
 	std::wstring p_styles = L"\\Styles";
 	std::wstring p_swapper = L"\\Swapper";
-	std::wstring p_config = L"\\Config.json";
+	std::wstring p_config = L"\\config.json";
 	std::wstring p_chief = L"\\Chief.ico";
 	std::wstring p_krunker = L"\\Krunker.ico";
 	std::wstring p_logs = L"\\Logs";
