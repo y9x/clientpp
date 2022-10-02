@@ -10,14 +10,16 @@
 #include <wil/com.h>
 #include <WebView2.h>
 #include "./JSMessage.h"
-#include "../Utils/IOUtil.h"
+#include "../utils/IOUtil.h"
 #include "./ClientFolder.h"
 #include "./IPCMessages.h"
 #include "./Points.h"
 
-class KrunkerWindow : public CWindowImpl<KrunkerWindow> {
+class KrunkerWindow : public CWindowImpl<KrunkerWindow>
+{
 public:
-	enum class Status {
+	enum class Status
+	{
 		Ok,
 		UserDataExists,
 		FailCreateUserData,
@@ -27,7 +29,8 @@ public:
 		AlreadyOpen,
 		NotImplemented,
 	};
-	enum class Type {
+	enum class Type
+	{
 		Game,
 		Social,
 		Editor,
@@ -35,6 +38,7 @@ public:
 		Scripting,
 	};
 	static long long now();
+
 private:
 	bool seeking = false;
 	std::mutex mtx;
@@ -59,11 +63,12 @@ private:
 	Status call_create_webview(std::function<void()> callback = nullptr);
 	std::wstring cmdline();
 	std::string status_name(COREWEBVIEW2_WEB_ERROR_STATUS status);
-	bool send_resource(ICoreWebView2WebResourceRequestedEventArgs* args, int resource, std::wstring mime);
-	void load_userscripts(nlohmann::json* data = nullptr);
-	LRESULT on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
-	LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
-	LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled);
+	bool send_resource(ICoreWebView2WebResourceRequestedEventArgs *args, int resource, std::wstring mime);
+	void load_userscripts(nlohmann::json *data = nullptr);
+	LRESULT on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
+	LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
+	LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
+
 public:
 	Type type;
 	wil::com_ptr<ICoreWebView2Controller> control;
@@ -83,20 +88,20 @@ public:
 	bool enter_fullscreen();
 	bool exit_fullscreen();
 	bool resize_wv();
-	bool monitor_data(RECT& rect);
-	bool monitor_data(Vector2& pos, Vector2& size);
+	bool monitor_data(RECT &rect);
+	bool monitor_data(Vector2 &pos, Vector2 &size);
 	Status create_webview(std::wstring cmdline, std::wstring directory, std::function<void()> callback);
 	bool can_fullscreen = false;
 	COLORREF background = RGB(28, 28, 28);
-	ClientFolder& folder;
+	ClientFolder &folder;
 	Status create(HINSTANCE inst, int cmdshow, std::function<void()> callback = nullptr);
 	Status get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback = nullptr);
 	void on_dispatch();
-	KrunkerWindow(ClientFolder& folder, Type type, Vector2 scale, std::wstring title, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr, std::function<void()> on_destroy = nullptr);
+	KrunkerWindow(ClientFolder &folder, Type type, Vector2 scale, std::wstring title, std::function<void()> webview2_startup = nullptr, std::function<bool(JSMessage)> unknown_message = nullptr, std::function<void()> on_destroy = nullptr);
 	~KrunkerWindow();
 	BEGIN_MSG_MAP(KrunkerWindow)
-		MESSAGE_HANDLER(WM_DESTROY, on_destroy)
-		MESSAGE_HANDLER(WM_SIZE, on_resize)
-		MESSAGE_HANDLER(WM_INPUT, on_input)
+	MESSAGE_HANDLER(WM_DESTROY, on_destroy)
+	MESSAGE_HANDLER(WM_SIZE, on_resize)
+	MESSAGE_HANDLER(WM_INPUT, on_input)
 	END_MSG_MAP()
 };

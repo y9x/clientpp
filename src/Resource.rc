@@ -52,7 +52,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-MAINICON                ICON                    "..\\Images\\Icon.ico"
+MAINICON                ICON                    "..\\images\\Icon.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -60,25 +60,25 @@ MAINICON                ICON                    "..\\Images\\Icon.ico"
 // RCDATA
 //
 
-ICON_CHIEF              RCDATA                  "..\\Images\\Icon.ico"
+ICON_CHIEF              RCDATA                  "..\\images\\icon.ico"
 
-JS_WEBPACK              RCDATA                  "..\\Webpack\\dist\\Webpack.js"
+JS_WEBPACK              RCDATA                  "..\\webpack\\dist\\Webpack.js"
 
-JSON_CONFIG             RCDATA                  "..\\Resources\\Config.json"
+JSON_CONFIG             RCDATA                  "..\\resources\\Config.json"
 
-JS_BOOTSTRAP            RCDATA                  "..\\Resources\\Bootstrap.js"
+JS_BOOTSTRAP            RCDATA                  "..\\resources\\Bootstrap.js"
 
-JS_WEBPACK_MAP          RCDATA                  "..\\Webpack\\dist\\Webpack.js.map"
+JS_WEBPACK_MAP          RCDATA                  "..\\webpack\\dist\\Webpack.js.map"
 
-ICON_KRUNKER            RCDATA                  "..\\Images\\Krunker.ico"
+ICON_KRUNKER            RCDATA                  "..\\images\\krunker.ico"
 
-JSON_DEFAULT_USERSCRIPT RCDATA                  "..\\Resources\\DefaultUserscript.json"
+JSON_DEFAULT_USERSCRIPT RCDATA                  "..\\resources\\DefaultUserscript.json"
 
-HTML_ERROR              RCDATA                  "..\\Resources\\Error.html"
+HTML_ERROR              RCDATA                  "..\\resources\\error.html"
 
-FONT_GAME               RCDATA                  "..\\Resources\\GameFont.ttf"
+FONT_GAME               RCDATA                  "..\\resources\\GameFont.ttf"
 
-CSS_CLIENT              RCDATA                  "..\\Resources\\Client.css"
+CSS_CLIENT              RCDATA                  "..\\resources\\client.css"
 
 /////////////////////////////////////////////////////////////////////////////
 //

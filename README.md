@@ -1,4 +1,4 @@
-# <img src="./Images/Icon.ico" style="height:1em"> Chief Client++
+# <img src="./images/icon.ico" style="height:1em"> Chief Client++
 
 Chief Client++ is a modern Krunker client written in C++ and powered by WebView2
 

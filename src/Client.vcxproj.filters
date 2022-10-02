@@ -13,31 +13,31 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="DiscordRPC">
+    <Filter Include="discord_rpc">
       <UniqueIdentifier>{45f57e52-2c44-49ab-b911-a179b07bd0fd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Webpack\dist\Webpack.js" />
-    <None Include="..\Webpack\dist\Webpack.js.map" />
+    <None Include="..\webpack\dist\Webpack.js" />
+    <None Include="..\webpack\dist\Webpack.js.map" />
     <None Include="packages.config" />
-    <None Include="..\Resources\Config.json" />
-    <None Include="..\Resources\Bootstrap.js" />
-    <None Include="..\Resources\DefaultUserscript.json" />
-    <None Include="..\Resources\Error.html" />
-    <None Include="..\Resources\Client.css" />
+    <None Include="..\resources\config.json" />
+    <None Include="..\resources\bootstrap.js" />
+    <None Include="..\resources\DefaultUserscript.json" />
+    <None Include="..\resources\error.html" />
+    <None Include="..\resources\client.css" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Utils\StringUtil.cpp">
+    <ClCompile Include="..\utils\StringUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Utils\IOUtil.cpp">
+    <ClCompile Include="..\utils\IOUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Utils\Base64.cpp">
+    <ClCompile Include="..\utils\Base64.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Updater.h">
@@ -46,7 +46,7 @@
     <ClCompile Include="Updater.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Utils\Uri.cpp">
+    <ClCompile Include="..\utils\Uri.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Log.cpp">
@@ -85,45 +85,47 @@
     <ClCompile Include="AccountManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\DiscordRPC\connection_win.cpp">
-      <Filter>DiscordRPC</Filter>
+    <ClCompile Include="..\discord_rpc\connection_win.cpp">
+      <Filter>discord_rpc</Filter>
     </ClCompile>
-    <ClCompile Include="..\DiscordRPC\discord_register_win.cpp">
-      <Filter>DiscordRPC</Filter>
+    <ClCompile Include="..\discord_rpc\discord_register_win.cpp">
+      <Filter>discord_rpc</Filter>
     </ClCompile>
-    <ClCompile Include="..\DiscordRPC\discord_rpc.cpp">
-      <Filter>DiscordRPC</Filter>
+    <ClCompile Include="..\discord_rpc\discord_rpc.cpp">
+      <Filter>discord_rpc</Filter>
     </ClCompile>
-    <ClCompile Include="..\DiscordRPC\dllmain.cpp">
-      <Filter>DiscordRPC</Filter>
+    <ClCompile Include="..\discord_rpc\dllmain.cpp">
+      <Filter>discord_rpc</Filter>
     </ClCompile>
-    <ClCompile Include="..\DiscordRPC\rpc_connection.cpp">
-      <Filter>DiscordRPC</Filter>
+    <ClCompile Include="..\discord_rpc\rpc_connection.cpp">
+      <Filter>discord_rpc</Filter>
     </ClCompile>
-    <ClCompile Include="..\DiscordRPC\serialization.cpp">
-      <Filter>DiscordRPC</Filter>
+    <ClCompile Include="..\discord_rpc\serialization.cpp">
+      <Filter>discord_rpc</Filter>
     </ClCompile>
     <ClCompile Include="net.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Utils\StringUtil.h">
+    <ClInclude Include="..\utils\IOUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utils\Base64.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\utils\StringUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Utils\IOUtil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Utils\Base64.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Utils\Uri.h">
+    <ClInclude Include="..\utils\Uri.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ClientFolder.h">
@@ -169,6 +171,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Font Include="..\Resources\GameFont.ttf" />
+    <Font Include="..\resources\GameFont.ttf" />
   </ItemGroup>
 </Project>

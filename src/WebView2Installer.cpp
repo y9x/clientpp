@@ -1,7 +1,7 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <net.h>
 #include "./WebView2Installer.h"
-#include "../Utils/StringUtil.h"
+#include "../utils/StringUtil.h"
 #include "Log.h"
 #include <WebView2EnvironmentOptions.h>
 
@@ -12,7 +12,8 @@ using namespace StringUtil;
 
 WebView2Installer::WebView2Installer(std::wstring u) : url(u) {}
 
-std::wstring WebView2Installer::BinPath() {
+std::wstring WebView2Installer::BinPath()
+{
 	std::wstring path;
 	path.resize(5000);
 	path.resize(GetTempPath(path.size(), path.data()));
@@ -20,20 +21,23 @@ std::wstring WebView2Installer::BinPath() {
 	return path;
 }
 
-bool WebView2Installer::Install(Error& error) {
+bool WebView2Installer::Install(Error &error)
+{
 	error = Error::OK;
-	
+
 	std::wstring bin_path = BinPath();
 	auto res = net::fetch_request(net::url(url));
-	
-	if (!res.size()) {
+
+	if (!res.size())
+	{
 		error = Error::NoBytesDownloaded;
 		return false;
 	}
 
 	HANDLE file = CreateFile(bin_path.c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	if (file != INVALID_HANDLE_VALUE) {
+	if (file != INVALID_HANDLE_VALUE)
+	{
 		DWORD bytes;
 		WriteFile(file, res.data(), res.size(), &bytes, nullptr);
 		CloseHandle(file);
@@ -42,27 +46,32 @@ bool WebView2Installer::Install(Error& error) {
 
 	STARTUPINFO startup;
 	PROCESS_INFORMATION process;
-	
+
 	ZeroMemory(&startup, sizeof(startup));
 	startup.cb = sizeof(process);
 	ZeroMemory(&process, sizeof(process));
-	
-	if (CreateProcess(bin_path.c_str(), NULL, NULL, NULL, FALSE, 0, NULL, NULL, &startup, &process)) {
+
+	if (CreateProcess(bin_path.c_str(), NULL, NULL, NULL, FALSE, 0, NULL, NULL, &startup, &process))
+	{
 		CloseHandle(process.hProcess);
 		CloseHandle(process.hThread);
 
 		return true;
 	}
-	else {
+	else
+	{
 		error = Error::CantOpenProcess;
 		return false;
 	}
 }
 
-bool WebView2Installer::Installed() {
-	wchar_t* version;
+bool WebView2Installer::Installed()
+{
+	wchar_t *version;
 	HRESULT result = GetAvailableCoreWebView2BrowserVersionString(nullptr, &version);
 
-	if (!SUCCEEDED(result) && HRESULT_CODE(result) == ERROR_FILE_NOT_FOUND) return false;
-	else return true;
+	if (!SUCCEEDED(result) && HRESULT_CODE(result) == ERROR_FILE_NOT_FOUND)
+		return false;
+	else
+		return true;
 }

@@ -1,5 +1,5 @@
 #include "./KrunkerWindow.h"
-#include "../Utils/StringUtil.h"
+#include "../utils/StringUtil.h"
 #include "./Log.h"
 #include "./resource.h"
 #include "./LobbySeeker.h"
@@ -9,38 +9,53 @@
 using JSON = nlohmann::json;
 using namespace StringUtil;
 
-void KrunkerWindow::handle_message(JSMessage msg) {
-	switch (msg.event) {
+void KrunkerWindow::handle_message(JSMessage msg)
+{
+	switch (msg.event)
+	{
 	case IM::save_config:
 		folder.config = msg.args[0];
 		folder.save_config();
 
 		break;
 	case IM::open_devtools:
-		if (folder.config["client"]["devtools"]) webview->OpenDevToolsWindow();
+		if (folder.config["client"]["devtools"])
+			webview->OpenDevToolsWindow();
 		break;
-	case IM::shell_open: {
+	case IM::shell_open:
+	{
 		std::wstring open;
 
-		if (msg.args[0] == "root")open = folder.directory;
-		else if (msg.args[0] == "logs") open = folder.directory + folder.p_logs;
-		else if (msg.args[0] == "scripts") open = folder.directory + folder.p_scripts;
-		else if (msg.args[0] == "styles") open = folder.directory + folder.p_styles;
-		else if (msg.args[0] == "swapper") open = folder.directory + folder.p_swapper;
-		else if (msg.args[0] == "url") open = Convert::wstring(msg.args[1].get<std::string>());
+		if (msg.args[0] == "root")
+			open = folder.directory;
+		else if (msg.args[0] == "logs")
+			open = folder.directory + folder.p_logs;
+		else if (msg.args[0] == "scripts")
+			open = folder.directory + folder.p_scripts;
+		else if (msg.args[0] == "styles")
+			open = folder.directory + folder.p_styles;
+		else if (msg.args[0] == "swapper")
+			open = folder.directory + folder.p_swapper;
+		else if (msg.args[0] == "url")
+			open = Convert::wstring(msg.args[1].get<std::string>());
 
 		ShellExecute(m_hWnd, L"open", open.c_str(), L"", L"", SW_SHOW);
-	} break;
+	}
+	break;
 	case IM::pointer:
 		last_pointer_poll = now();
-		if (msg.args[0] && !mouse_hooked) hook_mouse();
-		else if (!msg.args[0] && mouse_hooked) unhook_mouse();
+		if (msg.args[0] && !mouse_hooked)
+			hook_mouse();
+		else if (!msg.args[0] && mouse_hooked)
+			unhook_mouse();
 
 		break;
-	case IM::log: {
+	case IM::log:
+	{
 		std::string log = msg.args[1];
 
-		switch (msg.args[0].get<int>()) {
+		switch (msg.args[0].get<int>())
+		{
 		case LogType::info:
 			clog::info << log << clog::endl;
 			break;
@@ -54,14 +69,16 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 			clog::debug << log << clog::endl;
 			break;
 		}
-	} break;
+	}
+	break;
 	case IM::relaunch_webview:
 		control->Close();
 		call_create_webview();
 
 		break;
 	case IM::close_window:
-		if (::IsWindow(m_hWnd)) DestroyWindow();
+		if (::IsWindow(m_hWnd))
+			DestroyWindow();
 
 		break;
 	case IM::reload_window:
@@ -70,7 +87,9 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 
 		break;
 	case IM::seek_game:
-		if (type == Type::Game && !seeking && folder.config["game"]["seek"]["F4"]) new std::thread([this](std::string sregion) {
+		if (type == Type::Game && !seeking && folder.config["game"]["seek"]["F4"])
+			new std::thread([this](std::string sregion)
+							{
 			seeking = true;
 
 			LobbySeeker seeker;
@@ -94,23 +113,27 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 			pending_navigations.push_back(Convert::wstring(url));
 			mtx.unlock();
 
-			seeking = false;
-		}, msg.args[0]);
+			seeking = false; },
+							msg.args[0]);
 
 		break;
 	case IM::toggle_fullscreen:
-		if (type != Type::Game) break;
+		if (type != Type::Game)
+			break;
 		folder.config["render"]["fullscreen"] = !folder.config["render"]["fullscreen"];
 		folder.save_config();
 
 		{
 			JSMessage msg(IM::update_menu);
 			msg.args.push_back(folder.config);
-			if (!msg.send(webview))clog::error << "Unable to send " << msg.dump() << clog::endl;
+			if (!msg.send(webview))
+				clog::error << "Unable to send " << msg.dump() << clog::endl;
 		}
 	case IM::fullscreen:
-		if (folder.config["render"]["fullscreen"]) enter_fullscreen();
-		else exit_fullscreen();
+		if (folder.config["render"]["fullscreen"])
+			enter_fullscreen();
+		else
+			exit_fullscreen();
 		break;
 	case IM::update_meta:
 		title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
@@ -129,7 +152,8 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 
 		break;
 	case IM::browse_file:
-		new std::thread([this](JSMessage msg) {
+		new std::thread([this](JSMessage msg)
+						{
 			wchar_t filename[MAX_PATH];
 
 			OPENFILENAME ofn;
@@ -175,12 +199,13 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 
 			mtx.lock();
 			pending_messages.push_back(res);
-			mtx.unlock();
-		}, msg);
+			mtx.unlock(); },
+						msg);
 
 		break;
 	default:
-		if (!on_unknown_message || !on_unknown_message(msg)) clog::error << "Unknown message " << msg.dump() << clog::endl;
+		if (!on_unknown_message || !on_unknown_message(msg))
+			clog::error << "Unknown message " << msg.dump() << clog::endl;
 
 		break;
 	}

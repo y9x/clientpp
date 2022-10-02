@@ -1,55 +1,54 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include "./KrunkerWindow.h"
-#include "../Utils/StringUtil.h"
+#include "../utils/StringUtil.h"
 #include "./LoadRes.h"
 #include "./resource.h"
-#include "../Utils/Uri.h"
-#include "../Utils/Base64.h"
+#include "../utils/Uri.h"
+#include "../utils/Base64.h"
 #include "./Log.h"
 #include <regex>
 #include <WebView2EnvironmentOptions.h>
 
 using namespace StringUtil;
-using Microsoft::WRL::Make;
 using Microsoft::WRL::Callback;
+using Microsoft::WRL::Make;
 
 using JSON = nlohmann::json;
 
-long long KrunkerWindow::now() {
+long long KrunkerWindow::now()
+{
 	return duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
-KrunkerWindow::KrunkerWindow(ClientFolder& _folder, Type _type, Vector2 s, std::wstring _title, std::function<void()> _on_startup, std::function<bool(JSMessage)> _on_unknown_message, std::function<void()> _on_destroy_callback)
-	: type(_type)
-	, title(_title)
-	, og_title(_title)
-	, scale(s)
-	, folder(_folder)
-	, last_pointer_poll(now())
-	, on_webview2_startup(_on_startup)
-	, on_unknown_message(_on_unknown_message)
-	, on_destroy_callback(_on_destroy_callback)
+KrunkerWindow::KrunkerWindow(ClientFolder &_folder, Type _type, Vector2 s, std::wstring _title, std::function<void()> _on_startup, std::function<bool(JSMessage)> _on_unknown_message, std::function<void()> _on_destroy_callback)
+	: type(_type), title(_title), og_title(_title), scale(s), folder(_folder), last_pointer_poll(now()), on_webview2_startup(_on_startup), on_unknown_message(_on_unknown_message), on_destroy_callback(_on_destroy_callback)
 {
 	raw_input.usUsagePage = 0x01;
 	raw_input.usUsage = 0x02;
 }
 
-KrunkerWindow::~KrunkerWindow() {
-	if (mouse_hooked) unhook_mouse();
-	if (::IsWindow(m_hWnd)) DestroyWindow();
+KrunkerWindow::~KrunkerWindow()
+{
+	if (mouse_hooked)
+		unhook_mouse();
+	if (::IsWindow(m_hWnd))
+		DestroyWindow();
 }
 
-HINSTANCE KrunkerWindow::get_hinstance() {
+HINSTANCE KrunkerWindow::get_hinstance()
+{
 	return (HINSTANCE)GetWindowLong(GWL_HINSTANCE);
 }
 
-bool KrunkerWindow::create_window(HINSTANCE inst, int cmdshow) {
+bool KrunkerWindow::create_window(HINSTANCE inst, int cmdshow)
+{
 	Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
 
 	Vector2 scr_pos;
 	Vector2 scr_size;
 
-	if (monitor_data(scr_pos, scr_size)) {
+	if (monitor_data(scr_pos, scr_size))
+	{
 		Rect2D r;
 
 		r.width = long(scr_size.x * scale.x);
@@ -60,24 +59,29 @@ bool KrunkerWindow::create_window(HINSTANCE inst, int cmdshow) {
 
 		SetWindowPos(NULL, r.get(), 0);
 	}
-	else ResizeClient(700, 500);
+	else
+		ResizeClient(700, 500);
 
 	ShowWindow(cmdshow);
 	UpdateWindow();
-	
+
 	return true;
 }
 
-COREWEBVIEW2_COLOR KrunkerWindow::ColorRef(COLORREF color) {
-	return COREWEBVIEW2_COLOR{ 255,GetRValue(color),GetGValue(color),GetBValue(color) };
+COREWEBVIEW2_COLOR KrunkerWindow::ColorRef(COLORREF color)
+{
+	return COREWEBVIEW2_COLOR{255, GetRValue(color), GetGValue(color), GetBValue(color)};
 }
 
-bool KrunkerWindow::enter_fullscreen() {
-	if (fullscreen) return false;
+bool KrunkerWindow::enter_fullscreen()
+{
+	if (fullscreen)
+		return false;
 
 	RECT screen;
 
-	if (!monitor_data(screen)) return false;
+	if (!monitor_data(screen))
+		return false;
 
 	GetClientRect(&saved_size);
 	ClientToScreen(&saved_size);
@@ -93,8 +97,10 @@ bool KrunkerWindow::enter_fullscreen() {
 	return fullscreen = true;
 }
 
-bool KrunkerWindow::exit_fullscreen() {
-	if (!fullscreen) return false;
+bool KrunkerWindow::exit_fullscreen()
+{
+	if (!fullscreen)
+		return false;
 
 	SetWindowLong(GWL_STYLE, saved_style);
 	SetWindowLong(GWL_EXSTYLE, saved_ex_style);
@@ -105,8 +111,10 @@ bool KrunkerWindow::exit_fullscreen() {
 	return true;
 }
 
-bool KrunkerWindow::resize_wv() {
-	if (control == nullptr) return false;
+bool KrunkerWindow::resize_wv()
+{
+	if (control == nullptr)
+		return false;
 
 	RECT bounds;
 	GetClientRect(&bounds);
@@ -115,12 +123,14 @@ bool KrunkerWindow::resize_wv() {
 	return true;
 }
 
-bool KrunkerWindow::monitor_data(RECT& rect) {
+bool KrunkerWindow::monitor_data(RECT &rect)
+{
 	HMONITOR monitor = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
 	MONITORINFO info;
 	info.cbSize = sizeof(info);
 
-	if (!GetMonitorInfo(monitor, &info)) {
+	if (!GetMonitorInfo(monitor, &info))
+	{
 		clog::error << "Can't get monitor info" << clog::endl;
 		return false;
 	}
@@ -130,10 +140,12 @@ bool KrunkerWindow::monitor_data(RECT& rect) {
 	return true;
 }
 
-bool KrunkerWindow::monitor_data(Vector2& pos, Vector2& size) {
+bool KrunkerWindow::monitor_data(Vector2 &pos, Vector2 &size)
+{
 	RECT r;
 
-	if (!monitor_data(r))return false;
+	if (!monitor_data(r))
+		return false;
 
 	pos.x = r.left;
 	pos.y = r.top;
@@ -144,45 +156,62 @@ bool KrunkerWindow::monitor_data(Vector2& pos, Vector2& size) {
 	return true;
 }
 
-LRESULT KrunkerWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
+LRESULT KrunkerWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled)
+{
 	return resize_wv();
 }
 
 Vector2 movebuffer;
 
-LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
+LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled)
+{
 	unsigned size = sizeof(RAWINPUT);
 	static RAWINPUT raw[sizeof(RAWINPUT)];
 	GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw, &size, sizeof(RAWINPUTHEADER));
 
-	if (raw->header.dwType == RIM_TYPEMOUSE) {
+	if (raw->header.dwType == RIM_TYPEMOUSE)
+	{
 		RAWMOUSE mouse = raw->data.mouse;
 		USHORT flags = mouse.usButtonFlags;
 
-		if (flags & RI_MOUSE_WHEEL) JSMessage(IM::mousewheel, { ((*(short*)&mouse.usButtonData) / WHEEL_DELTA) * -100 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_1_DOWN) JSMessage(IM::mousedown, { 0 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_1_UP) JSMessage(IM::mouseup, { 0 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_2_DOWN) JSMessage(IM::mousedown, { 2 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_2_UP) JSMessage(IM::mouseup, { 2 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_3_DOWN) JSMessage(IM::mousedown, { 1 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_3_UP) JSMessage(IM::mouseup, { 1 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_4_DOWN) JSMessage(IM::mousedown, { 3 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_4_UP) JSMessage(IM::mouseup, { 3 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_5_DOWN) JSMessage(IM::mousedown, { 4 }).send(webview);
-		if (flags & RI_MOUSE_BUTTON_5_UP) JSMessage(IM::mouseup, { 4 }).send(webview);
-		if (mouse.lLastX || mouse.lLastY) movebuffer += Vector2(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
+		if (flags & RI_MOUSE_WHEEL)
+			JSMessage(IM::mousewheel, {((*(short *)&mouse.usButtonData) / WHEEL_DELTA) * -100}).send(webview);
+		if (flags & RI_MOUSE_BUTTON_1_DOWN)
+			JSMessage(IM::mousedown, {0}).send(webview);
+		if (flags & RI_MOUSE_BUTTON_1_UP)
+			JSMessage(IM::mouseup, {0}).send(webview);
+		if (flags & RI_MOUSE_BUTTON_2_DOWN)
+			JSMessage(IM::mousedown, {2}).send(webview);
+		if (flags & RI_MOUSE_BUTTON_2_UP)
+			JSMessage(IM::mouseup, {2}).send(webview);
+		if (flags & RI_MOUSE_BUTTON_3_DOWN)
+			JSMessage(IM::mousedown, {1}).send(webview);
+		if (flags & RI_MOUSE_BUTTON_3_UP)
+			JSMessage(IM::mouseup, {1}).send(webview);
+		if (flags & RI_MOUSE_BUTTON_4_DOWN)
+			JSMessage(IM::mousedown, {3}).send(webview);
+		if (flags & RI_MOUSE_BUTTON_4_UP)
+			JSMessage(IM::mouseup, {3}).send(webview);
+		if (flags & RI_MOUSE_BUTTON_5_DOWN)
+			JSMessage(IM::mousedown, {4}).send(webview);
+		if (flags & RI_MOUSE_BUTTON_5_UP)
+			JSMessage(IM::mouseup, {4}).send(webview);
+		if (mouse.lLastX || mouse.lLastY)
+			movebuffer += Vector2(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
 	}
 
 	return S_OK;
 }
 
-LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam, LPARAM lParam)
+{
 	return 1;
 }
 
-void KrunkerWindow::hook_mouse() {
+void KrunkerWindow::hook_mouse()
+{
 	clog::debug << "Hooking mouse" << clog::endl;
-	
+
 	INPUT input = {};
 	input.type = INPUT_MOUSE;
 	input.mi.dx = 0;
@@ -194,12 +223,13 @@ void KrunkerWindow::hook_mouse() {
 	raw_input.dwFlags = RIDEV_INPUTSINK;
 	raw_input.hwndTarget = m_hWnd;
 	RegisterRawInputDevices(&raw_input, 1, sizeof(raw_input));
-	
+
 	mouse_hook = SetWindowsHookEx(WH_MOUSE_LL, *mouse_message, get_hinstance(), NULL);
 	mouse_hooked = true;
 }
 
-void KrunkerWindow::unhook_mouse() {
+void KrunkerWindow::unhook_mouse()
+{
 	clog::debug << "Unhooked mouse" << clog::endl;
 
 	raw_input.dwFlags = RIDEV_REMOVE;
@@ -211,7 +241,8 @@ void KrunkerWindow::unhook_mouse() {
 }
 
 // https://peter.sh/experiments/chromium-command-line-switches/
-std::wstring KrunkerWindow::cmdline() {
+std::wstring KrunkerWindow::cmdline()
+{
 	load_userscripts();
 
 	std::vector<std::wstring> cmds = {
@@ -223,23 +254,30 @@ std::wstring KrunkerWindow::cmdline() {
 		L"--autoplay-policy=no-user-gesture-required",
 	};
 
-	for (std::wstring cmd : additional_command_line) cmds.push_back(cmd);
+	for (std::wstring cmd : additional_command_line)
+		cmds.push_back(cmd);
 
-	if (folder.config["render"]["uncap_fps"].get<bool>()) {
+	if (folder.config["render"]["uncap_fps"].get<bool>())
+	{
 		cmds.push_back(L"--disable-frame-rate-limit");
 		// if (!folder.config["render"]["vsync"])
 		cmds.push_back(L"--disable-gpu-vsync");
 	}
-	
-	if (folder.config["render"]["angle"] != "default") cmds.push_back(L"--use-angle=" + Convert::wstring(folder.config["render"]["angle"]));
-	if (folder.config["render"]["color"] != "default") cmds.push_back(L"--force-color-profile=" + Convert::wstring(folder.config["render"]["color"]));
-	
+
+	if (folder.config["render"]["angle"] != "default")
+		cmds.push_back(L"--use-angle=" + Convert::wstring(folder.config["render"]["angle"]));
+	if (folder.config["render"]["color"] != "default")
+		cmds.push_back(L"--force-color-profile=" + Convert::wstring(folder.config["render"]["color"]));
+
 	std::wstring cmdline;
 	bool first = false;
 
-	for (std::wstring cmd : cmds) {
-		if (first) first = false;
-		else cmdline += L" ";
+	for (std::wstring cmd : cmds)
+	{
+		if (first)
+			first = false;
+		else
+			cmdline += L" ";
 
 		cmdline += cmd;
 	}
@@ -247,23 +285,27 @@ std::wstring KrunkerWindow::cmdline() {
 	return cmdline;
 }
 
-bool KrunkerWindow::send_resource(ICoreWebView2WebResourceRequestedEventArgs* args, int resource, std::wstring mime) {
-	IStream* stream = nullptr;
+bool KrunkerWindow::send_resource(ICoreWebView2WebResourceRequestedEventArgs *args, int resource, std::wstring mime)
+{
+	IStream *stream = nullptr;
 	std::string data;
 
-	if (!load_resource(resource, data)) {
+	if (!load_resource(resource, data))
+	{
 		clog::error << "Unable to load resource " << resource << clog::endl;
 		return false;
 	}
 
-	if (CreateStreamOnHGlobal(NULL, TRUE, (LPSTREAM*)&stream) != S_OK) {
+	if (CreateStreamOnHGlobal(NULL, TRUE, (LPSTREAM *)&stream) != S_OK)
+	{
 		clog::error << "Unable to create IStream on HGlobal" << clog::endl;
 		return false;
 	}
-	
+
 	ULONG written = 0;
 
-	if (stream->Write(data.data(), data.size(), &written) != S_OK) {
+	if (stream->Write(data.data(), data.size(), &written) != S_OK)
+	{
 		clog::error << "Unable to write data to IStream" << clog::endl;
 		return false;
 	}
@@ -275,63 +317,110 @@ bool KrunkerWindow::send_resource(ICoreWebView2WebResourceRequestedEventArgs* ar
 	return true;
 }
 
-std::string KrunkerWindow::status_name(COREWEBVIEW2_WEB_ERROR_STATUS status) {
-	switch (status) {
-	case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_COMMON_NAME_IS_INCORRECT: return "CertificateErrCommonNameIsIncorrect"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_EXPIRED: return "CertificateExpired"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_CLIENT_CERTIFICATE_CONTAINS_ERRORS: return "ClientCertificateContainsErrors"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_REVOKED: return "CertificateRevoked"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_IS_INVALID: return "CertificateIsInvalid"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_SERVER_UNREACHABLE: return "ServerUnreachable"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_TIMEOUT: return "Timeout"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_ERROR_HTTP_INVALID_SERVER_RESPONSE: return "ErrorHttpInvalidServerResponse"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_ABORTED: return "ConnectionAborted"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_RESET: return "ConnectionReset"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_DISCONNECTED: return "Disconnected"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_CANNOT_CONNECT: return "CannotConnect"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_HOST_NAME_NOT_RESOLVED: return "HostNameNotResolved"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_OPERATION_CANCELED: return "OperationCanceled"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_REDIRECT_FAILED: return "RedirectFailed"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_UNEXPECTED_ERROR: return "UnexpectedError"; break;
-	case COREWEBVIEW2_WEB_ERROR_STATUS_UNKNOWN: default: return "Unknown"; break;
+std::string KrunkerWindow::status_name(COREWEBVIEW2_WEB_ERROR_STATUS status)
+{
+	switch (status)
+	{
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_COMMON_NAME_IS_INCORRECT:
+		return "CertificateErrCommonNameIsIncorrect";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_EXPIRED:
+		return "CertificateExpired";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CLIENT_CERTIFICATE_CONTAINS_ERRORS:
+		return "ClientCertificateContainsErrors";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_REVOKED:
+		return "CertificateRevoked";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_IS_INVALID:
+		return "CertificateIsInvalid";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_SERVER_UNREACHABLE:
+		return "ServerUnreachable";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_TIMEOUT:
+		return "Timeout";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_ERROR_HTTP_INVALID_SERVER_RESPONSE:
+		return "ErrorHttpInvalidServerResponse";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_ABORTED:
+		return "ConnectionAborted";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_RESET:
+		return "ConnectionReset";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_DISCONNECTED:
+		return "Disconnected";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_CANNOT_CONNECT:
+		return "CannotConnect";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_HOST_NAME_NOT_RESOLVED:
+		return "HostNameNotResolved";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_OPERATION_CANCELED:
+		return "OperationCanceled";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_REDIRECT_FAILED:
+		return "RedirectFailed";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_UNEXPECTED_ERROR:
+		return "UnexpectedError";
+		break;
+	case COREWEBVIEW2_WEB_ERROR_STATUS_UNKNOWN:
+	default:
+		return "Unknown";
+		break;
 	}
 }
 
-std::wstring encodeURIComponent(std::wstring decoded){
+std::wstring encodeURIComponent(std::wstring decoded)
+{
 	std::wostringstream oss;
 	std::wregex r(L"[!'\\(\\)*-.0-9A-Za-z_~]");
 
-	for (wchar_t& c : decoded) {
+	for (wchar_t &c : decoded)
+	{
 		std::wstring cw;
 		cw += c;
-		if (std::regex_match(cw, r)) oss << c;
-		else oss << "%" << std::uppercase << std::hex << (0xff & c);
+		if (std::regex_match(cw, r))
+			oss << c;
+		else
+			oss << "%" << std::uppercase << std::hex << (0xff & c);
 	}
-	
+
 	return oss.str();
 }
 
-void KrunkerWindow::register_events() {
+void KrunkerWindow::register_events()
+{
 	EventRegistrationToken token;
 
-	webview->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) {
+	webview->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([this](ICoreWebView2 *sender, ICoreWebView2WebMessageReceivedEventArgs *args)
+																						  {
 		LPWSTR mpt;
 		args->TryGetWebMessageAsString(&mpt);
 		if (!mpt) return S_OK;
 		
 		handle_message(mpt);
 
-		return S_OK;
-	}).Get(), &token);
+		return S_OK; })
+										.Get(),
+									&token);
 
 	webview->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
 
-	webview->add_NavigationStarting(Callback< ICoreWebView2NavigationStartingEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+	webview->add_NavigationStarting(Callback<ICoreWebView2NavigationStartingEventHandler>([this](ICoreWebView2 *sender, ICoreWebView2NavigationStartingEventArgs *args) -> HRESULT
+																						  {
 		if (mouse_hooked) unhook_mouse();
-		return S_OK;
-	}).Get(), &token);
+		return S_OK; })
+										.Get(),
+									&token);
 
-	webview->add_PermissionRequested(Callback<ICoreWebView2PermissionRequestedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args) -> HRESULT {
+	webview->add_PermissionRequested(Callback<ICoreWebView2PermissionRequestedEventHandler>([this](ICoreWebView2 *sender, ICoreWebView2PermissionRequestedEventArgs *args) -> HRESULT
+																							{
 		COREWEBVIEW2_PERMISSION_KIND kind;
 		args->get_PermissionKind(&kind);
 		
@@ -342,9 +431,9 @@ void KrunkerWindow::register_events() {
 			break;
 		}
 
-		return S_OK;
-	}).Get(), &token);
-
+		return S_OK; })
+										 .Get(),
+									 &token);
 
 	// look into:
 	/*ICoreWebView2_2* a;
@@ -354,8 +443,10 @@ void KrunkerWindow::register_events() {
 	ICoreWebView2_6* e;
 	*/
 
-	if (wil::com_ptr<ICoreWebView2_2> webview_2 = webview.query<ICoreWebView2_2>()) {
-		webview_2->add_ContentLoading(Callback<ICoreWebView2ContentLoadingEventHandler>([this](ICoreWebView2* sender, ICoreWebView2ContentLoadingEventArgs* args) -> HRESULT {
+	if (wil::com_ptr<ICoreWebView2_2> webview_2 = webview.query<ICoreWebView2_2>())
+	{
+		webview_2->add_ContentLoading(Callback<ICoreWebView2ContentLoadingEventHandler>([this](ICoreWebView2 *sender, ICoreWebView2ContentLoadingEventArgs *args) -> HRESULT
+																						{
 			LPWSTR urip;
 			webview->get_Source(&urip);
 			Uri uri(urip);
@@ -376,11 +467,13 @@ void KrunkerWindow::register_events() {
 				else clog::error << "Error loading bootstrapper" << clog::endl;
 			}
 
-			return S_OK;
-		}).Get(), &token);
+			return S_OK; })
+										  .Get(),
+									  &token);
 	}
 
-	webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
+	webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>([this](ICoreWebView2 *sender, ICoreWebView2NavigationCompletedEventArgs *args) -> HRESULT
+																							{
 		BOOL success = true;
 		args->get_IsSuccess(&success);
 
@@ -404,10 +497,12 @@ void KrunkerWindow::register_events() {
 			});
 		}
 
-		return S_OK;
-	}).Get(), &token);
+		return S_OK; })
+										 .Get(),
+									 &token);
 
-	webview->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>([this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
+	webview->add_WebResourceRequested(Callback<ICoreWebView2WebResourceRequestedEventHandler>([this](ICoreWebView2 *sender, ICoreWebView2WebResourceRequestedEventArgs *args) -> HRESULT
+																							  {
 		LPWSTR sender_uriptr;
 		sender->get_Source(&sender_uriptr);
 
@@ -448,13 +543,15 @@ void KrunkerWindow::register_events() {
 			break;
 		}
 
-		return S_OK;
-	}).Get(), &token);
+		return S_OK; })
+										  .Get(),
+									  &token);
 }
 
-KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> callback) {
+KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::function<void()> callback)
+{
 	bool was_open = open;
-	
+
 	if (folder.config["window"]["meta"]["replace"].get<bool>())
 		title = Convert::wstring(folder.config["window"]["meta"]["title"].get<std::string>());
 
@@ -462,12 +559,14 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::fu
 
 	SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(background));
 
-	if (can_fullscreen && folder.config["render"]["fullscreen"]) enter_fullscreen();
+	if (can_fullscreen && folder.config["render"]["fullscreen"])
+		enter_fullscreen();
 
 	if (folder.config["window"]["meta"]["replace"].get<bool>())
 		SetIcon((HICON)LoadImage(inst, folder.resolve_path(Convert::wstring(folder.config["window"]["meta"]["icon"].get<std::string>())).c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
-	else SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));
-	
+	else
+		SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));
+
 	open = true;
 
 	return call_create_webview(callback);
@@ -477,12 +576,14 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow, std::fu
 	}*/
 }
 
-KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> callback) {
+KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> callback)
+{
 	auto options = Make<CoreWebView2EnvironmentOptions>();
 
 	options->put_AdditionalBrowserArguments(cmdline().c_str());
 
-	HRESULT create = CreateCoreWebView2EnvironmentWithOptions(nullptr, (folder.directory + folder.p_profile).c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Environment* envp) -> HRESULT {
+	HRESULT create = CreateCoreWebView2EnvironmentWithOptions(nullptr, (folder.directory + folder.p_profile).c_str(), options.Get(), Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([this, callback](HRESULT result, ICoreWebView2Environment *envp) -> HRESULT
+																																																		  {
 		if (envp == nullptr) {
 			clog::error << "Env was nullptr" << clog::endl;
 
@@ -542,13 +643,15 @@ KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> c
 			return S_OK;
 		}).Get());
 
-		return S_OK;
-	}).Get());
+		return S_OK; })
+																																		 .Get());
 
-	if (!SUCCEEDED(create)) {
+	if (!SUCCEEDED(create))
+	{
 		last_herror = create;
 
-		switch (create) {
+		switch (create)
+		{
 		case HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND):
 			return Status::MissingRuntime;
 			break;
@@ -566,23 +669,27 @@ KrunkerWindow::Status KrunkerWindow::call_create_webview(std::function<void()> c
 			break;
 		}
 	}
-	else return Status::Ok;
+	else
+		return Status::Ok;
 }
 
-KrunkerWindow::Status KrunkerWindow::get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback) {
-	if (open) {
+KrunkerWindow::Status KrunkerWindow::get(HINSTANCE inst, int cmdshow, std::function<void(bool)> callback)
+{
+	if (open)
+	{
 		// documentation for editor opens twice
-		if (!webview) {
+		if (!webview)
+		{
 			return Status::RuntimeFatal;
 		}
-		
+
 		callback(false);
 		return Status::AlreadyOpen;
 	}
-	else {
-		return create(inst, cmdshow, [this, callback]() {
-			callback(true);
-		});
+	else
+	{
+		return create(inst, cmdshow, [this, callback]()
+					  { callback(true); });
 	}
 }
 
@@ -590,50 +697,60 @@ long long mouse_hz = 244;
 long long mouse_interval = 1000 / mouse_hz;
 long long then = KrunkerWindow::now();
 
-void KrunkerWindow::on_dispatch() {
-	if (!open) return;
-	
+void KrunkerWindow::on_dispatch()
+{
+	if (!open)
+		return;
+
 	mtx.lock();
-	
+
 	for (JSMessage msg : pending_messages)
-		if (!msg.send(webview))clog::error << "Unable to send " << msg.dump() << clog::endl;
-	
+		if (!msg.send(webview))
+			clog::error << "Unable to send " << msg.dump() << clog::endl;
+
 	pending_messages.clear();
-	
-	for (std::wstring url : pending_navigations) {
+
+	for (std::wstring url : pending_navigations)
+	{
 		webview->Stop();
 		webview->Navigate(url.c_str());
 	}
-	
+
 	pending_navigations.clear();
 
 	mtx.unlock();
 
 	bool active = GetActiveWindow() == m_hWnd;
 
-	if (!active && mouse_hooked) unhook_mouse();
-	
+	if (!active && mouse_hooked)
+		unhook_mouse();
+
 	time_t last_poll = now() - last_pointer_poll;
 
-	if (last_poll > 1500 && mouse_hooked) {
+	if (last_poll > 1500 && mouse_hooked)
+	{
 		clog::error << "Pointer lock timeout: " << last_poll << "ms" << clog::endl;
 		unhook_mouse();
 	}
 
-	if (mouse_hooked) {
+	if (mouse_hooked)
+	{
 		long long nw = now();
 		long long delta = nw - then;
 
-		if (delta > mouse_interval) {
+		if (delta > mouse_interval)
+		{
 			then = nw - (delta % mouse_interval);
-			JSMessage(IM::mousemove, { movebuffer.x, movebuffer.y }).send(webview);
+			JSMessage(IM::mousemove, {movebuffer.x, movebuffer.y}).send(webview);
 			movebuffer.clear();
 		}
 	}
 }
 
-LRESULT KrunkerWindow::on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& fHandled) {
+LRESULT KrunkerWindow::on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled)
+{
 	open = false;
-	if (on_destroy_callback) on_destroy_callback();
+	if (on_destroy_callback)
+		on_destroy_callback();
 	return true;
 }
