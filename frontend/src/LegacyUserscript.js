@@ -13,7 +13,7 @@ export default class Userscript {
 
     return value;
   }
-  #run = () => { };
+  #run = () => {};
   name = "Unnamed userscript";
   version = "Unknown version";
   author = "Unknown author";

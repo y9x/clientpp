@@ -69,10 +69,10 @@ export default class DiscordAddon extends Addon {
           "url(" +
           JSON.stringify(
             "https://cdn.discordapp.com/icons/" +
-            data.guild.id +
-            "/" +
-            data.guild.icon +
-            "?size=64"
+              data.guild.id +
+              "/" +
+              data.guild.icon +
+              "?size=64"
           ) +
           ")";
       else

@@ -32,7 +32,8 @@ export default function run_resources(menu) {
     } else {
       // legacy idkr, unknown
       // quick fix
-      if (data.includes("// ==UserScript==") && currentSite !== "game") continue;
+      if (data.includes("// ==UserScript==") && currentSite !== "game")
+        continue;
 
       const module = { exports: {} };
       let func;
