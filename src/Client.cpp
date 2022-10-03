@@ -171,10 +171,6 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
 
       Discord_UpdatePresence(&presence);
     }
-    /*catch (nlohmann::json::type_error e)
-    {
-      clog::error << "Unable to parse arguments: " << e.what() << clog::endl;
-    }*/
   }
   break;
   case IM::account_password:

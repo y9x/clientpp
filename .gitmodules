@@ -7,6 +7,3 @@
 [submodule "discord-rpc"]
 	path = discord-rpc
 	url = https://github.com/discord/discord-rpc.git
-[submodule "json"]
-	path = json
-	url = https://github.com/nlohmann/json.git
