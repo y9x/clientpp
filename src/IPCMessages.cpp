@@ -1,26 +1,33 @@
+#include "../utils/JsonUtil.h"
 #include "../utils/StringUtil.h"
 #include "./KrunkerWindow.h"
 #include "./LobbySeeker.h"
 #include "./Log.h"
 #include "./resource.h"
+#include <rapidjson/prettywriter.h>
 #include <commdlg.h>
 #include <shellapi.h>
 
 using JSON = nlohmann::json;
 using namespace StringUtil;
 
-void KrunkerWindow::handle_message(JSMessage msg) {
-  switch (msg.event) {
+void KrunkerWindow::handle_message(JSMessage msg)
+{
+  switch (msg.event)
+  {
   case IM::save_config:
-    folder.config = msg.args[0];
+  {
+    std::string dump = msg.args[0].dump();
+    folder.config.Parse(dump.data(), dump.size());
     folder.save_config();
-
-    break;
+  }
+  break;
   case IM::open_devtools:
-    if (folder.config["client"]["devtools"])
+    if (folder.config["client"]["devtools"].GetBool())
       webview->OpenDevToolsWindow();
     break;
-  case IM::shell_open: {
+  case IM::shell_open:
+  {
     std::wstring open;
 
     if (msg.args[0] == "root")
@@ -34,10 +41,11 @@ void KrunkerWindow::handle_message(JSMessage msg) {
     else if (msg.args[0] == "swapper")
       open = folder.directory + folder.p_swapper;
     else if (msg.args[0] == "url")
-      open = Convert::wstring(msg.args[1].get<std::string>());
+      open = Convert::wstring(msg.args[1]);
 
     ShellExecute(m_hWnd, L"open", open.c_str(), L"", L"", SW_SHOW);
-  } break;
+  }
+  break;
   case IM::pointer:
     last_pointer_poll = now();
     if (msg.args[0] && !mouse_hooked)
@@ -46,10 +54,12 @@ void KrunkerWindow::handle_message(JSMessage msg) {
       unhook_mouse();
 
     break;
-  case IM::log: {
+  case IM::log:
+  {
     std::string log = msg.args[1];
 
-    switch (msg.args[0].get<int>()) {
+    switch (msg.args[0].get<int>())
+    {
     case LogType::info:
       clog::info << log << clog::endl;
       break;
@@ -63,7 +73,8 @@ void KrunkerWindow::handle_message(JSMessage msg) {
       clog::debug << log << clog::endl;
       break;
     }
-  } break;
+  }
+  break;
   case IM::relaunch_webview:
     control->Close();
     call_create_webview();
@@ -80,27 +91,30 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 
     break;
   case IM::seek_game:
-    if (type == Type::Game && !seeking && folder.config["game"]["seek"]["F4"])
+    if (type == Type::Game && !seeking && folder.config["game"]["seek"]["F4"].GetBool())
       new std::thread(
-          [this](std::string sregion) {
+          [this](std::string sregion)
+          {
             seeking = true;
 
             LobbySeeker seeker;
 
             for (size_t mi = 0; mi < LobbySeeker::modes.size(); mi++)
               if (LobbySeeker::modes[mi] ==
-                  folder.config["game"]["seek"]["mode"]) {
+                  JsonUtil::Convert::string(folder.config["game"]["seek"]["mode"]))
+              {
                 seeker.mode = mi;
               }
 
             for (size_t ri = 0; ri < LobbySeeker::regions.size(); ri++)
-              if (LobbySeeker::regions[ri].first == sregion) {
+              if (LobbySeeker::regions[ri].first == sregion)
+              {
                 seeker.region = ri;
               }
 
-            seeker.customs = folder.config["game"]["seek"]["customs"];
+            seeker.customs = folder.config["game"]["seek"]["customs"].GetBool();
             seeker.map =
-                Manipulate::lowercase(folder.config["game"]["seek"]["map"]);
+                Manipulate::lowercase(JsonUtil::Convert::string(folder.config["game"]["seek"]["map"]));
 
             if (seeker.map.length())
               seeker.use_map = true;
@@ -120,29 +134,35 @@ void KrunkerWindow::handle_message(JSMessage msg) {
     if (type != Type::Game)
       break;
     folder.config["render"]["fullscreen"] =
-        !folder.config["render"]["fullscreen"];
+        !folder.config["render"]["fullscreen"].GetBool();
     folder.save_config();
 
     {
       JSMessage msg(IM::update_menu);
-      msg.args.push_back(folder.config);
+
+      rapidjson::StringBuffer buffer;
+      rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+      folder.config.Accept(writer);
+
+      msg.args.push_back(JSON::parse(std::string(buffer.GetString(), buffer.GetSize())));
+
       if (!msg.send(webview))
         clog::error << "Unable to send " << msg.dump() << clog::endl;
     }
   case IM::fullscreen:
-    if (folder.config["render"]["fullscreen"])
+    if (folder.config["render"]["fullscreen"].GetBool())
       enter_fullscreen();
     else
       exit_fullscreen();
     break;
   case IM::update_meta:
-    title = Convert::wstring(
-        folder.config["window"]["meta"]["title"].get<std::string>());
+    title = JsonUtil::Convert::wstring(
+        folder.config["window"]["meta"]["title"]);
     SetIcon((HICON)LoadImage(
         get_hinstance(),
         folder
-            .resolve_path(Convert::wstring(
-                folder.config["window"]["meta"]["icon"].get<std::string>()))
+            .resolve_path(JsonUtil::Convert::wstring(
+                folder.config["window"]["meta"]["icon"]))
             .c_str(),
         IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
     SetWindowText(title.c_str());
@@ -160,7 +180,8 @@ void KrunkerWindow::handle_message(JSMessage msg) {
     break;
   case IM::browse_file:
     new std::thread(
-        [this](JSMessage msg) {
+        [this](JSMessage msg)
+        {
           wchar_t filename[MAX_PATH];
 
           OPENFILENAME ofn;
@@ -170,7 +191,8 @@ void KrunkerWindow::handle_message(JSMessage msg) {
           ofn.hwndOwner = m_hWnd;
           std::wstring title = Convert::wstring(msg.args[1]);
           std::wstring filters;
-          for (JSON value : msg.args[2]) {
+          for (JSON value : msg.args[2])
+          {
             std::string label = value[0];
             std::string filter = value[1];
 
@@ -193,7 +215,8 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 
           JSMessage res(msg.args[0].get<int>());
 
-          if (GetOpenFileName(&ofn)) {
+          if (GetOpenFileName(&ofn))
+          {
             std::wstring fn;
             fn.resize(MAX_PATH);
             fn = filename;
@@ -201,7 +224,8 @@ void KrunkerWindow::handle_message(JSMessage msg) {
             // make relative
             res.args[0] = Convert::string(folder.relative_path(fn));
             res.args[1] = false;
-          } else
+          }
+          else
             res.args[1] = true;
 
           mtx.lock();

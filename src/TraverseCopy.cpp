@@ -1,30 +1,45 @@
 #include "./TraverseCopy.h"
 #include "./Log.h"
+#include <rapidjson/document.h>
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/allocators.h>
 
-using JSON = nlohmann::json;
+rapidjson::Value TraverseCopy(rapidjson::Value &value, rapidjson::Value &match, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator, bool allow_new_props, bool *changed)
+{
+  rapidjson::Value result;
 
-JSON TraverseCopy(JSON value, JSON match, bool allow_new_props, bool *changed) {
-  if (value.type() != match.type()) {
+  if (value.GetType() != match.GetType())
+  {
     if (changed)
       *changed = true;
-    return match;
+    return result;
   }
 
-  if (value.is_object()) {
-    JSON result = match;
+  if (value.IsObject())
+  {
+    // (rapidjson::kNullType);
 
-    for (auto [skey, svalue] : value.items()) {
-      if (match.contains(skey))
-        result[skey] =
-            TraverseCopy(svalue, match[skey], allow_new_props, changed);
-      else if (allow_new_props && !result.contains(skey))
-        result[skey] = svalue;
+    result.CopyFrom(match, allocator);
+
+    for (rapidjson::Value::MemberIterator it = value.MemberBegin(); it != value.MemberEnd(); ++it)
+    {
+      // std::string key(it->name.GetString(), it->name.GetStringLength());
+      // rapidjson::Value skey(key.data(), key.size());
+
+      if (match.HasMember(it->name))
+        result[it->name] =
+            TraverseCopy(it->value, match[it->name], allocator, allow_new_props, changed);
+      else if (allow_new_props && !result.HasMember(it->name))
+        result.AddMember(it->name, it->value, allocator);
       else if (changed)
         *changed = true;
     }
 
     return result;
-  } else {
-    return value;
+  }
+  else
+  {
+    result.CopyFrom(value, allocator);
+    return result;
   }
 }

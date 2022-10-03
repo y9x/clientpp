@@ -132,7 +132,7 @@ class AccountTile {
   delete() {
     ipc.send(IM.account_remove, this.username);
   }
-  edit() {}
+  edit() { }
   async click() {
     const that = this;
 
@@ -164,7 +164,7 @@ class AccountTile {
 }
 
 class Menu extends Events {
-  save_config() {}
+  save_config() { }
   config = {};
   window = new HeaderWindow(this, "Accounts");
   async attach() {
@@ -178,11 +178,11 @@ class Menu extends Events {
         "padding-bottom": "13px",
       },
       innerHTML:
-        'Accounts <span class="material-icons" style="vertical-align:middle;color: #fff;font-size:36px;margin-top:-8px;">switch_account</span>',
+        "Accounts <span class=\"material-icons\" style=\"vertical-align:middle;color: #fff;font-size:36px;margin-top:-8px;\">switch_account</span>",
       events: {
         click: () => {
           this.resp.node.innerHTML =
-            'For lost Passwords/Accounts contact <span style="color:rgba(255,255,255,0.8)">recovery@yendis.ch';
+            "For lost Passwords/Accounts contact <span style=\"color:rgba(255,255,255,0.8)\">recovery@yendis.ch</span>";
           this.window.show();
         },
       },

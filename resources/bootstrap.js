@@ -1,8 +1,8 @@
 {
-  let { log, error } = console;
+  const { log, error } = console;
 
   try {
-    let run = new Function(
+    const run = new Function(
       "webview",
       "script",
       "_RUNTIME_DATA_",
@@ -11,6 +11,7 @@
     run(chrome.webview, $FRONTEND, $RUNTIME);
     log("Initialized Chief Client++");
   } catch (err) {
-    error("Unable to initialize Chief Client++:\n", err);
+    error("Unable to initialize Chief Client++:");
+    error(err);
   }
 }

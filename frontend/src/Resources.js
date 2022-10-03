@@ -6,7 +6,7 @@ import LegacyUserscript from "./LegacyUserscript";
 import ChiefUserscript from "./ChiefUserscript";
 
 const add_css = () => {
-  for (const [, data] of Object.entries(css)) {
+  for (const [, data] of css) {
     const url = URL.createObjectURL(new Blob([data], { type: "text/css" }));
 
     const link = document.head.appendChild(
@@ -25,7 +25,7 @@ const add_css = () => {
 };
 
 export default function run_resources(menu) {
-  for (const [name, [data, metadata, errors]] of Object.entries(js)) {
+  for (const [name, [data, metadata, errors]] of js) {
     if (metadata) {
       if (errors) for (const error of errors) console.error(error);
       else new ChiefUserscript(name, metadata).run(data, currentSite, menu);

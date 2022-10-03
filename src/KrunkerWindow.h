@@ -9,7 +9,7 @@
 #include <atlenc.h>
 #include <atlwin.h>
 #include <functional>
-#include <nlohmann/json.hpp>
+#include <rapidjson/fwd.h>
 #include <mutex>
 #include <string>
 #include <wil/com.h>
@@ -54,7 +54,7 @@ private:
   HHOOK mouse_hook = 0;
   bool mouse_hooked = false;
   std::time_t last_pointer_poll;
-  nlohmann::json runtime_data();
+  std::string runtime_data();
   void hook_mouse();
   void unhook_mouse();
   void register_events();
@@ -65,7 +65,9 @@ private:
   std::string status_name(COREWEBVIEW2_WEB_ERROR_STATUS status);
   bool send_resource(ICoreWebView2WebResourceRequestedEventArgs *args,
                      int resource, std::wstring mime);
-  void load_userscripts(nlohmann::json *data = nullptr);
+  rapidjson::Value load_css(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
+  rapidjson::Value load_userscripts(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
+  void load_userscripts();
   LRESULT on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
   LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
   LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);

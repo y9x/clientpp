@@ -1,9 +1,10 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
+#include <rapidjson/prettywriter.h>
+#include <ShellScalingApi.h>
+#include <shellapi.h>
 #include "./Client.h"
 #include "../utils/StringUtil.h"
 #include "./Log.h"
-#include <ShellScalingApi.h>
-#include <shellapi.h>
 
 using namespace StringUtil;
 using Microsoft::WRL::Callback;
@@ -129,7 +130,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
   {
   case IM::rpc_init:
 
-    if (!folder.config["rpc"]["enabled"])
+    if (!folder.config["rpc"]["enabled"].GetBool())
       break;
 
     rpc_loading();
@@ -144,7 +145,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
   {
     try
     {
-      if (!folder.config["rpc"]["enabled"])
+      if (!folder.config["rpc"]["enabled"].GetBool())
         break;
 
       DiscordRichPresence presence;
@@ -160,7 +161,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
       presence.state = mode.c_str();
       presence.details = map.c_str();
 
-      if (folder.config["rpc"]["name"])
+      if (folder.config["rpc"]["name"].GetBool())
         presence.largeImageText = user.c_str();
       else
         presence.state = "In game";
@@ -196,7 +197,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
     accounts.save();
 
     JSMessage res(IM::account_regen);
-    res.args.push_back(accounts.dump());
+    res.args.push_back(nlohmann::json::parse(accounts.dump()));
     if (!res.send(window.webview))
       clog::error << "Unable to send " << res.dump() << clog::endl;
   }
@@ -357,7 +358,7 @@ bool Client::create()
   folder.load_config();
   accounts.load();
 
-  if (folder.config["rpc"]["enabled"])
+  if (folder.config["rpc"]["enabled"].GetBool())
     rpc_loading();
 
   HRESULT coinit = CoInitialize(NULL);

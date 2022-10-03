@@ -1,6 +1,7 @@
 #pragma once
-#include <nlohmann/json.hpp>
+#include <rapidjson/document.h>
 #include <string>
+#include <vector>
 
 class ClientFolder
 {
@@ -14,8 +15,8 @@ public:
   std::wstring p_chief = L"\\Chief.ico";
   std::wstring p_krunker = L"\\Krunker.ico";
   std::wstring p_logs = L"\\Logs";
-  nlohmann::json default_config = nlohmann::json::object();
-  nlohmann::json config = nlohmann::json::object();
+  rapidjson::Document default_config;
+  rapidjson::Document config;
   ClientFolder(std::wstring name);
   bool create();
   bool create_directory(std::wstring directory);
