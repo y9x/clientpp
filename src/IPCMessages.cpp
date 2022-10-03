@@ -8,7 +8,6 @@
 #include <commdlg.h>
 #include <shellapi.h>
 
-using JSON = nlohmann::json;
 using namespace StringUtil;
 
 void KrunkerWindow::handle_message(JSMessage msg)
@@ -17,8 +16,7 @@ void KrunkerWindow::handle_message(JSMessage msg)
   {
   case IM::save_config:
   {
-    std::string dump = msg.args[0].dump();
-    folder.config.Parse(dump.data(), dump.size());
+    folder.config.CopyFrom(msg.args[0], folder.config.GetAllocator());
     folder.save_config();
   }
   break;
@@ -41,24 +39,24 @@ void KrunkerWindow::handle_message(JSMessage msg)
     else if (msg.args[0] == "swapper")
       open = folder.directory + folder.p_swapper;
     else if (msg.args[0] == "url")
-      open = Convert::wstring(msg.args[1]);
+      open = JsonUtil::Convert::wstring(msg.args[1]);
 
     ShellExecute(m_hWnd, L"open", open.c_str(), L"", L"", SW_SHOW);
   }
   break;
   case IM::pointer:
     last_pointer_poll = now();
-    if (msg.args[0] && !mouse_hooked)
+    if (msg.args[0].GetBool() && !mouse_hooked)
       hook_mouse();
-    else if (!msg.args[0] && mouse_hooked)
+    else if (!msg.args[0].GetBool() && mouse_hooked)
       unhook_mouse();
 
     break;
   case IM::log:
   {
-    std::string log = msg.args[1];
+    std::string log = JsonUtil::Convert::string(msg.args[1]);
 
-    switch (msg.args[0].get<int>())
+    switch (msg.args[0].GetInt())
     {
     case LogType::info:
       clog::info << log << clog::endl;
@@ -127,7 +125,7 @@ void KrunkerWindow::handle_message(JSMessage msg)
 
             seeking = false;
           },
-          msg.args[0]);
+          JsonUtil::Convert::string(msg.args[0]));
 
     break;
   case IM::toggle_fullscreen:
@@ -140,11 +138,7 @@ void KrunkerWindow::handle_message(JSMessage msg)
     {
       JSMessage msg(IM::update_menu);
 
-      rapidjson::StringBuffer buffer;
-      rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-      folder.config.Accept(writer);
-
-      msg.args.push_back(JSON::parse(std::string(buffer.GetString(), buffer.GetSize())));
+      msg.args.PushBack(folder.config, msg.allocator);
 
       if (!msg.send(webview))
         clog::error << "Unable to send " << msg.dump() << clog::endl;
@@ -189,18 +183,19 @@ void KrunkerWindow::handle_message(JSMessage msg)
           ZeroMemory(&ofn, sizeof(ofn));
           ofn.lStructSize = sizeof(ofn);
           ofn.hwndOwner = m_hWnd;
-          std::wstring title = Convert::wstring(msg.args[1]);
+          std::wstring title = JsonUtil::Convert::wstring(msg.args[1]);
           std::wstring filters;
-          for (JSON value : msg.args[2])
+
+          for (rapidjson::Value::ValueIterator it = msg.args[2].Begin(); it != msg.args[2].End(); ++it)
           {
-            std::string label = value[0];
-            std::string filter = value[1];
+            std::wstring wlabel = JsonUtil::Convert::wstring((*it)[0]);
+            std::wstring wfilter = JsonUtil::Convert::wstring((*it)[1]);
 
-            label += " (" + filter + ")";
+            wlabel += L" (" + wfilter + L")";
 
-            filters += Convert::wstring(label);
+            filters += wlabel;
             filters += L'\0';
-            filters += Convert::wstring(filter);
+            filters += wfilter;
             filters += L'\0';
           }
 
@@ -213,7 +208,7 @@ void KrunkerWindow::handle_message(JSMessage msg)
           ofn.lpstrTitle = title.c_str();
           ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
 
-          JSMessage res(msg.args[0].get<int>());
+          JSMessage res(msg.args[0].GetInt());
 
           if (GetOpenFileName(&ofn))
           {
@@ -222,11 +217,12 @@ void KrunkerWindow::handle_message(JSMessage msg)
             fn = filename;
 
             // make relative
-            res.args[0] = Convert::string(folder.relative_path(fn));
-            res.args[1] = false;
+            std::string rel = Convert::string(folder.relative_path(fn));
+            res.args.PushBack(rapidjson::Value(rel.data(), rel.size(), res.allocator), res.allocator);
+            res.args.PushBack(rapidjson::Value(false), res.allocator);
           }
           else
-            res.args[1] = true;
+            res.args.PushBack(rapidjson::Value(true), res.allocator);
 
           mtx.lock();
           pending_messages.push_back(res);

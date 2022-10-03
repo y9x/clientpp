@@ -2,7 +2,9 @@
 #include <rapidjson/prettywriter.h>
 #include <ShellScalingApi.h>
 #include <shellapi.h>
+#include <sstream>
 #include "./Client.h"
+#include "../utils/JsonUtil.h"
 #include "../utils/StringUtil.h"
 #include "./Log.h"
 
@@ -143,7 +145,6 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
     break;
   case IM::rpc_update:
   {
-    try
     {
       if (!folder.config["rpc"]["enabled"].GetBool())
         break;
@@ -151,9 +152,11 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
       DiscordRichPresence presence;
       memset(&presence, 0, sizeof(presence));
 
-      int64_t start = msg.args[0];
+      int64_t start = msg.args[0].GetInt64();
 
-      std::string user = msg.args[1], map = msg.args[2], mode = msg.args[3];
+      std::string user = JsonUtil::Convert::string(msg.args[1]);
+      std::string map = JsonUtil::Convert::string(msg.args[2]);
+      std::string mode = JsonUtil::Convert::string(msg.args[3]);
 
       presence.startTimestamp = start;
       presence.largeImageKey = "icon";
@@ -168,23 +171,32 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
 
       Discord_UpdatePresence(&presence);
     }
-    catch (nlohmann::json::type_error e)
+    /*catch (nlohmann::json::type_error e)
     {
       clog::error << "Unable to parse arguments: " << e.what() << clog::endl;
-    }
+    }*/
   }
   break;
   case IM::account_password:
   {
-    JSMessage res(msg.args[0].get<int>());
+    JSMessage res(msg.args[0].GetInt());
     std::string dec;
+    std::string account_name = JsonUtil::Convert::string(msg.args[1]);
 
-    if (!accounts.data.contains(msg.args[1]))
-      res.args[1] = "Account doesn't exist";
-    else if (!accounts.decrypt(accounts.data[msg.args[1]].password, dec))
-      res.args[1] = "Unknown";
+    if (!accounts.data.contains(account_name))
+    {
+      res.args.PushBack(rapidjson::Value(rapidjson::kNullType), res.allocator);
+      res.args.PushBack(rapidjson::Value("Account doesn't exist", res.allocator), res.allocator);
+    }
+    else if (!accounts.decrypt(accounts.data[account_name].password, dec))
+    {
+      res.args.PushBack(rapidjson::Value(rapidjson::kNullType), res.allocator);
+      res.args.PushBack(rapidjson::Value("Unknown", res.allocator), res.allocator);
+    }
     else
-      res.args[0] = dec;
+    {
+      res.args.PushBack(rapidjson::Value(dec.data(), dec.size(), res.allocator), res.allocator);
+    }
 
     if (!res.send(window.webview))
       clog::error << "Unable to send " << res.dump() << clog::endl;
@@ -193,11 +205,11 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
   case IM::account_remove:
   {
 
-    accounts.data.erase(msg.args[0]);
+    accounts.data.erase(JsonUtil::Convert::string(msg.args[0]));
     accounts.save();
 
     JSMessage res(IM::account_regen);
-    res.args.push_back(nlohmann::json::parse(accounts.dump()));
+    res.args.PushBack(accounts.dump(res.allocator), res.allocator);
     if (!res.send(window.webview))
       clog::error << "Unable to send " << res.dump() << clog::endl;
   }
@@ -205,14 +217,14 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
   case IM::account_set:
   {
 
-    std::string name = msg.args[0];
+    std::string name = JsonUtil::Convert::string(msg.args[0]);
     Account &account = accounts.data[name];
-    account.color = msg.args[1];
-    account.order = msg.args[2];
+    account.color = JsonUtil::Convert::string(msg.args[1]);
+    account.order = msg.args[2].GetInt();
     accounts.save();
 
     JSMessage res(IM::account_regen);
-    res.args.push_back(accounts.dump());
+    res.args.PushBack(accounts.dump(res.allocator), res.allocator);
     if (!res.send(window.webview))
       clog::error << "Unable to send " << res.dump() << clog::endl;
   }
@@ -222,18 +234,18 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
   {
 
     std::string enc;
-    if (accounts.encrypt(msg.args[1], enc))
+    if (accounts.encrypt(JsonUtil::Convert::string(msg.args[1]), enc))
     {
       Account account;
-      account.color = msg.args[2];
-      account.order = msg.args[3];
+      account.color = JsonUtil::Convert::string(msg.args[2]);
+      account.order = msg.args[3].GetInt();
       account.password = enc;
-      accounts.data[msg.args[0]] = account;
+      accounts.data[JsonUtil::Convert::string(msg.args[0])] = account;
 
       accounts.save();
 
       JSMessage res(IM::account_regen);
-      res.args.push_back(accounts.dump());
+      res.args.PushBack(accounts.dump(res.allocator), res.allocator);
       if (!res.send(window.webview))
         clog::error << "Unable to send " << res.dump() << clog::endl;
     }
@@ -242,8 +254,8 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
   case IM::account_list:
   {
 
-    JSMessage res(msg.args[0].get<int>());
-    res.args.push_back(accounts.dump());
+    JSMessage res(msg.args[0].GetInt());
+    res.args.PushBack(accounts.dump(res.allocator), res.allocator);
     if (!res.send(window.webview))
       clog::error << "Unable to send " << res.dump() << clog::endl;
   }

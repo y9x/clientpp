@@ -25,9 +25,10 @@ export default class RPC {
     }
 
     const { user, map, mode } = activity;
-    const args = [user, map, mode];
+    const args = [user || "", map || "", mode || ""];
     const jargs = JSON.stringify(args);
 
+    // detect change via jargs
     if (!force && jargs !== this.last) {
       ipc.send(IM.rpc_update, this.start, ...args);
       this.last = jargs;

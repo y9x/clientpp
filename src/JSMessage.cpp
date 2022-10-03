@@ -1,53 +1,92 @@
+#include <rapidjson/error/en.h>
+#include <rapidjson/writer.h>
 #include "./JSMessage.h"
 #include "../utils/StringUtil.h"
+#include "./Log.h"
 
 using namespace StringUtil;
-using JSON = nlohmann::json;
 
-JSMessage::JSMessage() {}
+JSMessage::JSMessage() : args(rapidjson::kArrayType) {}
 
-JSMessage::JSMessage(JSON a) { args = a; }
+// JSMessage::JSMessage(rapidjson::Value a) : rapidjson::Document() { args = a; }
 
-JSMessage::JSMessage(int e) { event = e; }
+JSMessage::JSMessage(int e) : args(rapidjson::kArrayType) { event = e; }
 
-JSMessage::JSMessage(int e, JSON p) {
-  event = e;
-  args = p;
+JSMessage::JSMessage(int e, rapidjson::Value p) : event(e), args(p, allocator)
+{
 }
 
-JSMessage::JSMessage(LPWSTR raw) {
-  JSON parsed = JSON::parse(Convert::string(raw));
+JSMessage::JSMessage(const JSMessage &message) : event(message.event), args(message.args, allocator) {}
 
-  if (!parsed.is_array())
+JSMessage::JSMessage(LPWSTR raw) : args(rapidjson::kArrayType)
+{
+  std::string str = Convert::string(raw);
+
+  rapidjson::Document document;
+
+  rapidjson::ParseResult ok = document.Parse(str.data(), str.size());
+
+  if (!ok)
+    clog::error << "Error parsing message: " << GetParseError_En(ok.Code()) << " (" << ok.Offset() << ")" << clog::endl;
+
+  if (!document.IsArray())
+  {
+    clog::error << "Message was not array" << std::endl;
     return;
+  }
 
-  for (size_t index = 0; index < parsed.size(); index++) {
-    if (index == 0) {
-      if (!parsed[index].is_number())
-        return;
-      else
-        event = parsed[index].get<int>();
-    } else
-      args.push_back(parsed[index]);
+  rapidjson::Value::ValueIterator it = document.Begin();
+
+  if (it == document.End())
+  {
+    clog::error << "Message had no elements" << std::endl;
+    return;
+  }
+
+  rapidjson::Value &e = *it;
+
+  it++;
+
+  if (!e.IsNumber())
+  {
+    clog::error << "First element was not number" << std::endl;
+    return;
+  }
+
+  event = e.GetInt();
+
+  for (; it != document.End(); ++it)
+  {
+    args.PushBack(rapidjson::Value(*it, allocator), allocator);
   }
 }
 
-std::string JSMessage::dump() {
-  JSON message = JSON::array();
+std::string JSMessage::dump()
+{
+  rapidjson::Document message(rapidjson::kArrayType);
 
-  message.push_back((int)event);
-  for (JSON value : args)
-    message.push_back(value);
+  message.PushBack(rapidjson::Value(event), message.GetAllocator());
 
-  return message.dump();
+  for (rapidjson::Value::ValueIterator it = args.Begin(); it != args.End(); ++it)
+  {
+    message.PushBack(*it, message.GetAllocator());
+  }
+
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  message.Accept(writer);
+
+  return {buffer.GetString(), buffer.GetSize()};
 }
 
-bool JSMessage::send(ICoreWebView2 *target) {
+bool JSMessage::send(ICoreWebView2 *target)
+{
   return SUCCEEDED(
       target->PostWebMessageAsJson(Convert::wstring(dump()).c_str()));
 }
 
-bool JSMessage::send(wil::com_ptr<ICoreWebView2> target) {
+bool JSMessage::send(wil::com_ptr<ICoreWebView2> target)
+{
   return SUCCEEDED(
       target->PostWebMessageAsJson(Convert::wstring(dump()).c_str()));
 }

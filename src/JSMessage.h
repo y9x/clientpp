@@ -1,17 +1,21 @@
 #pragma once
-#include "./IPCMessages.h"
+#include <string>
 #include <WebView2.h>
-#include <nlohmann/json.hpp>
+#include <rapidjson/document.h>
+#include <rapidjson/fwd.h>
 #include <wil/com.h>
+#include "./IPCMessages.h"
 
 class JSMessage
 {
 public:
-	int event = 0;
-	nlohmann::json args;
-	JSMessage(nlohmann::json arguments);
+	rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator;
+	int event = -1;
+	// std::vector<rapidjson::Value> args;
+	rapidjson::Value args;
+	JSMessage(const JSMessage &message);
 	JSMessage(int event);
-	JSMessage(int event, nlohmann::json args);
+	JSMessage(int event, rapidjson::Value args);
 	JSMessage(LPWSTR raw);
 	JSMessage();
 	std::string dump();

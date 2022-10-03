@@ -12,6 +12,7 @@ rapidjson::Value TraverseCopy(rapidjson::Value &value, rapidjson::Value &match, 
   {
     if (changed)
       *changed = true;
+    result.CopyFrom(match, allocator);
     return result;
   }
 

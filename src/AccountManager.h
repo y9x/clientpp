@@ -19,6 +19,7 @@ class AccountManager
 private:
   ClientFolder &folder;
   std::wstring path = L"\\passwords.json";
+  std::string dump();
 
 public:
   // returns a base64 encoded array of bytes returned from CryptProtectData
@@ -27,6 +28,6 @@ public:
   std::map<std::string, Account> data;
   bool save();
   bool load();
-  std::string dump();
+  rapidjson::Value dump(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
   AccountManager(ClientFolder &folder);
 };

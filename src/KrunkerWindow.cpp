@@ -1,15 +1,16 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <rapidjson/prettywriter.h>
-#include "./KrunkerWindow.h"
+#include <sstream>
+#include <regex>
+#include <WebView2EnvironmentOptions.h>
 #include "../utils/Base64.h"
 #include "../utils/StringUtil.h"
 #include "../utils/JsonUtil.h"
 #include "../utils/Uri.h"
+#include "./KrunkerWindow.h"
 #include "./LoadRes.h"
 #include "./Log.h"
 #include "./resource.h"
-#include <WebView2EnvironmentOptions.h>
-#include <regex>
 
 using namespace StringUtil;
 using Microsoft::WRL::Callback;
@@ -177,6 +178,14 @@ LRESULT KrunkerWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 Vector2 movebuffer;
 
+JSMessage msgFct(int event, std::vector<double> nums)
+{
+  JSMessage msg(IM::mousedown);
+  for (int num : nums)
+    msg.args.PushBack(rapidjson::Value(num), msg.allocator);
+  return msg;
+}
+
 LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam,
                                 BOOL &fHandled)
 {
@@ -191,29 +200,32 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam,
     USHORT flags = mouse.usButtonFlags;
 
     if (flags & RI_MOUSE_WHEEL)
-      JSMessage(IM::mousewheel,
-                {((*(short *)&mouse.usButtonData) / WHEEL_DELTA) * -100})
+      msgFct(IM::mousewheel,
+             {double((*(short *)&mouse.usButtonData) / WHEEL_DELTA) * -100})
           .send(webview);
+    /* JSMessage(IM::mousewheel,
+          {((*(short *)&mouse.usButtonData) / WHEEL_DELTA) * -100})
+    .send(webview);*/
     if (flags & RI_MOUSE_BUTTON_1_DOWN)
-      JSMessage(IM::mousedown, {0}).send(webview);
+      msgFct(IM::mousedown, {0}).send(webview);
     if (flags & RI_MOUSE_BUTTON_1_UP)
-      JSMessage(IM::mouseup, {0}).send(webview);
+      msgFct(IM::mouseup, {0}).send(webview);
     if (flags & RI_MOUSE_BUTTON_2_DOWN)
-      JSMessage(IM::mousedown, {2}).send(webview);
+      msgFct(IM::mousedown, {2}).send(webview);
     if (flags & RI_MOUSE_BUTTON_2_UP)
-      JSMessage(IM::mouseup, {2}).send(webview);
+      msgFct(IM::mouseup, {2}).send(webview);
     if (flags & RI_MOUSE_BUTTON_3_DOWN)
-      JSMessage(IM::mousedown, {1}).send(webview);
+      msgFct(IM::mousedown, {1}).send(webview);
     if (flags & RI_MOUSE_BUTTON_3_UP)
-      JSMessage(IM::mouseup, {1}).send(webview);
+      msgFct(IM::mouseup, {1}).send(webview);
     if (flags & RI_MOUSE_BUTTON_4_DOWN)
-      JSMessage(IM::mousedown, {3}).send(webview);
+      msgFct(IM::mousedown, {3}).send(webview);
     if (flags & RI_MOUSE_BUTTON_4_UP)
-      JSMessage(IM::mouseup, {3}).send(webview);
+      msgFct(IM::mouseup, {3}).send(webview);
     if (flags & RI_MOUSE_BUTTON_5_DOWN)
-      JSMessage(IM::mousedown, {4}).send(webview);
+      msgFct(IM::mousedown, {4}).send(webview);
     if (flags & RI_MOUSE_BUTTON_5_UP)
-      JSMessage(IM::mouseup, {4}).send(webview);
+      msgFct(IM::mouseup, {4}).send(webview);
     if (mouse.lLastX || mouse.lLastY)
       movebuffer += Vector2(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
   }
@@ -900,7 +912,7 @@ void KrunkerWindow::on_dispatch()
     if (delta > mouse_interval)
     {
       then = nw - (delta % mouse_interval);
-      JSMessage(IM::mousemove, {movebuffer.x, movebuffer.y}).send(webview);
+      msgFct(IM::mousemove, {movebuffer.x, movebuffer.y}).send(webview);
       movebuffer.clear();
     }
   }

@@ -67,17 +67,23 @@ bool AccountManager::decrypt(std::string input, std::string &output)
 
 std::string AccountManager::dump()
 {
-  rapidjson::Document output(rapidjson::kObjectType);
-  rapidjson::Document::AllocatorType allocator = output.GetAllocator();
+  rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator;
+
+  rapidjson::StringBuffer buffer;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  dump(allocator).Accept(writer);
+
+  return {buffer.GetString(), buffer.GetSize()};
+}
+
+rapidjson::Value AccountManager::dump(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator)
+{
+  rapidjson::Value output(rapidjson::kObjectType);
 
   for (auto &[name, acc] : data)
     output.AddMember(rapidjson::Value(name.data(), name.size(), allocator), acc.dump(allocator), allocator);
 
-  rapidjson::StringBuffer buffer;
-  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-  output.Accept(writer);
-
-  return {buffer.GetString(), buffer.GetSize()};
+  return output;
 }
 
 bool AccountManager::save()
