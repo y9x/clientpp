@@ -1,5 +1,3 @@
-"use strict";
-
 import Window from "./Window";
 import utils from "../Utils";
 import Category from "./Window/Category";

@@ -1,5 +1,3 @@
-"use strict";
-
 import Events from "../Events";
 
 export default class Addon extends Events {
@@ -15,5 +13,5 @@ export default class Addon extends Events {
     console.info(this.name, "loaded");
     this.emit("ready");
   }
-  create() {}
+  create() { }
 }

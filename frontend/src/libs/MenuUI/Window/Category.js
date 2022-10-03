@@ -1,5 +1,3 @@
-"use strict";
-
 import utils from "../../Utils";
 import { resolveControl } from "../Control";
 

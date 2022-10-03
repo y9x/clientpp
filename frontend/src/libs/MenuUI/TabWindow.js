@@ -1,5 +1,3 @@
-"use strict";
-
 import Tab from "./Tab";
 import Window from "./Window";
 import utils from "../Utils";

@@ -1,5 +1,3 @@
-"use strict";
-
 // Implements the settings bar (search, presets, export, import, reset) found in the settings menu
 import Addon from "../Addon";
 import File from "../../File";

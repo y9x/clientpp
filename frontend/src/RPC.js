@@ -1,5 +1,3 @@
-"use strict";
-
 import { IM, ipc } from "./IPC";
 
 export default class RPC {

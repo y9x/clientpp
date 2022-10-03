@@ -1,5 +1,3 @@
-"use strict";
-
 import utils from "../Utils";
 import Events from "../Events";
 
@@ -53,7 +51,7 @@ export default class Control extends Events {
 
     this.emit("change", value);
   }
-  create() {}
+  create() { }
   interact() {
     console.warn("No defined interaction for", this);
   }

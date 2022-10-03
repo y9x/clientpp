@@ -1,5 +1,3 @@
-"use strict";
-
 import { tick, select } from "./Sound";
 import utils from "../Utils";
 import Category from "./Window/Category";
