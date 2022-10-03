@@ -6,19 +6,21 @@
 
 using namespace StringUtil;
 
-JSMessage::JSMessage() : args(rapidjson::kArrayType) {}
+constexpr char BAD_EVENT = 0xFF;
 
-// JSMessage::JSMessage(rapidjson::Value a) : rapidjson::Document() { args = a; }
+JSMessage::JSMessage() : args(rapidjson::kArrayType), event(BAD_EVENT) {}
 
-JSMessage::JSMessage(int e) : args(rapidjson::kArrayType) { event = e; }
+// JSMessage::JSMessage(rapidjson::Value a) : args(a, allocator) {  }
 
-JSMessage::JSMessage(int e, rapidjson::Value p) : event(e), args(p, allocator)
+JSMessage::JSMessage(unsigned char e) : args(rapidjson::kArrayType), event(e) {}
+
+JSMessage::JSMessage(unsigned char e, const rapidjson::Value &p) : args(p, allocator), event(e)
 {
 }
 
 JSMessage::JSMessage(const JSMessage &message) : event(message.event), args(message.args, allocator) {}
 
-JSMessage::JSMessage(LPWSTR raw) : args(rapidjson::kArrayType)
+JSMessage::JSMessage(LPWSTR raw) : args(rapidjson::kArrayType), event(BAD_EVENT)
 {
   std::string str = Convert::string(raw);
 
@@ -53,7 +55,7 @@ JSMessage::JSMessage(LPWSTR raw) : args(rapidjson::kArrayType)
     return;
   }
 
-  event = e.GetInt();
+  event = static_cast<unsigned char>(e.GetUint());
 
   for (; it != document.End(); ++it)
   {
@@ -65,7 +67,7 @@ std::string JSMessage::dump()
 {
   rapidjson::Document message(rapidjson::kArrayType);
 
-  message.PushBack(rapidjson::Value(event), message.GetAllocator());
+  message.PushBack(rapidjson::Value(static_cast<unsigned int>(event)), message.GetAllocator());
 
   for (rapidjson::Value::ValueIterator it = args.Begin(); it != args.End(); ++it)
   {

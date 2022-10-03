@@ -178,10 +178,10 @@ LRESULT KrunkerWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 Vector2 movebuffer;
 
-JSMessage msgFct(int event, std::vector<double> nums)
+JSMessage msgFct(unsigned char event, std::vector<double> nums)
 {
-  JSMessage msg(IM::mousedown);
-  for (int num : nums)
+  JSMessage msg(event);
+  for (double num : nums)
     msg.args.PushBack(rapidjson::Value(num), msg.allocator);
   return msg;
 }
@@ -203,9 +203,6 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam,
       msgFct(IM::mousewheel,
              {double((*(short *)&mouse.usButtonData) / WHEEL_DELTA) * -100})
           .send(webview);
-    /* JSMessage(IM::mousewheel,
-          {((*(short *)&mouse.usButtonData) / WHEEL_DELTA) * -100})
-    .send(webview);*/
     if (flags & RI_MOUSE_BUTTON_1_DOWN)
       msgFct(IM::mousedown, {0}).send(webview);
     if (flags & RI_MOUSE_BUTTON_1_UP)
