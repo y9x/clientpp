@@ -3,7 +3,7 @@ import currentSite from "./Site";
 import { ipc } from "./IPC";
 import console from "./Console";
 import LegacyUserscript from "./LegacyUserscript";
-import ChiefUserscript from "./ChiefUserscript";
+import evalChiefUserscript from "./ChiefUserscript";
 
 const add_css = () => {
   for (const [, data] of css) {
@@ -25,11 +25,14 @@ const add_css = () => {
 };
 
 export default function run_resources(menu) {
-  for (const [name, [data, metadata, errors]] of js) {
-    if (metadata) {
-      if (errors) for (const error of errors) console.error(error);
-      else new ChiefUserscript(name, metadata).run(data, currentSite, menu);
-    } else {
+  for (const [name, data, metadata, errors] of js) {
+    for (const error of errors) console.error(error);
+
+    if (errors.length) continue;
+
+    if (metadata)
+      evalChiefUserscript(name, metadata, data, currentSite, menu);
+    else {
       // legacy idkr, unknown
       // quick fix
       if (data.includes("// ==UserScript==") && currentSite !== "game")
@@ -54,6 +57,8 @@ export default function run_resources(menu) {
       }
 
       // try{...}catch(err){...} doesnt provide: line, column
+
+      console.log("load", name);
 
       try {
         func(...Object.values(context));

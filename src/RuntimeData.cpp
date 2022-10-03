@@ -1,6 +1,7 @@
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/allocators.h>
+#include <rapidjson/schema.h>
 #include <rapidjson/error/en.h>
 #include <rapidjson/pointer.h>
 #include "../utils/StringUtil.h"
@@ -61,16 +62,19 @@ rapidjson::Value KrunkerWindow::load_userscripts(rapidjson::MemoryPoolAllocator<
       clog::error << "Error parsing default userscript: " << GetParseError_En(ok.Code()) << " (" << ok.Offset() << ")" << clog::endl;
   }
 
+  rapidjson::SchemaDocument schema(default_userscript);
+
   for (IOUtil::WDirectoryIterator it(folder.directory + folder.p_scripts,
                                      L"*.js");
        ++it;)
   {
-
+    rapidjson::Document metadata(rapidjson::kNullType);
     std::string buffer;
 
     if (IOUtil::read_file(it.path().c_str(), buffer))
     {
-      rapidjson::Value put(rapidjson::kArrayType);
+
+      std::vector<std::string> errors;
 
       std::smatch match;
 
@@ -79,84 +83,92 @@ rapidjson::Value KrunkerWindow::load_userscripts(rapidjson::MemoryPoolAllocator<
 
       if (std::regex_search(buffer, match, meta_const))
       {
-        std::vector<std::string> errors;
+        std::string jsonMatch = std::regex_replace(match.str(1), meta_comment, "");
 
-        // try
-        // {
-        std::string raw = std::regex_replace(match.str(1), meta_comment, "");
-
-        // keep raw for loading ui controls and config
-        rapidjson::Document raw_metadata;
-        rapidjson::ParseResult ok = raw_metadata.Parse(raw.data(), raw.size());
+        rapidjson::ParseResult ok = metadata.Parse(jsonMatch.data(), jsonMatch.size());
 
         if (!ok)
-          clog::error
-              << "Error parsing default userscript: " << GetParseError_En(ok.Code()) << " (" << ok.Offset() << ")" << clog::endl;
-
-        rapidjson::Value metadata = TraverseCopy(raw_metadata, default_userscript, allocator);
-
-        rapidjson::Value raw_features(rapidjson::kObjectType);
-
-        if (raw_metadata.HasMember("features"))
-          raw_features = raw_metadata["features"];
-        if (raw_features.HasMember("gui"))
-          metadata["features"]["gui"] = raw_features["gui"];
-        if (raw_features.HasMember("config"))
-          metadata["features"]["config"] = raw_features["config"];
-
-        for (rapidjson::Value::ValueIterator it = metadata["features"]["block_hosts"].Begin(); it != metadata["features"]["block_hosts"].End(); ++it)
-          add_back<std::wstring>(additional_block_hosts,
-                                 JsonUtil::Convert::wstring(*it));
-
-        for (rapidjson::Value::ValueIterator it = metadata["features"]["command_line"].Begin(); it != metadata["features"]["command_line"].End(); ++it)
-          add_back<std::wstring>(additional_command_line,
-                                 JsonUtil::Convert::wstring(*it));
-
-        bool changed = false;
-
-        rapidjson::Document::AllocatorType folder_allocator = folder.config.GetAllocator();
-
-        if (!folder.config["userscripts"].HasMember(rapidjson::Value(metadata["author"], folder_allocator)))
-        {
-          folder.config["userscripts"].AddMember(rapidjson::Value(metadata["author"], folder_allocator), rapidjson::Value(metadata["features"]["config"], folder_allocator), folder_allocator);
-          changed = true;
-        }
+          errors.push_back(std::string("Error parsing userscript: ") + GetParseError_En(ok.Code()) + " (" + std::to_string(ok.Offset()) + ")");
         else
         {
-          rapidjson::Value config_value;
-          folder.config["userscripts"][metadata["author"]] =
-              rapidjson::Value(TraverseCopy(folder.config["userscripts"][metadata["author"]], metadata["features"]["config"], folder_allocator, true, &changed), folder_allocator);
-        }
+          buffer.replace(match[0].first, match[0].second,
+                         "const metadata = _metadata;");
 
-        if (changed)
-        {
-          clog::info << "Changed" << clog::endl;
-          folder.save_config();
-        }
+          rapidjson::SchemaValidator validator(schema);
 
-        buffer.replace(match[0].first, match[0].second,
-                       "const metadata = _metadata;");
-
-        put.PushBack(metadata, allocator);
-
-        if (errors.size())
-        {
-          rapidjson::Value errors_array(rapidjson::kArrayType);
-
-          for (std::string error : errors)
+          if (!metadata.Accept(validator))
           {
-            clog::error << error << clog::endl;
-            errors_array.PushBack(rapidjson::Value(error.data(), error.size()), allocator);
+            // Input JSON is invalid according to the schema
+            // Output diagnostic information
+            rapidjson::StringBuffer sb;
+            validator.GetInvalidSchemaPointer().StringifyUriFragment(sb);
+            errors.push_back(std::string("Invalid schema: ") + sb.GetString());
+            errors.push_back(std::string("Invalid keyword: ") + validator.GetInvalidSchemaKeyword());
+            sb.Clear();
+            validator.GetInvalidDocumentPointer().StringifyUriFragment(sb);
+            errors.push_back(std::string("Invalid document: ") + sb.GetString());
           }
 
-          put.PushBack(errors_array, allocator);
+          // metadata = TraverseCopy(metadata, default_userscript, allocator);
+
+          if (metadata.HasMember("features"))
+          {
+            if (metadata["features"].HasMember("block_hosts"))
+              for (rapidjson::Value::ValueIterator it = metadata["features"]["block_hosts"].Begin(); it != metadata["features"]["block_hosts"].End(); ++it)
+                add_back<std::wstring>(additional_block_hosts,
+                                       JsonUtil::Convert::wstring(*it));
+
+            if (metadata["features"].HasMember("command_line"))
+              for (rapidjson::Value::ValueIterator it = metadata["features"]["command_line"].Begin(); it != metadata["features"]["command_line"].End(); ++it)
+                add_back<std::wstring>(additional_command_line,
+                                       JsonUtil::Convert::wstring(*it));
+
+            if (metadata["features"].HasMember("config"))
+            {
+              bool changed = false;
+
+              rapidjson::Document::AllocatorType folder_allocator = folder.config.GetAllocator();
+
+              if (!folder.config["userscripts"].HasMember(rapidjson::Value(metadata["author"], folder_allocator)))
+              {
+                folder.config["userscripts"].AddMember(rapidjson::Value(metadata["author"], folder_allocator), rapidjson::Value(metadata["features"]["config"], folder_allocator), folder_allocator);
+                changed = true;
+              }
+              else
+              {
+                rapidjson::Value config_value;
+                folder.config["userscripts"][metadata["author"]] =
+                    rapidjson::Value(TraverseCopy(folder.config["userscripts"][metadata["author"]], metadata["features"]["config"], folder_allocator, true, &changed), folder_allocator);
+              }
+
+              if (changed)
+              {
+                clog::info << "Changed" << clog::endl;
+                folder.save_config();
+              }
+            }
+          }
         }
+      }
+      else
+      {
+        errors.push_back("Failure reading userscript");
       }
 
       rapidjson::Value row(rapidjson::kArrayType);
       std::string name = Convert::string(it.file());
       row.PushBack(rapidjson::Value(name.data(), name.size(), allocator), allocator);
       row.PushBack(rapidjson::Value(buffer.data(), buffer.size(), allocator), allocator);
+      row.PushBack(rapidjson::Value(metadata, allocator), allocator);
+      rapidjson::Value errors_array(rapidjson::kArrayType);
+
+      for (std::string error : errors)
+      {
+        clog::error << error << clog::endl;
+        errors_array.PushBack(rapidjson::Value(error.data(), error.size(), allocator), allocator);
+      }
+
+      row.PushBack(errors_array, allocator);
       result.PushBack(row, allocator);
     }
   }

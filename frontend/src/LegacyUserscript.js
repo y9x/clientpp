@@ -1,5 +1,6 @@
-// Legacy IDKR userscript
-
+/**
+ * Legacy IDKR userscript
+ */
 import currentSite from "./Site";
 
 export default class Userscript {
@@ -13,7 +14,7 @@ export default class Userscript {
 
     return value;
   }
-  #run = () => {};
+  #run = () => { };
   name = "Unnamed userscript";
   version = "Unknown version";
   author = "Unknown author";
