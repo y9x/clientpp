@@ -18,13 +18,11 @@ JSMessage::JSMessage(unsigned short e, const rapidjson::Value &p) : args(p, allo
 
 JSMessage::JSMessage(const JSMessage &message) : event(message.event), args(message.args, allocator) {}
 
-JSMessage::JSMessage(LPWSTR raw) : args(rapidjson::kArrayType), event(BAD_EVENT)
+JSMessage::JSMessage(const std::string &raw) : args(rapidjson::kArrayType), event(BAD_EVENT)
 {
-  std::string str = ST::string(raw);
-
   rapidjson::Document document;
 
-  rapidjson::ParseResult ok = document.Parse(str.data(), str.size());
+  rapidjson::ParseResult ok = document.Parse(raw.data(), raw.size());
 
   if (!ok)
     clog::error << "Error parsing message: " << GetParseError_En(ok.Code()) << " (" << ok.Offset() << ")" << clog::endl;

@@ -442,12 +442,12 @@ void KrunkerWindow::register_events()
           [this](ICoreWebView2 *sender,
                  ICoreWebView2WebMessageReceivedEventArgs *args)
           {
-            LPWSTR mpt;
+            wil::unique_cotaskmem_string mpt;
             args->TryGetWebMessageAsString(&mpt);
             if (!mpt)
               return S_OK;
 
-            handle_message(mpt);
+            handle_message(ST::string(mpt.get()));
 
             return S_OK;
           })
@@ -509,10 +509,9 @@ void KrunkerWindow::register_events()
             [this](ICoreWebView2 *sender,
                    ICoreWebView2ContentLoadingEventArgs *args) -> HRESULT
             {
-              LPWSTR urip;
-              webview->get_Source(&urip);
-              UriW uri(urip);
-              CoTaskMemFree(urip);
+              wil::unique_cotaskmem_string urir;
+              webview->get_Source(&urir);
+              UriW uri(urir.get());
 
               if (uri.host() == L"krunker.io")
               {
@@ -558,10 +557,9 @@ void KrunkerWindow::register_events()
             BOOL success = true;
             args->get_IsSuccess(&success);
 
-            LPWSTR urip;
-            webview->get_Source(&urip);
-            CoTaskMemFree(urip);
-            std::string uri(ST::string(urip));
+            wil::unique_cotaskmem_string urir;
+            webview->get_Source(&urir);
+            std::string uri(ST::string(urir.get()));
 
             if (!success)
             {
@@ -609,17 +607,11 @@ void KrunkerWindow::register_events()
           [this](ICoreWebView2 *sender,
                  ICoreWebView2WebResourceRequestedEventArgs *args) -> HRESULT
           {
-            LPWSTR sender_uriptr;
-            sender->get_Source(&sender_uriptr);
-            CoTaskMemFree(sender_uriptr);
-
-            ICoreWebView2WebResourceRequest *request = 0;
+            wil::com_ptr<ICoreWebView2WebResourceRequest> request;
             args->get_Request(&request);
-            LPWSTR uriptr;
-            request->get_Uri(&uriptr);
-            UriW uri(uriptr);
-            CoTaskMemFree(uriptr);
-            request->Release();
+            wil::unique_cotaskmem_string urir;
+            request->get_Uri(&urir);
+            UriW uri(urir.get());
 
             if (uri.path() == L"/favicon.ico")
             {

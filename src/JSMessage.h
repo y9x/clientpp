@@ -16,7 +16,7 @@ public:
 	JSMessage(const JSMessage &message);
 	JSMessage(unsigned short event);
 	JSMessage(unsigned short event, const rapidjson::Value &args);
-	JSMessage(LPWSTR raw);
+	JSMessage(const std::string &raw);
 	JSMessage();
 	std::string dump();
 	bool send(wil::com_ptr<ICoreWebView2> target);
