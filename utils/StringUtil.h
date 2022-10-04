@@ -2,29 +2,26 @@
 #include <string>
 #include <vector>
 
-namespace StringUtil {
-namespace Convert {
-std::wstring wstring(std::string str);
+namespace StringUtil
+{
+    namespace Convert
+    {
+        std::wstring wstring(const std::string &str);
+        std::string string(const std::wstring &str);
+    }; // namespace Convert
 
-std::string string(std::wstring str);
-}; // namespace Convert
+    namespace Manipulate
+    {
+        std::string lowercase(const std::string &string);
+        std::wstring lowercase(const std::wstring &string);
 
-namespace Manipulate {
-std::string slice(std::string string, int start, int end);
-std::string slice(std::string string, int start);
+        std::string uppercase(const std::string &string);
+        std::wstring uppercase(const std::wstring &string);
 
-std::string lowercase(std::string string);
-std::string uppercase(std::string string);
+        std::string replace_all(std::string string, const std::string &from,
+                                const std::string &to);
+        std::wstring replace_all(std::wstring string, const std::wstring &from,
+                                 const std::wstring &to);
+    }; // namespace Manipulate
 
-std::string replace_all(std::string string, const std::string &from,
-                        const std::string &to);
-std::wstring replace_all(std::wstring string, const std::wstring &from,
-                         const std::wstring &to);
-
-std::vector<std::string> split(const std::string &str, char delim);
-}; // namespace Manipulate
-
-namespace Validate {
-bool Number(std::string str);
-}
 }; // namespace StringUtil
