@@ -1,5 +1,5 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
-#include <rapidjson/prettywriter.h>
+#include <rapidjson/writer.h>
 #include <sstream>
 #include <regex>
 #include <WebView2EnvironmentOptions.h>
@@ -523,7 +523,7 @@ void KrunkerWindow::register_events()
                 if (load_resource(JS_BOOTSTRAP, bootstrap))
                 {
                   rapidjson::StringBuffer buffer;
-                  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+                  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
                   rapidjson::Value(js_frontend.data(), js_frontend.size()).Accept(writer);
 
                   bootstrap = ST::replace_all(bootstrap, "$FRONTEND",
@@ -582,7 +582,7 @@ void KrunkerWindow::register_events()
                 data.PushBack(rapidjson::Value(href.data(), href.size()), allocator);
 
                 rapidjson::StringBuffer buffer;
-                rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+                rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
                 data.Accept(writer);
 
                 webview->Navigate(
