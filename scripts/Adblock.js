@@ -14,16 +14,13 @@ const metadata = {
 			"doubleclick.net",
 			"adinplay.com",
 			"syndication.twitter.com"
-		],
-		"libs": {
-			"utils": true
-		}
+		]
 	}
 };
 
-// destructure
-const { libs } = metadata.features;
+const style = document.createElement("style");
+style.textContent = "*[id*='aHider'] { display: none !IMPORTANT; }";
 
-libs.utils.add_ele("style", () => document.documentElement, {
-	textContent: "*[id*='aHider'] { display: none !IMPORTANT; }",
+document.addEventListener('DOMContentLoaded', () => {
+	document.documentElement.append(style);
 });
