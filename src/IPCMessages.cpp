@@ -138,13 +138,13 @@ void KrunkerWindow::handle_message(JSMessage msg)
     if (type != Type::Game)
       break;
     folder.config["render"]["fullscreen"] =
-        !folder.config["render"]["fullscreen"].GetBool();
+        rapidjson::Value(!folder.config["render"]["fullscreen"].GetBool());
     folder.save_config();
 
     {
       JSMessage msg(IM::update_menu);
 
-      msg.args.PushBack(folder.config, msg.allocator);
+      msg.args.PushBack(rapidjson::Value(folder.config, msg.allocator), msg.allocator);
 
       if (!msg.send(webview))
         clog::error << "Unable to send " << msg.dump() << clog::endl;
