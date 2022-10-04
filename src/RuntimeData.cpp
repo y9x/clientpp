@@ -148,10 +148,6 @@ rapidjson::Value KrunkerWindow::load_userscripts(rapidjson::MemoryPoolAllocator<
           }
         }
       }
-      else
-      {
-        errors.push_back("Failure reading userscript");
-      }
 
       rapidjson::Value row(rapidjson::kArrayType);
       std::string name = ST::string(it.file());
@@ -168,6 +164,10 @@ rapidjson::Value KrunkerWindow::load_userscripts(rapidjson::MemoryPoolAllocator<
 
       row.PushBack(errors_array, allocator);
       result.PushBack(row, allocator);
+    }
+    else
+    {
+      clog::error << "Failure reading userscript " << ST::string(it.path()) << clog::endl;
     }
   }
 

@@ -29,6 +29,7 @@ class IPC extends Events {
   constructor() {
     super();
   }
+  ongoing_posts = new Set();
   console = new IPCConsole(this);
   send(event, ...data) {
     if (typeof event !== "number")
@@ -37,11 +38,14 @@ class IPC extends Events {
     return true;
   }
   post(event, ...data) {
-    const id = ~~(Math.random() * 2147483647);
+    let id = 0xFF; // reserved
+
+    for (; id < 0xFFFF; id++) if (!this.ongoing_posts.has(id)) break;
 
     return new Promise((resolve, reject) => {
-      this.once(id, (data, error) => {
-        if (error) reject(error);
+      this.once(id, (data, err) => {
+        this.ongoing_posts.delete(id);
+        if (err) reject(err);
         else resolve(data);
       });
       this.send(event, id, ...data);

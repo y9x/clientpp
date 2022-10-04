@@ -58,8 +58,6 @@ export default function run_resources(menu) {
 
       // try{...}catch(err){...} doesnt provide: line, column
 
-      console.log("load", name);
-
       try {
         func(...Object.values(context));
 

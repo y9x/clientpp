@@ -4,15 +4,15 @@
 #include "../utils/StringUtil.h"
 #include "./Log.h"
 
-constexpr char BAD_EVENT = 0xFF;
+constexpr short BAD_EVENT = 0xFFFF;
 
 JSMessage::JSMessage() : args(rapidjson::kArrayType), event(BAD_EVENT) {}
 
 // JSMessage::JSMessage(rapidjson::Value a) : args(a, allocator) {  }
 
-JSMessage::JSMessage(unsigned char e) : args(rapidjson::kArrayType), event(e) {}
+JSMessage::JSMessage(unsigned short e) : args(rapidjson::kArrayType), event(e) {}
 
-JSMessage::JSMessage(unsigned char e, const rapidjson::Value &p) : args(p, allocator), event(e)
+JSMessage::JSMessage(unsigned short e, const rapidjson::Value &p) : args(p, allocator), event(e)
 {
 }
 
@@ -53,7 +53,7 @@ JSMessage::JSMessage(LPWSTR raw) : args(rapidjson::kArrayType), event(BAD_EVENT)
     return;
   }
 
-  event = static_cast<unsigned char>(e.GetUint());
+  event = static_cast<unsigned short>(e.GetUint());
 
   for (; it != document.End(); ++it)
   {

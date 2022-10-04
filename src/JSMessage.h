@@ -10,12 +10,12 @@ class JSMessage
 {
 public:
 	rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator;
-	char event;
+	unsigned short event;
 	// std::vector<rapidjson::Value> args;
 	rapidjson::Value args;
 	JSMessage(const JSMessage &message);
-	JSMessage(unsigned char event);
-	JSMessage(unsigned char event, const rapidjson::Value &args);
+	JSMessage(unsigned short event);
+	JSMessage(unsigned short event, const rapidjson::Value &args);
 	JSMessage(LPWSTR raw);
 	JSMessage();
 	std::string dump();

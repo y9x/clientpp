@@ -177,7 +177,7 @@ LRESULT KrunkerWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 Vector2 movebuffer;
 
-JSMessage msgFct(unsigned char event, std::vector<double> nums)
+JSMessage msgFct(unsigned short event, std::vector<double> nums)
 {
   JSMessage msg(event);
   for (double num : nums)

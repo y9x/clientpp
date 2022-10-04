@@ -1,8 +1,9 @@
-/*global loginAcc,logoutAcc,closWind*/
+/*global loginAcc,logoutAcc,closWind,showWindow,accName,accPass*/
 import utils from "./libs/Utils";
 import Control from "./libs/MenuUI/Control";
 import Events from "./libs/Events";
 import Hex3 from "./libs/Hex3";
+import console from "./Console";
 import { IM, ipc } from "./IPC";
 import { tick } from "./libs/MenuUI/Sound";
 import currentSite from "./Site";
@@ -134,37 +135,27 @@ class AccountTile {
   }
   edit() { }
   async click() {
-    const that = this;
-
     // this.window.hide();
 
     const password = await ipc.post(IM.account_password, this.username);
 
-    // MTZ client does this procedure
+    // ~~MTZ client does this procedure~~
+    // instead, we show the login GUI
+
     logoutAcc();
     closWind();
 
-    window.accName = { value: this.username };
-    window.accPass = { value: password };
-    window.accResp = {
-      set innerHTML(value) {
-        that.resp.node.innerHTML = value;
-        delete window.accResp;
-      },
-    };
-
-    loginAcc();
-
+    this.window.hide();
+    showWindow(5);
+    accName.value = this.username;
+    accPass.value = password;
     setTimeout(() => {
       loginAcc();
-      delete window.accName;
-      delete window.accPass;
-    }, 500);
+    }, 100);
   }
 }
 
 class Menu extends Events {
-  save_config() { }
   config = {};
   window = new HeaderWindow(this, "Accounts");
   async attach() {

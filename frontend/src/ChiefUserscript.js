@@ -6,8 +6,6 @@ export default function evalChiefUserscript(name, metadata, script, site, menu) 
   // utils.assign_type(template, metadata);
   // done in host c++
 
-  console.log(metadata);
-
   const libs = metadata.features?.libs;
 
   if (libs?.utils) metadata.features.libs.utils = utils;

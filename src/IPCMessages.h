@@ -2,12 +2,12 @@
 
 namespace LogType
 {
-    constexpr char info = 0, error = 1, warn = 2, debug = 3;
+    constexpr unsigned char info = 0, error = 1, warn = 2, debug = 3;
 };
 
 namespace IM
 {
-    constexpr char rpc_update = 0, rpc_clear = 1, rpc_init = 2, save_config = 3,
+    constexpr unsigned char rpc_update = 0, rpc_clear = 1, rpc_init = 2, save_config = 3,
                    shell_open = 4, fullscreen = 5, update_meta = 6, revert_meta = 7,
                    reload_config = 8, browse_file = 9, mousedown = 10, mouseup = 11,
                    mousemove = 12, mousewheel = 13, pointer = 14, open_devtools = 15,
