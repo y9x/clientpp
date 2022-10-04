@@ -72,10 +72,18 @@ void KrunkerWindow::handle_message(JSMessage msg)
   }
   break;
   case IM::relaunch_webview:
-    control->Close();
-    call_create_webview();
+  {
+    LPWSTR urip;
+    webview->get_Source(&urip);
 
-    break;
+    // copy memory
+    std::wstring uri(urip);
+
+    control->Close();
+    call_create_webview([this, uri]()
+                        { webview->Navigate(uri.c_str()); });
+  }
+  break;
   case IM::close_window:
     if (::IsWindow(m_hWnd))
       DestroyWindow();
