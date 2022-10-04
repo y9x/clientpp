@@ -1,14 +1,9 @@
 import { ipc } from "./IPC";
 import console from "./Console";
-import utils from "./libs/Utils";
 
 export default function evalChiefUserscript(name, metadata, script, site, menu) {
   // utils.assign_type(template, metadata);
   // done in host c++
-
-  const libs = metadata.features?.libs;
-
-  if (libs?.utils) metadata.features.libs.utils = utils;
 
   // returns false if the script failed to execute, otherwise true
   if (Array.isArray(metadata.locations) && !metadata.locations.some((s) => s === site || s === "all"))

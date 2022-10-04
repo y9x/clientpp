@@ -80,17 +80,6 @@
           },
           "additionalProperties": false
         },
-        "libs": {
-          "type": "object",
-          "description": "Built-in libraries to expose to the userscript",
-          "properties": {
-            "utils": {
-              "type": "boolean",
-              "description": "If metadata.features.libs.utils will be exposed"
-            }
-          },
-          "additionalProperties": false
-        },
         "config": {
           "description": "A JSON-serializable config. Changes will be reflected in metadata.config.",
           "additionalProperties": true
