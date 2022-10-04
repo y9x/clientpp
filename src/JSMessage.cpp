@@ -4,8 +4,6 @@
 #include "../utils/StringUtil.h"
 #include "./Log.h"
 
-using namespace StringUtil;
-
 constexpr char BAD_EVENT = 0xFF;
 
 JSMessage::JSMessage() : args(rapidjson::kArrayType), event(BAD_EVENT) {}
@@ -22,7 +20,7 @@ JSMessage::JSMessage(const JSMessage &message) : event(message.event), args(mess
 
 JSMessage::JSMessage(LPWSTR raw) : args(rapidjson::kArrayType), event(BAD_EVENT)
 {
-  std::string str = Convert::string(raw);
+  std::string str = ST::string(raw);
 
   rapidjson::Document document;
 
@@ -84,11 +82,11 @@ std::string JSMessage::dump()
 bool JSMessage::send(ICoreWebView2 *target)
 {
   return SUCCEEDED(
-      target->PostWebMessageAsJson(Convert::wstring(dump()).c_str()));
+      target->PostWebMessageAsJson(ST::wstring(dump()).c_str()));
 }
 
 bool JSMessage::send(wil::com_ptr<ICoreWebView2> target)
 {
   return SUCCEEDED(
-      target->PostWebMessageAsJson(Convert::wstring(dump()).c_str()));
+      target->PostWebMessageAsJson(ST::wstring(dump()).c_str()));
 }

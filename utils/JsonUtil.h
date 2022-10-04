@@ -3,13 +3,8 @@
 #include <vector>
 #include <rapidjson/fwd.h>
 
-namespace JsonUtil
+namespace JT
 {
-    namespace Convert
-    {
-        std::wstring wstring(const rapidjson::Value &str);
-
-        std::string string(const rapidjson::Value &str);
-    }; // namespace Convert
-
+    std::wstring wstring(const rapidjson::Value &str);
+    std::string string(const rapidjson::Value &str);
 }; // namespace StringUtil

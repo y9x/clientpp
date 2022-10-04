@@ -13,8 +13,6 @@
 #include "resource.h"
 #include <regex>
 
-using namespace StringUtil;
-
 // adds an element to the string vector if not present
 // returns false if the element is present, true if the element was pushed
 template <class Element>
@@ -116,12 +114,12 @@ rapidjson::Value KrunkerWindow::load_userscripts(rapidjson::MemoryPoolAllocator<
             if (metadata["features"].HasMember("block_hosts"))
               for (rapidjson::Value::ValueIterator it = metadata["features"]["block_hosts"].Begin(); it != metadata["features"]["block_hosts"].End(); ++it)
                 add_back<std::wstring>(additional_block_hosts,
-                                       JsonUtil::Convert::wstring(*it));
+                                       JT::wstring(*it));
 
             if (metadata["features"].HasMember("command_line"))
               for (rapidjson::Value::ValueIterator it = metadata["features"]["command_line"].Begin(); it != metadata["features"]["command_line"].End(); ++it)
                 add_back<std::wstring>(additional_command_line,
-                                       JsonUtil::Convert::wstring(*it));
+                                       JT::wstring(*it));
 
             if (metadata["features"].HasMember("config"))
             {
@@ -156,7 +154,7 @@ rapidjson::Value KrunkerWindow::load_userscripts(rapidjson::MemoryPoolAllocator<
       }
 
       rapidjson::Value row(rapidjson::kArrayType);
-      std::string name = Convert::string(it.file());
+      std::string name = ST::string(it.file());
       row.PushBack(rapidjson::Value(name.data(), name.size(), allocator), allocator);
       row.PushBack(rapidjson::Value(buffer.data(), buffer.size(), allocator), allocator);
       row.PushBack(rapidjson::Value(metadata, allocator), allocator);
@@ -189,7 +187,7 @@ rapidjson::Value KrunkerWindow::load_css(rapidjson::MemoryPoolAllocator<rapidjso
     if (IOUtil::read_file(it.path().c_str(), buffer))
     {
       rapidjson::Value row(rapidjson::kArrayType);
-      std::string name = Convert::string(it.file());
+      std::string name = ST::string(it.file());
       row.PushBack(rapidjson::Value(name.data(), name.size(), allocator), allocator);
       row.PushBack(rapidjson::Value(buffer.data(), buffer.size(), allocator), allocator);
       result.PushBack(row, allocator);

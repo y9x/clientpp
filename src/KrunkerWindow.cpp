@@ -12,7 +12,6 @@
 #include "./Log.h"
 #include "./resource.h"
 
-using namespace StringUtil;
 using Microsoft::WRL::Callback;
 using Microsoft::WRL::Make;
 
@@ -296,10 +295,10 @@ std::wstring KrunkerWindow::cmdline()
 
   if (folder.config["render"]["angle"] != "default")
     cmds.push_back(L"--use-angle=" +
-                   JsonUtil::Convert::wstring(folder.config["render"]["angle"]));
+                   JT::wstring(folder.config["render"]["angle"]));
   if (folder.config["render"]["color"] != "default")
     cmds.push_back(L"--force-color-profile=" +
-                   JsonUtil::Convert::wstring(folder.config["render"]["color"]));
+                   JT::wstring(folder.config["render"]["color"]));
 
   std::wstring cmdline;
   bool first = false;
@@ -527,12 +526,12 @@ void KrunkerWindow::register_events()
                   rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
                   rapidjson::Value(js_frontend.data(), js_frontend.size()).Accept(writer);
 
-                  bootstrap = Manipulate::replace_all(bootstrap, "$FRONTEND",
-                                                      {buffer.GetString(), buffer.GetSize()});
-                  bootstrap = Manipulate::replace_all(bootstrap, "$RUNTIME",
-                                                      runtime_data());
+                  bootstrap = ST::replace_all(bootstrap, "$FRONTEND",
+                                              {buffer.GetString(), buffer.GetSize()});
+                  bootstrap = ST::replace_all(bootstrap, "$RUNTIME",
+                                              runtime_data());
 
-                  webview->ExecuteScript(Convert::wstring(bootstrap).c_str(),
+                  webview->ExecuteScript(ST::wstring(bootstrap).c_str(),
                                          nullptr);
                 }
                 else
@@ -576,7 +575,7 @@ void KrunkerWindow::register_events()
                 rapidjson::Document data(rapidjson::kArrayType);
                 rapidjson::Document::AllocatorType allocator = data.GetAllocator();
                 std::string name = status_name(status);
-                std::string href = Convert::string(uri.href);
+                std::string href = ST::string(uri.href);
 
                 data.PushBack(rapidjson::Value(status), allocator);
                 data.PushBack(rapidjson::Value(name.data(), name.size()), allocator);
@@ -588,7 +587,7 @@ void KrunkerWindow::register_events()
 
                 webview->Navigate(
                     (L"https://chief/error?data=" +
-                     encodeURIComponent(Convert::wstring({ buffer.GetString(), buffer.GetSize() })))
+                     encodeURIComponent(ST::wstring({ buffer.GetString(), buffer.GetSize() })))
                         .c_str()); });
             }
 
@@ -634,7 +633,7 @@ void KrunkerWindow::register_events()
 
               if (IOUtil::file_exists(swap))
               {
-                clog::info << "Swapping " << Convert::string(pathname)
+                clog::info << "Swapping " << ST::string(pathname)
                            << clog::endl;
                 // Create an empty IStream:
                 IStream *stream;
@@ -656,7 +655,7 @@ void KrunkerWindow::register_events()
                 }
                 else
                   clog::error << "Unable to create IStream for file: "
-                              << Convert::string(swap) << clog::endl;
+                              << ST::string(swap) << clog::endl;
               }
             }
             else
@@ -682,7 +681,7 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow,
   bool was_open = open;
 
   if (folder.config["window"]["meta"]["replace"].GetBool())
-    title = JsonUtil::Convert::wstring(folder.config["window"]["meta"]["title"]);
+    title = JT::wstring(folder.config["window"]["meta"]["title"]);
 
   create_window(inst, cmdshow);
 
@@ -696,7 +695,7 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow,
     SetIcon((HICON)LoadImage(
         inst,
         folder
-            .resolve_path(JsonUtil::Convert::wstring(
+            .resolve_path(JT::wstring(
                 folder.config["window"]["meta"]["icon"]))
             .c_str(),
         IMAGE_ICON, 32, 32, LR_LOADFROMFILE));

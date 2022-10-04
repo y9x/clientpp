@@ -11,8 +11,6 @@
 #include <ShlObj_core.h>
 #include <Windows.h>
 
-using namespace StringUtil;
-
 // true if the result of CreateDirectory is nonzero or if GetLastError equals
 // ERROR_ALREADY_EXISTS, otherwise false
 bool OVR(int result)
@@ -70,7 +68,7 @@ bool ClientFolder::create_directory(std::wstring directory)
 
   if (result)
   {
-    clog::info << "Created " << Convert::string(directory) << clog::endl;
+    clog::info << "Created " << ST::string(directory) << clog::endl;
     return true;
   }
   else
@@ -81,7 +79,7 @@ bool ClientFolder::create_directory(std::wstring directory)
       return true;
     else
     {
-      clog::error << "Unable to create " << Convert::string(directory)
+      clog::error << "Unable to create " << ST::string(directory)
                   << ", GetLastError() was " << last_error << clog::endl;
       return false;
     }
@@ -93,7 +91,7 @@ std::wstring ClientFolder::resolve_path(std::wstring file)
 {
   std::wstring joined = directory + L"\\" + file;
 
-  // default_config["window"]["meta"]["icon"] = Convert::string(directory +
+  // default_config["window"]["meta"]["icon"] = ST::string(directory +
   // p_krunker);
 
   FILE *f = _wfopen(joined.c_str(), L"r");
@@ -109,7 +107,7 @@ std::wstring ClientFolder::resolve_path(std::wstring file)
 
 std::wstring ClientFolder::relative_path(std::wstring path)
 {
-  return Manipulate::replace_all(path, directory + L"\\", L"");
+  return ST::replace_all(path, directory + L"\\", L"");
 }
 
 bool ClientFolder::create()
@@ -131,10 +129,10 @@ bool ClientFolder::create()
   if (create_directory(directory))
   {
     if (write_resource(directory + p_chief, ICON_CHIEF))
-      clog::info << "Created " << Convert::string(directory + p_chief)
+      clog::info << "Created " << ST::string(directory + p_chief)
                  << clog::endl;
     if (write_resource(directory + p_krunker, ICON_KRUNKER))
-      clog::info << "Created " << Convert::string(directory + p_krunker)
+      clog::info << "Created " << ST::string(directory + p_krunker)
                  << clog::endl;
 
     for (std::wstring sdir : directories)

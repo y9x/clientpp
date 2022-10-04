@@ -6,18 +6,15 @@
 #include <string>
 #include <vector>
 
-namespace JsonUtil
+namespace JT
 {
-    namespace Convert
+    std::wstring wstring(const rapidjson::Value &str)
     {
-        std::wstring wstring(const rapidjson::Value &str)
-        {
-            return StringUtil::Convert::wstring(string(str));
-        }
+        return ST::wstring(string(str));
+    }
 
-        std::string string(const rapidjson::Value &str)
-        {
-            return std::string(str.GetString(), str.GetStringLength());
-        }
-    }; // namespace Convert
-};     // namespace JsonUtil
+    std::string string(const rapidjson::Value &str)
+    {
+        return std::string(str.GetString(), str.GetStringLength());
+    }
+}; // namespace JT

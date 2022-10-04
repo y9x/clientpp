@@ -8,8 +8,6 @@
 #include <commdlg.h>
 #include <shellapi.h>
 
-using namespace StringUtil;
-
 void KrunkerWindow::handle_message(JSMessage msg)
 {
   switch (msg.event)
@@ -39,7 +37,7 @@ void KrunkerWindow::handle_message(JSMessage msg)
     else if (msg.args[0] == "swapper")
       open = folder.directory + folder.p_swapper;
     else if (msg.args[0] == "url")
-      open = JsonUtil::Convert::wstring(msg.args[1]);
+      open = JT::wstring(msg.args[1]);
 
     ShellExecute(m_hWnd, L"open", open.c_str(), L"", L"", SW_SHOW);
   }
@@ -54,7 +52,7 @@ void KrunkerWindow::handle_message(JSMessage msg)
     break;
   case IM::log:
   {
-    std::string log = JsonUtil::Convert::string(msg.args[1]);
+    std::string log = JT::string(msg.args[1]);
 
     switch (msg.args[0].GetInt())
     {
@@ -99,7 +97,7 @@ void KrunkerWindow::handle_message(JSMessage msg)
 
             for (size_t mi = 0; mi < LobbySeeker::modes.size(); mi++)
               if (LobbySeeker::modes[mi] ==
-                  JsonUtil::Convert::string(folder.config["game"]["seek"]["mode"]))
+                  JT::string(folder.config["game"]["seek"]["mode"]))
               {
                 seeker.mode = mi;
               }
@@ -112,7 +110,7 @@ void KrunkerWindow::handle_message(JSMessage msg)
 
             seeker.customs = folder.config["game"]["seek"]["customs"].GetBool();
             seeker.map =
-                Manipulate::lowercase(JsonUtil::Convert::string(folder.config["game"]["seek"]["map"]));
+                ST::lowercase(JT::string(folder.config["game"]["seek"]["map"]));
 
             if (seeker.map.length())
               seeker.use_map = true;
@@ -120,12 +118,12 @@ void KrunkerWindow::handle_message(JSMessage msg)
             std::string url = seeker.seek();
 
             mtx.lock();
-            pending_navigations.push_back(Convert::wstring(url));
+            pending_navigations.push_back(ST::wstring(url));
             mtx.unlock();
 
             seeking = false;
           },
-          JsonUtil::Convert::string(msg.args[0]));
+          JT::string(msg.args[0]));
 
     break;
   case IM::toggle_fullscreen:
@@ -150,12 +148,12 @@ void KrunkerWindow::handle_message(JSMessage msg)
       exit_fullscreen();
     break;
   case IM::update_meta:
-    title = JsonUtil::Convert::wstring(
+    title = JT::wstring(
         folder.config["window"]["meta"]["title"]);
     SetIcon((HICON)LoadImage(
         get_hinstance(),
         folder
-            .resolve_path(JsonUtil::Convert::wstring(
+            .resolve_path(JT::wstring(
                 folder.config["window"]["meta"]["icon"]))
             .c_str(),
         IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
@@ -183,13 +181,13 @@ void KrunkerWindow::handle_message(JSMessage msg)
           ZeroMemory(&ofn, sizeof(ofn));
           ofn.lStructSize = sizeof(ofn);
           ofn.hwndOwner = m_hWnd;
-          std::wstring title = JsonUtil::Convert::wstring(msg.args[1]);
+          std::wstring title = JT::wstring(msg.args[1]);
           std::wstring filters;
 
           for (rapidjson::Value::ValueIterator it = msg.args[2].Begin(); it != msg.args[2].End(); ++it)
           {
-            std::wstring wlabel = JsonUtil::Convert::wstring((*it)[0]);
-            std::wstring wfilter = JsonUtil::Convert::wstring((*it)[1]);
+            std::wstring wlabel = JT::wstring((*it)[0]);
+            std::wstring wfilter = JT::wstring((*it)[1]);
 
             wlabel += L" (" + wfilter + L")";
 
@@ -217,7 +215,7 @@ void KrunkerWindow::handle_message(JSMessage msg)
             fn = filename;
 
             // make relative
-            std::string rel = Convert::string(folder.relative_path(fn));
+            std::string rel = ST::string(folder.relative_path(fn));
             res.args.PushBack(rapidjson::Value(rel.data(), rel.size(), res.allocator), res.allocator);
             res.args.PushBack(rapidjson::Value(false), res.allocator);
           }

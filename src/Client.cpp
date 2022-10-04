@@ -8,7 +8,6 @@
 #include "../utils/StringUtil.h"
 #include "./Log.h"
 
-using namespace StringUtil;
 using Microsoft::WRL::Callback;
 
 namespace krunker
@@ -154,9 +153,9 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
 
       int64_t start = msg.args[0].GetInt64();
 
-      std::string user = JsonUtil::Convert::string(msg.args[1]);
-      std::string map = JsonUtil::Convert::string(msg.args[2]);
-      std::string mode = JsonUtil::Convert::string(msg.args[3]);
+      std::string user = JT::string(msg.args[1]);
+      std::string map = JT::string(msg.args[2]);
+      std::string mode = JT::string(msg.args[3]);
 
       presence.startTimestamp = start;
       presence.largeImageKey = "icon";
@@ -177,7 +176,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
   {
     JSMessage res(msg.args[0].GetInt());
     std::string dec;
-    std::string account_name = JsonUtil::Convert::string(msg.args[1]);
+    std::string account_name = JT::string(msg.args[1]);
 
     if (!accounts.data.contains(account_name))
     {
@@ -201,7 +200,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
   case IM::account_remove:
   {
 
-    accounts.data.erase(JsonUtil::Convert::string(msg.args[0]));
+    accounts.data.erase(JT::string(msg.args[0]));
     accounts.save();
 
     JSMessage res(IM::account_regen);
@@ -213,9 +212,9 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
   case IM::account_set:
   {
 
-    std::string name = JsonUtil::Convert::string(msg.args[0]);
+    std::string name = JT::string(msg.args[0]);
     Account &account = accounts.data[name];
-    account.color = JsonUtil::Convert::string(msg.args[1]);
+    account.color = JT::string(msg.args[1]);
     account.order = msg.args[2].GetInt();
     accounts.save();
 
@@ -230,13 +229,13 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
   {
 
     std::string enc;
-    if (accounts.encrypt(JsonUtil::Convert::string(msg.args[1]), enc))
+    if (accounts.encrypt(JT::string(msg.args[1]), enc))
     {
       Account account;
-      account.color = JsonUtil::Convert::string(msg.args[2]);
+      account.color = JT::string(msg.args[2]);
       account.order = msg.args[3].GetInt();
       account.password = enc;
-      accounts.data[JsonUtil::Convert::string(msg.args[0])] = account;
+      accounts.data[JT::string(msg.args[0])] = account;
 
       accounts.save();
 
@@ -373,7 +372,7 @@ bool Client::create()
   if (!SUCCEEDED(coinit))
     MessageBox(NULL,
                (L"COM could not be initialized. CoInitialize returned " +
-                Convert::wstring(std::to_string(coinit)))
+                ST::wstring(std::to_string(coinit)))
                    .c_str(),
                title, MB_OK);
 
@@ -453,7 +452,7 @@ bool Client::create()
     if (updater.UpdatesAvailable(serving) &&
         MessageBox(game.m_hWnd, L"A new client update is available. Download?",
                    title, MB_YESNO) == IDYES) {
-      ShellExecute(game.m_hWnd, L"open", Convert::wstring(serving.url).c_str(),
+      ShellExecute(game.m_hWnd, L"open", ST::wstring(serving.url).c_str(),
                    L"", L"", SW_SHOW);
       exit(EXIT_SUCCESS);
     } });
