@@ -658,16 +658,13 @@ void KrunkerWindow::register_events()
                               << ST::string(swap) << clog::endl;
               }
             }
-            else
-              for (std::wstring test : additional_block_hosts)
-                if (uri.host_owns(test))
-                {
-                  wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-                  env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"",
-                                                 &response);
-                  args->put_Response(response.get());
-                  break;
-                }
+            else if (block_uri(uri))
+            {
+              wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+              env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"",
+                                             &response);
+              args->put_Response(response.get());
+            }
 
             return S_OK;
           })

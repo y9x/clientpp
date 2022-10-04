@@ -4,7 +4,9 @@
 #include "./IPCMessages.h"
 #include "./JSMessage.h"
 #include "./Points.h"
+#include "../utils/Uri.h"
 #include <WebView2.h>
+#include <regex>
 #include <atlbase.h>
 #include <atlenc.h>
 #include <atlwin.h>
@@ -46,7 +48,8 @@ private:
   std::function<void()> on_webview2_startup;
   std::function<void()> on_destroy_callback;
   std::vector<std::wstring> additional_command_line;
-  std::vector<std::wstring> additional_block_hosts;
+  std::vector<std::wregex> additional_block_patterns;
+  bool block_uri(const Uri &uri);
   std::vector<std::wstring> pending_navigations;
   std::vector<JSMessage> pending_messages;
   std::wstring og_title;

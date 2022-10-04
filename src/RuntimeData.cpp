@@ -13,19 +13,6 @@
 #include "resource.h"
 #include <regex>
 
-// adds an element to the string vector if not present
-// returns false if the element is present, true if the element was pushed
-template <class Element>
-bool add_back(std::vector<Element> &vector, Element element)
-{
-  for (Element search : vector)
-    if (search == element)
-      return false;
-
-  vector.push_back(element);
-  return true;
-}
-
 std::regex meta_const(R"(const metadata\s*=\s*(\{[\s\S]+?\});)");
 
 std::regex meta_comment(R"(\/{2}.*?\n|$|\/\*[\s\S]*?\*\/)");
@@ -40,9 +27,19 @@ void KrunkerWindow::load_userscripts()
   load_userscripts(document.GetAllocator());
 }
 
-rapidjson::Value KrunkerWindow::load_userscripts(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator)
+bool KrunkerWindow::block_uri(const Uri &uri)
 {
-  additional_block_hosts.clear();
+  for (const std::wregex &pattern : additional_block_patterns)
+    if (std::wregex_match(uri.href, pattern))
+      return true;
+
+  return false;
+}
+
+rapidjson::Value
+KrunkerWindow::load_userscripts(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator)
+{
+  additional_block_patterns.clear();
   additional_command_line.clear();
 
   rapidjson::Value result(rapidjson::kArrayType);
@@ -107,19 +104,15 @@ rapidjson::Value KrunkerWindow::load_userscripts(rapidjson::MemoryPoolAllocator<
             errors.push_back(std::string("Invalid document: ") + sb.GetString());
           }
 
-          // metadata = TraverseCopy(metadata, default_userscript, allocator);
-
           if (metadata.HasMember("features"))
           {
             if (metadata["features"].HasMember("block_hosts"))
               for (rapidjson::Value::ValueIterator it = metadata["features"]["block_hosts"].Begin(); it != metadata["features"]["block_hosts"].End(); ++it)
-                add_back<std::wstring>(additional_block_hosts,
-                                       JT::wstring(*it));
+                additional_block_patterns.push_back(std::wregex(JT::wstring(*it)));
 
             if (metadata["features"].HasMember("command_line"))
               for (rapidjson::Value::ValueIterator it = metadata["features"]["command_line"].Begin(); it != metadata["features"]["command_line"].End(); ++it)
-                add_back<std::wstring>(additional_command_line,
-                                       JT::wstring(*it));
+                additional_command_line.push_back(JT::wstring(*it));
 
             if (metadata["features"].HasMember("config"))
             {

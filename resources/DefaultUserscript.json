@@ -33,12 +33,9 @@
       "type": "object",
       "description": "APIs to configure/provide to the script",
       "properties": {
-        "block_hosts": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "description": "Apex record/subdomain to match. All subdomains of the hostname will be matched."
-          }
+        "block": {
+          "type": "string",
+          "description": "Regex pattern to match against a full URL to determine if the URL will be blocked."
         },
         "command_line": {
           "type": "array",
