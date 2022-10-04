@@ -11,7 +11,6 @@
 #include "LoadRes.h"
 #include "Log.h"
 #include "resource.h"
-#include <regex>
 
 std::regex meta_const(R"(const metadata\s*=\s*(\{[\s\S]+?\});)");
 
@@ -27,10 +26,10 @@ void KrunkerWindow::load_userscripts()
   load_userscripts(document.GetAllocator());
 }
 
-bool KrunkerWindow::block_uri(const Uri &uri)
+bool KrunkerWindow::block_uri(const std::wstring &uri)
 {
   for (const std::wregex &pattern : additional_block_patterns)
-    if (std::wregex_match(uri.href, pattern))
+    if (std::regex_match(uri, pattern))
       return true;
 
   return false;

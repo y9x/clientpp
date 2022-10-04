@@ -8,7 +8,8 @@
 #include <discord_register.h>
 #include <discord_rpc.h>
 
-class Client {
+class Client
+{
 private:
   static const char *version;
   static const char *discord_rpc;
@@ -29,7 +30,7 @@ private:
   void rpc_loading();
   void install_runtimes();
   bool on_message(JSMessage msg, KrunkerWindow &window);
-  bool navigation_cancelled(ICoreWebView2 *sender, Uri uri);
+  bool navigation_cancelled(ICoreWebView2 *sender, UriW uri);
   void listen_navigation(KrunkerWindow &window);
 
 public:

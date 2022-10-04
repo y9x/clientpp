@@ -7,3 +7,6 @@
 [submodule "discord-rpc"]
 	path = discord-rpc
 	url = https://github.com/discord/discord-rpc.git
+[submodule "uriparser"]
+	path = uriparser
+	url = https://github.com/uriparser/uriparser.git

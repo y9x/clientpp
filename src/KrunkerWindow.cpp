@@ -3,10 +3,10 @@
 #include <sstream>
 #include <regex>
 #include <WebView2EnvironmentOptions.h>
+#include "../utils/Uri.h"
 #include "../utils/Base64.h"
 #include "../utils/StringUtil.h"
 #include "../utils/JsonUtil.h"
-#include "../utils/Uri.h"
 #include "./KrunkerWindow.h"
 #include "./LoadRes.h"
 #include "./Log.h"
@@ -14,6 +14,11 @@
 
 using Microsoft::WRL::Callback;
 using Microsoft::WRL::Make;
+
+bool host_is_krunker(std::wstring host)
+{
+  return host == L"krunker.io" || host.ends_with(L".krunker.io");
+}
 
 long long KrunkerWindow::now()
 {
@@ -506,9 +511,10 @@ void KrunkerWindow::register_events()
             {
               LPWSTR urip;
               webview->get_Source(&urip);
-              Uri uri(urip);
+              UriW uri(urip);
+              CoTaskMemFree(urip);
 
-              if (uri.host_owns(L"krunker.io"))
+              if (uri.host() == L"krunker.io")
               {
                 std::string js_frontend =
                     "throw Error('Failure loading frontend');";
@@ -554,7 +560,8 @@ void KrunkerWindow::register_events()
 
             LPWSTR urip;
             webview->get_Source(&urip);
-            Uri uri(urip);
+            CoTaskMemFree(urip);
+            std::string uri(ST::string(urip));
 
             if (!success)
             {
@@ -564,7 +571,9 @@ void KrunkerWindow::register_events()
               if (status ==
                   COREWEBVIEW2_WEB_ERROR_STATUS::
                       COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_ABORTED)
+              {
                 return S_OK;
+              }
 
               // renderer freezes when navigating from an error page that occurs
               // on startup
@@ -575,11 +584,10 @@ void KrunkerWindow::register_events()
                 rapidjson::Document data(rapidjson::kArrayType);
                 rapidjson::Document::AllocatorType allocator = data.GetAllocator();
                 std::string name = status_name(status);
-                std::string href = ST::string(uri.href);
-
+               
                 data.PushBack(rapidjson::Value(status), allocator);
                 data.PushBack(rapidjson::Value(name.data(), name.size()), allocator);
-                data.PushBack(rapidjson::Value(href.data(), href.size()), allocator);
+                data.PushBack(rapidjson::Value(uri.data(), uri.size()), allocator);
 
                 rapidjson::StringBuffer buffer;
                 rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -603,16 +611,17 @@ void KrunkerWindow::register_events()
           {
             LPWSTR sender_uriptr;
             sender->get_Source(&sender_uriptr);
+            CoTaskMemFree(sender_uriptr);
 
             ICoreWebView2WebResourceRequest *request = 0;
             args->get_Request(&request);
             LPWSTR uriptr;
             request->get_Uri(&uriptr);
-            Uri uri(uriptr);
+            UriW uri(uriptr);
+            CoTaskMemFree(uriptr);
             request->Release();
-            std::wstring pathname = uri.pathname();
 
-            if (pathname == L"/favicon.ico")
+            if (uri.path() == L"/favicon.ico")
             {
               wil::com_ptr<ICoreWebView2WebResourceResponse> response;
               env->CreateWebResourceResponse(nullptr, 403, L"Unused", L"",
@@ -621,19 +630,19 @@ void KrunkerWindow::register_events()
             }
             else if (uri.host() == L"chief")
             {
-              if (pathname == L"/error")
+              if (uri.path() == L"/error")
                 send_resource(args, HTML_ERROR, L"text/html");
-              else if (pathname == L"/GameFont.ttf")
+              else if (uri.path() == L"/GameFont.ttf")
                 send_resource(args, FONT_GAME, L"font/ttf");
             }
-            else if (uri.host_owns(L"krunker.io"))
+            else if (host_is_krunker(uri.host()))
             {
               std::wstring swap =
-                  folder.directory + folder.p_swapper + pathname;
+                  folder.directory + folder.p_swapper + uri.path();
 
               if (IOUtil::file_exists(swap))
               {
-                clog::info << "Swapping " << ST::string(pathname)
+                clog::info << "Swapping " << ST::string(uri.path())
                            << clog::endl;
                 // Create an empty IStream:
                 IStream *stream;
@@ -658,7 +667,7 @@ void KrunkerWindow::register_events()
                               << ST::string(swap) << clog::endl;
               }
             }
-            else if (block_uri(uri))
+            else if (block_uri(uri.toString()))
             {
               wil::com_ptr<ICoreWebView2WebResourceResponse> response;
               env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"",

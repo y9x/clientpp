@@ -26,35 +26,35 @@ const char *Client::version = CLIENT_VERSION_STRING;
 const char *Client::discord_rpc = "899137303182716968";
 const wchar_t *Client::title = L"Chief Client++";
 
-bool Client::navigation_cancelled(ICoreWebView2 *sender, Uri uri)
+bool Client::navigation_cancelled(ICoreWebView2 *sender, UriW uri)
 {
   if (uri.host() == L"chief")
     return false;
 
-  bool kru_owns = uri.host_owns(L"krunker.io");
+  bool kru_owns = host_is_krunker(uri.host());
   bool cancel = false;
-  std::wstring pathname = uri.pathname();
 
   KrunkerWindow *send = nullptr;
 
   if (kru_owns)
   {
-    if (uri.host_owns(L"docs.krunker.io") ||
-        pathname.starts_with(krunker::docs))
+    if (uri.host() == L"docs.krunker.io" ||
+        uri.path().starts_with(krunker::docs))
       send = &documents;
-    else if (pathname == krunker::game || pathname.starts_with(krunker::games))
+    else if (uri.path() == krunker::game || uri.path().starts_with(krunker::games))
       send = &game;
-    else if (pathname == krunker::social)
+    else if (uri.path() == krunker::social)
       send = &social;
-    else if (pathname == krunker::editor)
+    else if (uri.path() == krunker::editor)
       send = &editor;
-    else if (pathname == krunker::scripting)
+    else if (uri.path() == krunker::scripting)
       send = &scripting;
   }
   if (!send)
   {
     cancel = true;
-    ShellExecute(NULL, L"open", uri.href.c_str(), L"", L"", SW_SHOW);
+    std::wstring uristr = uri.toString();
+    ShellExecute(NULL, L"open", uristr.c_str(), L"", L"", SW_SHOW);
   }
 
   // if send->webview exists
@@ -65,7 +65,8 @@ bool Client::navigation_cancelled(ICoreWebView2 *sender, Uri uri)
               {
       if (newly_created)
         listen_navigation(*send);
-      send->webview->Navigate(uri.href.c_str());
+      std::wstring uristr = uri.toString();
+      send->webview->Navigate(uristr.c_str());
       send->BringWindowToTop(); });
   }
 
@@ -81,14 +82,15 @@ void Client::listen_navigation(KrunkerWindow &window)
           [this](ICoreWebView2 *sender,
                  ICoreWebView2NewWindowRequestedEventArgs *args) -> HRESULT
           {
-            LPWSTR urip;
-            args->get_Uri(&urip);
-            if (navigation_cancelled(sender, urip)) /* TODO: SET OPENER */
+            wil::unique_cotaskmem_string uri;
+            args->get_Uri(&uri);
+
+            if (navigation_cancelled(sender, UriW(uri.get()))) /* TODO: SET OPENER */
               args->put_Handled(true);
             else
             {
               args->put_Handled(true);
-              sender->Navigate(urip);
+              sender->Navigate(uri.get());
             }
 
             return S_OK;
@@ -101,9 +103,9 @@ void Client::listen_navigation(KrunkerWindow &window)
           [this](ICoreWebView2 *sender,
                  ICoreWebView2NavigationStartingEventArgs *args) -> HRESULT
           {
-            LPWSTR urip;
-            args->get_Uri(&urip);
-            if (navigation_cancelled(sender, urip))
+            wil::unique_cotaskmem_string uri;
+            args->get_Uri(&uri);
+            if (navigation_cancelled(sender, UriW(uri.get())))
               args->put_Cancel(true);
 
             return S_OK;

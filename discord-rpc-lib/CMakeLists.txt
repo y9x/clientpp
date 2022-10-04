@@ -1,3 +1,5 @@
+set(USE_STATIC_CRT ON)
+
 include_directories(${DISCORD_RPC}/include)
 
 option(ENABLE_IO_THREAD "Start up a separate I/O thread, otherwise I'd need to call an update function" ON)

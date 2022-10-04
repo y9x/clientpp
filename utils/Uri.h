@@ -1,20 +1,44 @@
-#pragma once
+#include <uriparser/Uri.h>
 #include <string>
 
-// WebView2 Uri Interface
-class Uri {
+class UriA
+{
 private:
+    std::string uri;
+    UriUriA uriParse;
+    bool isValid_;
+
 public:
-  Uri(std::wstring u);
-  Uri(const wchar_t *u);
-  std::wstring protocol();
-  std::wstring host(bool remove_www = false);
-  std::wstring origin();
-  std::wstring path();
-  std::wstring search();
-  std::wstring pathname();
-  std::wstring href;
-  bool host_owns(std::wstring match);
+    UriA(const std::string &uri);
+    ~UriA();
+    bool isValid() const;
+    std::string scheme() const;
+    std::string host() const;
+    std::string port() const;
+    std::string path() const;
+    std::string query() const;
+    std::string fragment() const;
+    std::string toString() const;
+    operator std::string() const;
 };
 
-// using SearchParams = std::map<std::wstring, std::wstring>
+class UriW
+{
+private:
+    std::wstring uri;
+    UriUriW uriParse;
+    bool isValid_;
+
+public:
+    UriW(const std::wstring &uri);
+    ~UriW();
+    bool isValid() const;
+    std::wstring scheme() const;
+    std::wstring host() const;
+    std::wstring port() const;
+    std::wstring path() const;
+    std::wstring query() const;
+    std::wstring fragment() const;
+    std::wstring toString() const;
+    operator std::wstring() const;
+};
