@@ -1,5 +1,3 @@
-'use strict';
-
 const metadata = {
 	"name": "Sky Color",
 	"author": "Chief Software",

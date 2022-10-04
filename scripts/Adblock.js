@@ -1,5 +1,3 @@
-'use strict';
-
 const metadata = {
 	"name": "Adblock",
 	"author": "Chief Software",
