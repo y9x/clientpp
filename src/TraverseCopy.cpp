@@ -4,27 +4,15 @@
 #include "./TraverseCopy.h"
 #include "./Log.h"
 
-std::string dumpJson(const rapidjson::Value &value)
-{
-  rapidjson::Document doc;
-  doc.CopyFrom(value, doc.GetAllocator());
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer>
-      writer(buffer);
-  doc.Accept(writer);
-  return {buffer.GetString(), buffer.GetSize()};
-}
-
 rapidjson::Value TraverseCopy(rapidjson::Value &value, rapidjson::Value &match, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator, bool allow_new_props, bool *changed)
 {
   rapidjson::Value result;
 
-  if (value.GetType() != match.GetType())
+  // there is only a true or false type, no bool
+  if (value.IsBool() != match.IsBool() && value.GetType() != match.GetType())
   {
     if (changed)
       *changed = true;
-
-    std::cout << dumpJson(value) << " did not eq " << dumpJson(match) << std::endl;
 
     result.CopyFrom(match, allocator);
   }
