@@ -28,18 +28,19 @@ const metadata = {
 	}
 };
 
-var color,
-	{ config } = metadata.features;
+let color;
+const { config } = metadata.features;
 
-Object.defineProperty(Object.prototype, 'skyCol', {
+Object.defineProperty(Object.prototype, "skyCol", {
 	get(){
-		if(config.skycolor.enabled)return config.skycolor.color;
+		if (config.skycolor.enabled)
+			return config.skycolor.color;
 	},
 	set(value){
-		return color = value;
+		color = value;
 	},
 });
 
 export function skycolor_change(value, init){
-	if(!init)location.reload();
+	if (!init) location.reload();
 }

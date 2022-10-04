@@ -24,6 +24,6 @@ const metadata = {
 // destructure
 const { libs } = metadata.features;
 
-libs.utils.add_ele('style', () => document.documentElement, {
-	textContent: `*[id*='aHider'] { display: none !IMPORTANT; }`,
+libs.utils.add_ele("style", () => document.documentElement, {
+	textContent: "*[id*='aHider'] { display: none !IMPORTANT; }",
 });
