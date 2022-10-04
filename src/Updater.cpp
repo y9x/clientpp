@@ -1,4 +1,3 @@
-#define CPPHTTPLIB_OPENSSL_SUPPORT
 #include "./Updater.h"
 #include "../utils/StringUtil.h"
 #include "./Log.h"

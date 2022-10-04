@@ -1,4 +1,3 @@
-#define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <rapidjson/writer.h>
 #include <sstream>
 #include <regex>

@@ -1,4 +1,3 @@
-#define CPPHTTPLIB_OPENSSL_SUPPORT
 #include "./WebView2Installer.h"
 #include "../utils/StringUtil.h"
 #include "Log.h"
