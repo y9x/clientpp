@@ -1,6 +1,6 @@
 try {
   Object.defineProperties(window, {
-    onbeforeunload: { writable: false, value() {} },
+    onbeforeunload: { writable: false, value() { } },
     closeClient: {
       writable: false,
       value() {
@@ -188,7 +188,10 @@ class Menu extends ExtendMenu {
     RPC.control("Show username", {
       type: "boolean",
       walk: "rpc.name",
-    }).on("change", (value, init) => !init && this.rpc.update(true));
+    }).on("change", (value, init) => {
+      if (init) return;
+      this.rpc.update(true);
+    });
 
     const Window = this.category("Window");
 
