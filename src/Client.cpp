@@ -237,9 +237,9 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
       Account account;
       account.color = JT::string(msg.args[2]);
       account.order = msg.args[3].GetInt();
+      account.username = JT::string(msg.args[0]);
       account.password = enc;
-      accounts.data[JT::string(msg.args[0])] = account;
-
+      accounts.data[account.username] = account;
       accounts.save();
 
       JSMessage res(IM::account_regen);
@@ -247,6 +247,8 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
       if (!res.send(window.webview))
         clog::error << "Unable to send " << res.dump() << clog::endl;
     }
+    else
+      clog::error << "Failure encrypting password" << clog::endl;
   }
   break;
   case IM::account_list:

@@ -1,6 +1,7 @@
 import currentSite from "../site";
 import { wait_for } from "../utils";
-import LinkControl from "./components/LinkControl";
+import AccountManager from "./AccountManager";
+import AddAccount from "./AddAccount";
 import extendRoot from "./extendSettings";
 import extendWindows from "./extendWindows";
 import Menu from "./Menu";
@@ -9,15 +10,33 @@ if (currentSite === "game") {
   // settings = 0
   extendRoot("Client", (root) => root.render(<Menu />));
 
-  extendWindows("Account Manager", "account_manager", (root) =>
-    root.render(
-      <LinkControl title="Test" href="https://google.com/"></LinkControl>
-    )
-  ).then((id) => {
+  wait_for(
+    () => typeof windows === "object" && Array.isArray(windows) && windows
+  ).then(() => {
+    const addAccountID = extendWindows(
+      {
+        header: "Account Manager",
+        label: "account_manager",
+        width: 1100,
+        popup: true,
+      },
+      (root) =>
+        root.render(<AddAccount accountManagerID={() => accountManagerID} />)
+    );
+
+    const accountManagerID = extendWindows(
+      {
+        header: "Account Manager",
+        label: "account_manager",
+        width: 1100,
+        popup: true,
+      },
+      (root) =>
+        root.render(<AccountManager addAccountID={() => addAccountID} />)
+    );
+
     const createButton = (bar: HTMLDivElement) => {
-      bar.innerHTML += `<div class="button buttonG lgn" style="width: 200px; margin-right: 0px; padding-top: 5px; margin-left: 5px; padding-bottom: 13px;" onmouseenter="playTick()" onclick="showWindow(${
-        id + 1
-      })">Accounts <span class="material-icons" style="vertical-align: middle; color: rgb(255, 255, 255); font-size: 36px; margin-top: -8px;">switch_account</span></div>`;
+      bar.innerHTML += `<div class="button buttonG lgn" style="width: 200px; margin-right: 0px; padding-top: 5px; margin-left: 5px; padding-bottom: 13px;" onmouseenter="playTick()" onclick="showWindow(${accountManagerID})">Accounts <span class="material-icons" style="vertical-align: middle; color: rgb(255, 255, 255); font-size: 36px; margin-top: -8px;">switch_account</span></div>`;
     };
 
     wait_for(() =>
@@ -27,7 +46,5 @@ if (currentSite === "game") {
     wait_for(() =>
       document.querySelector<HTMLDivElement>("#signedOutHeaderBar")
     ).then(createButton);
-
-    console.log("account_manager:", id);
   });
 }

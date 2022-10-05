@@ -531,8 +531,7 @@ void KrunkerWindow::register_events()
                 webview->ExecuteScript(setup.c_str(),
                                        nullptr);
 
-                webview->ExecuteScript(js_frontend.c_str(),
-                                       nullptr);
+                webview->ExecuteScript(js_frontend.c_str(), nullptr);
               }
 
               return S_OK;

@@ -1,7 +1,6 @@
 /**
  * createRoot
  */
-import { wait_for } from "../utils";
 import type { RenderOnDemand } from "./settHolderProxy";
 import createSettHolderProxy from "./settHolderProxy";
 
@@ -10,32 +9,25 @@ import createSettHolderProxy from "./settHolderProxy";
  *
  * @returns Newly created window ID.
  */
-export default async function extendWindows(
-  header: string,
-  label: string,
+export default function extendWindows(
+  options: Omit<Omit<GameWindow, "gen">, "html">,
   render: RenderOnDemand
-): Promise<number> {
+) {
   const html = createSettHolderProxy(render);
 
   const window = {
-    header,
-    label,
+    ...options,
     gen: () => html,
-    width: 1100,
-    popup: false,
+    html: "",
   } as GameWindow;
 
-  const wins = await wait_for(
-    () => typeof windows === "object" && Array.isArray(windows) && windows
-  );
+  const id = windows.length;
 
-  const id = wins.length;
-
-  Reflect.defineProperty(wins, id, {
+  Reflect.defineProperty(windows, id, {
     // the game tends to delete our window.
     writable: false,
     value: window,
   });
 
-  return id;
+  return id + 1;
 }

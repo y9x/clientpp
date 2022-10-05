@@ -6,11 +6,12 @@
 
 struct Account
 {
-  int order;
-  std::string color;
+  int order = -1;
+  std::string username;
   std::string password;
+  std::string color;
   rapidjson::Value dump(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
-  Account(rapidjson::Value &data);
+  Account(const rapidjson::Value &data);
   Account();
 };
 

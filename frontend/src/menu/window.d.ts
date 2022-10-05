@@ -42,3 +42,6 @@ declare const SOUND: {
 };
 
 declare function playTick(): void;
+
+declare function logoutAcc(): void;
+declare function loginAcc(): void;

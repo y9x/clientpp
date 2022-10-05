@@ -34,12 +34,12 @@ class IPC extends EventEmitter {
     chrome.webview.postMessage(JSON.stringify([id, ...data]));
     return true;
   }
-  post(event: number, ...data: unknown[]) {
+  post<T = unknown>(event: number, ...data: unknown[]) {
     let id = 0xff; // reserved
 
     for (; id < 0xffff; id++) if (!this.ongoing_posts.has(id)) break;
 
-    return new Promise<unknown>((resolve, reject) => {
+    return new Promise<T>((resolve, reject) => {
       this.once(id, (data, err) => {
         this.ongoing_posts.delete(id);
         if (err) reject(err);
