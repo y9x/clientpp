@@ -44,7 +44,7 @@ public:
   static long long now();
 
 private:
-  std::string js_bootstrap, js_frontend;
+  std::wstring js_frontend;
   rapidjson::Document get_userscript_schema();
   rapidjson::SchemaDocument userscript_schema;
   bool seeking = false;

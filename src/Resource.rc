@@ -57,8 +57,6 @@ LANGUAGE LANG_ENGLISH,
 
     JS_FRONTEND_MAP RCDATA "..\\frontend\\dist\\main.js.map"
 
-    JS_BOOTSTRAP RCDATA "..\\resources\\Bootstrap.js"
-
     JSON_CONFIG RCDATA "..\\resources\\config.json"
 
     ICON_CHIEF RCDATA "..\\images\\icon.ico"

@@ -37,20 +37,16 @@ KrunkerWindow::KrunkerWindow(ClientFolder &_folder, Type _type, Vector2 s,
       on_unknown_message(_on_unknown_message),
       on_destroy_callback(_on_destroy_callback), userscript_schema(get_userscript_schema())
 {
-  if (load_resource(JS_BOOTSTRAP, js_bootstrap))
+  std::string str_js_frontend;
+
+  if (load_resource(JS_FRONTEND, str_js_frontend))
   {
-    if (load_resource(JS_FRONTEND, js_frontend))
-    {
-      js_frontend += "//# sourceMappingURL=https://chief/frontend.js.map";
-    }
-    else
-    {
-      js_frontend = "alert(\"Error: Failure loading frontend\");";
-      clog::error << "Failure loading frontend" << clog::endl;
-    }
+    js_frontend = ST::wstring(str_js_frontend) + L"//# sourceMappingURL=https://chief/frontend.js.map";
   }
   else
-    clog::error << "Failure loading bootstrapper" << clog::endl;
+  {
+    clog::error << "Failure loading frontend" << clog::endl;
+  }
 
   raw_input.usUsagePage = 0x01;
   raw_input.usUsage = 0x02;
@@ -530,18 +526,12 @@ void KrunkerWindow::register_events()
 
               if (uri.host() == L"krunker.io")
               {
-                rapidjson::StringBuffer buffer;
-                rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-                rapidjson::Value(js_frontend.data(), js_frontend.size()).Accept(writer);
+                std::wstring setup = L"window._RUNTIME_DATA_ = " + ST::wstring(runtime_data()) + L";";
 
-                std::string execute = js_bootstrap;
+                webview->ExecuteScript(setup.c_str(),
+                                       nullptr);
 
-                execute = ST::replace_all(execute, "$FRONTEND",
-                                          {buffer.GetString(), buffer.GetSize()});
-                execute = ST::replace_all(execute, "$RUNTIME",
-                                          runtime_data());
-
-                webview->ExecuteScript(ST::wstring(execute).c_str(),
+                webview->ExecuteScript(js_frontend.c_str(),
                                        nullptr);
               }
 

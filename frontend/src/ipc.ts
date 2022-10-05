@@ -1,17 +1,18 @@
 import EventEmitter from "./EventEmitter";
 import { IM, LogType } from "../../src/IPCMessages.h";
 
-// webview is chrome.webview but captured by bootstrap.js
-declare const webview: EventTarget & {
-  postMessage: (data: string) => void;
-  addEventListener(
-    type: "message",
-    listener: (
-      this: Window,
-      ev: MessageEvent<[string, ...unknown[]]>
-    ) => unknown,
-    options?: boolean | AddEventListenerOptions
-  ): void;
+declare const chrome: {
+  webview: EventTarget & {
+    postMessage: (data: string) => void;
+    addEventListener(
+      type: "message",
+      listener: (
+        this: Window,
+        ev: MessageEvent<[string, ...unknown[]]>
+      ) => unknown,
+      options?: boolean | AddEventListenerOptions
+    ): void;
+  };
 };
 
 export const ipcConsole = {
@@ -30,7 +31,7 @@ class IPC extends EventEmitter {
   send(id: number, ...data: unknown[]) {
     if (typeof id !== "number")
       throw new TypeError(`Event must be a number. Recieved '${id}'`);
-    webview.postMessage(JSON.stringify([id, ...data]));
+    chrome.webview.postMessage(JSON.stringify([id, ...data]));
     return true;
   }
   post(event: number, ...data: unknown[]) {
@@ -51,6 +52,6 @@ class IPC extends EventEmitter {
 
 const ipc = new IPC();
 
-webview.addEventListener("message", ({ data }) => ipc.emit(...data));
+chrome.webview.addEventListener("message", ({ data }) => ipc.emit(...data));
 
 export { IM, ipc as default };
