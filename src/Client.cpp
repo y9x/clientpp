@@ -103,9 +103,10 @@ void Client::listen_navigation(KrunkerWindow &window)
           [this](ICoreWebView2 *sender,
                  ICoreWebView2NavigationStartingEventArgs *args) -> HRESULT
           {
-            wil::unique_cotaskmem_string uri;
-            args->get_Uri(&uri);
-            if (navigation_cancelled(sender, UriW(uri.get())))
+            wil::unique_cotaskmem_string urir;
+            args->get_Uri(&urir);
+            UriW uri(urir.get());
+            if (navigation_cancelled(sender, uri))
               args->put_Cancel(true);
 
             return S_OK;

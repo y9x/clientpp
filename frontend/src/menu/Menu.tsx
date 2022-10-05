@@ -129,6 +129,7 @@ export default function Menu() {
         />
         <TextControl
           title="Seek Map"
+          placeholder="Map ID"
           defaultValue={config.game.seek.map}
           onChange={(event) => {
             config.game.seek.map = event.currentTarget.value;

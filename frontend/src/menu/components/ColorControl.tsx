@@ -2,27 +2,24 @@ import Control from "./Control";
 import type { BaseControlProps } from "./Control";
 import type { ChangeEvent } from "react";
 
-export interface TextControlProps extends BaseControlProps {
-  placeholder?: string;
+export interface ColorControlProps extends BaseControlProps {
   value?: string;
   defaultValue?: string;
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function TextControl({
+export default function ColorControl({
   title,
-  placeholder,
   value,
   defaultValue,
   onChange,
-}: TextControlProps) {
+}: ColorControlProps) {
   return (
     <Control title={title}>
       <input
-        type="text"
-        name="text"
-        className="inputGrey2"
-        placeholder={placeholder}
+        type="color"
+        name="color"
+        style={{ float: "right" }}
         value={value}
         defaultValue={defaultValue}
         onChange={onChange}

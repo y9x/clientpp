@@ -39,7 +39,9 @@ UriA::UriA(const std::string &u)
     state_.uri = &uriParse;
     isValid_ = uriParseUriA(&state_, uri.c_str()) == URI_SUCCESS;
 }
-UriA::~UriA() { uriFreeUriMembersA(&uriParse); }
+UriA::~UriA()
+{ // uriFreeUriMembersA(&uriParse);
+}
 bool UriA::isValid() const { return isValid_; }
 std::string UriA::scheme() const { return fromRange(uriParse.scheme); }
 std::string UriA::host() const { return fromRange(uriParse.hostText); }
@@ -57,7 +59,9 @@ UriW::UriW(const std::wstring &u)
     state_.uri = &uriParse;
     isValid_ = uriParseUriW(&state_, uri.c_str()) == URI_SUCCESS;
 }
-UriW::~UriW() { uriFreeUriMembersW(&uriParse); }
+UriW::~UriW()
+{ // uriFreeUriMembersW(&uriParse);
+}
 bool UriW::isValid() const { return isValid_; }
 std::wstring UriW::scheme() const { return fromRange(uriParse.scheme); }
 std::wstring UriW::host() const { return fromRange(uriParse.hostText); }
