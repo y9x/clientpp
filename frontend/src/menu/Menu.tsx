@@ -161,7 +161,7 @@ export default function Menu() {
       <Set title="Discord RPC">
         <SwitchControl
           title="Enabled"
-          defaultChecked={config.game.seek.customs}
+          defaultChecked={config.rpc.enabled}
           onChange={(event) => {
             config.rpc.enabled = event.currentTarget.checked;
             setConfig(config);
@@ -175,7 +175,7 @@ export default function Menu() {
         />
         <SwitchControl
           title="Show username"
-          defaultChecked={config.rpc.enabled}
+          defaultChecked={config.rpc.name}
           onChange={(event) => {
             config.rpc.enabled = event.currentTarget.checked;
             setConfig(config);
