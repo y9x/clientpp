@@ -1,12 +1,18 @@
-import { IM, ipc } from "./IPC";
+import ipc, { IM } from "./ipc";
+
+declare global {
+  function getGameActivity(): { user: string; map: string; mode: string };
+}
 
 export default class RPC {
   start = Date.now();
+  last?: string;
+  interval: ReturnType<typeof setInterval>;
   listener() {
     this.update();
   }
   constructor() {
-    this.interval = setInterval(this.update.bind(this), 1000);
+    this.interval = setInterval(() => this.update(), 1000);
   }
   delete() {
     clearInterval(this.interval);

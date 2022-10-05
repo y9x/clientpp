@@ -1,13 +1,13 @@
 export default class Hex3 {
-  hex = [0, 0, 0];
+  hex: [number, number, number] = [0, 0, 0];
   constructor(string = "#000") {
     this.set_style(string);
   }
-  add_scalar(scalar) {
+  add_scalar(scalar: number) {
     for (const ind in this.hex) this.hex[ind] += scalar;
     return this.normalize();
   }
-  sub_scalar(scalar) {
+  sub_scalar(scalar: number) {
     for (const ind in this.hex) this.hex[ind] -= scalar;
     return this.normalize();
   }
@@ -16,14 +16,14 @@ export default class Hex3 {
       this.hex[ind] = Math.max(Math.min(this.hex[ind], 255), 0);
     return this;
   }
-  set(r, g, b) {
+  set(r: number, g: number, b: number) {
     this.hex[0] = r;
     this.hex[1] = g;
     this.hex[2] = b;
 
     return this;
   }
-  set_style(string) {
+  set_style(string: string) {
     let hex_index = 0;
     const offset = string[0] === "#" ? 1 : 0;
     const chunk = string.length - offset < 5 ? 1 : 2;
@@ -41,7 +41,7 @@ export default class Hex3 {
   toString() {
     let string = "#";
 
-    for (const color of this.hex) string += color.toString(16).padStart(2, 0);
+    for (const color of this.hex) string += color.toString(16).padStart(2, "0");
 
     return string;
   }

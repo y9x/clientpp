@@ -1,16 +1,29 @@
-import { ipc } from "./IPC";
+/**
+ * Native "Chief" userscript
+ */
+/* eslint-disable no-new-func */
+import { ipcConsole } from "./ipc";
 import console from "./Console";
+import type { Userscript } from "./userscript";
+import currentSite from "./site";
+import menu from "./menu";
 
-export default function evalChiefUserscript(name, metadata, script, site, menu) {
-  // utils.assign_type(template, metadata);
+export default function evalChiefUserscript(
+  name: string,
+  metadata: Userscript,
+  code: string
+) {
   // done in host c++
 
   // returns false if the script failed to execute, otherwise true
-  if (Array.isArray(metadata.locations) && !metadata.locations.some((s) => s === site || s === "all"))
+  if (
+    Array.isArray(metadata.locations) &&
+    !metadata.locations.some((s) => s === currentSite || s === "all")
+  )
     return false;
 
-  const exports = {};
-  const context = { _metadata: metadata, exports, console };
+  const exports: Record<string | symbol, (() => unknown) | unknown> = {};
+  const context = { _metadata: metadata, exports, console: ipcConsole };
   let run;
 
   try {
@@ -18,13 +31,13 @@ export default function evalChiefUserscript(name, metadata, script, site, menu) 
     run = new Function("script", ...Object.keys(context), "eval(script)");
   } catch (err) {
     console.warn(`Error parsing userscript: ${name}\n`, err);
-    ipc.console.error(`Error parsing userscript ${name}:\n${err}`);
+    ipcConsole.error(`Error parsing userscript ${name}:\n${err}`);
     return false;
   }
 
   if (menu) {
-    const { userscripts } = menu.config,
-      { author, features } = metadata;
+    const { userscripts } = menu.config;
+    const { author, features } = metadata;
 
     Object.defineProperty(features, "config", {
       get() {
@@ -35,22 +48,21 @@ export default function evalChiefUserscript(name, metadata, script, site, menu) 
 
   try {
     run(
-      `${script}\n//# sourceURL=userscript://./${name}`,
+      `${code}\n//# sourceURL=userscript://./${name}`,
       ...Object.values(context)
     );
   } catch (err) {
     console.error(`Error executing userscript ${name}:\n`, err);
-    ipc.console.error(`Error executing userscript ${name}:\n${err}`);
+    ipcConsole.error(`Error executing userscript ${name}:\n${err}`);
     return false;
   }
 
-  if (metadata.features?.gui && menu)
+  /*if (metadata.features?.gui && menu)
     for (const [labelct, controls] of Object.entries(metadata.features.gui)) {
       let category;
 
       // use existing category when possible
-      for (const ct of menu.categories)
-        if (ct.label === labelct) category = ct;
+      for (const ct of menu.categories) if (ct.label === labelct) category = ct;
       if (!category) category = menu.category(labelct);
 
       for (const [labelco, data] of Object.entries(controls)) {
@@ -67,10 +79,10 @@ export default function evalChiefUserscript(name, metadata, script, site, menu) 
           control.on("change", (value, init) => {
             const func = exports[change_callback];
 
-            if (func) func(value, init);
+            if (typeof func === "function") func(value, init);
           });
       }
-    }
+    }*/
 
   return true;
 }

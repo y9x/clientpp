@@ -1,30 +1,40 @@
-// script executes before devtools listens on logs
+/**
+ * Protect global console and allow logging before devtools can hook the context's console.
+ */
 
-const methods = ["log", "info", "warn", "error", "debug", "trace"];
-let initial = {};
-let buffer = {};
+type consoleProp = "log" | "info" | "warn" | "error" | "debug" | "trace";
 
-const cloneConsole = {};
+const methods: consoleProp[] = [
+  "log",
+  "info",
+  "warn",
+  "error",
+  "debug",
+  "trace",
+];
 
-for (const method of methods) {
-  initial[method] = console[method].bind(console);
-  cloneConsole[method] = (...data) => {
-    if (!buffer[method]) buffer[method] = [];
-    buffer[method].push(data);
-  };
-}
+const initial = Object.fromEntries(
+  methods.map((method) => [method, console[method]])
+) as unknown as { [K in consoleProp]: typeof console[K] };
+
+const buffer = Object.fromEntries(
+  methods.map((method) => [method, []])
+) as unknown as { [K in consoleProp]: unknown[][] };
+
+const cloneConsole = Object.fromEntries(
+  methods.map((method) => [
+    method,
+    (...data: unknown[]) => buffer[method].push(data),
+  ])
+) as unknown as { [K in consoleProp]: typeof console[K] };
 
 // devtools hooks after
-
 setTimeout(() => {
   for (const method of methods) {
     cloneConsole[method] = initial[method];
-    if (buffer[method])
-      for (const data of buffer[method]) cloneConsole[method](...data);
+    for (const data of buffer[method]) cloneConsole[method](...data);
+    buffer[method].length = 0;
   }
-
-  buffer = null;
-  initial = null;
 });
 
 export default cloneConsole;

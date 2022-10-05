@@ -1,7 +1,14 @@
-export default class Events {
-  static original = Symbol();
+export const original = Symbol();
+
+type EventType = string | number;
+
+type Callback = ((this: EventEmitter, ...args: never[]) => unknown) & {
+  [original]?: Callback;
+};
+
+export default class EventEmitter {
   #events = new Map();
-  #resolve(event) {
+  #resolve(event: EventType) {
     let callbacks = this.#events.get(event);
 
     if (!callbacks) {
@@ -11,7 +18,7 @@ export default class Events {
 
     return callbacks;
   }
-  on(event, callback) {
+  on(event: EventType, callback: Callback) {
     if (typeof callback !== "function")
       throw new TypeError("Callback is not a function.");
 
@@ -19,27 +26,27 @@ export default class Events {
 
     return this;
   }
-  once(event, callback) {
-    const cb = function (...data) {
+  once(event: EventType, callback: Callback) {
+    const cb = (...data: never[]) => {
       this.off(event, callback);
       callback.call(this, ...data);
     };
 
-    callback[Events.original] = cb;
+    callback[original] = cb;
 
     return this.on(event, cb);
   }
-  off(event, callback) {
+  off(event: EventType, callback: Callback) {
     if (typeof callback !== "function")
       throw new TypeError("Callback is not a function.");
 
-    if (callback[Events.original]) callback = callback[Events.original];
+    if (callback[original]) callback = callback[original];
 
     const list = this.#resolve(event);
 
     return list.delete(callback);
   }
-  emit(event, ...data) {
+  emit(event: EventType, ...data: unknown[]) {
     const set = this.#resolve(event);
 
     if (!set.size) {

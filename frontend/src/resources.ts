@@ -1,9 +1,9 @@
+/* eslint-disable no-new-func */
 import { css, js } from "./Runtime";
-import currentSite from "./Site";
-import { ipc } from "./IPC";
 import console from "./Console";
-import LegacyUserscript from "./LegacyUserscript";
-import evalChiefUserscript from "./ChiefUserscript";
+import evalLegacyUserscript from "./legacyUserscript";
+import evalChiefUserscript from "./chiefUserscript";
+import menu from "./menu";
 
 const add_css = () => {
   for (const [, data] of css) {
@@ -24,61 +24,13 @@ const add_css = () => {
   }
 };
 
-export default function run_resources(menu) {
-  for (const [name, data, metadata, errors] of js) {
-    for (const error of errors) console.error(error);
-
-    if (errors.length) continue;
-
-    if (metadata)
-      evalChiefUserscript(name, metadata, data, currentSite, menu);
-    else {
-      // legacy idkr, unknown
-      // quick fix
-      if (data.includes("// ==UserScript==") && currentSite !== "game")
-        continue;
-
-      const module = { exports: {} };
-      let func;
-      const context = {
-        module,
-        exports: module.exports,
-        console,
-      };
-
-      try {
-        func = eval(
-          `(function(${Object.keys(context)}){${data}//# sourceURL=${name}\n})`
-        );
-      } catch (err) {
-        console.warn(`Error parsing userscript: ${name}\n`, err);
-        ipc.console.error(`Error parsing userscript ${name}:\n${err}`);
-        break;
-      }
-
-      // try{...}catch(err){...} doesnt provide: line, column
-
-      try {
-        func(...Object.values(context));
-
-        const userscript = new LegacyUserscript(module.exports);
-
-        userscript.run();
-      } catch (err) {
-        console.warn(`Error executing userscript: ${name}\n`, err);
-        ipc.console.error(`Error executing userscript ${name}:\n${err}`);
-        break;
-      }
-    }
-  }
-}
-
 new MutationObserver((mutations, observer) => {
   for (const mutation of mutations) {
     for (const node of mutation.addedNodes) {
       if (
         node instanceof HTMLLinkElement &&
-        new URL(node.href || "/", location).pathname === "/css/main_custom.css"
+        new URL(node.href || "/", global.location.toString()).pathname ===
+          "/css/main_custom.css"
       ) {
         add_css();
         observer.disconnect();
@@ -89,3 +41,16 @@ new MutationObserver((mutations, observer) => {
   childList: true,
   subtree: true,
 });
+
+if (menu) {
+  for (const [name, data, metadata, errors] of js) {
+    for (const error of errors) console.error(error);
+
+    if (errors.length) continue;
+
+    if (metadata) evalChiefUserscript(name, metadata, data);
+    else evalLegacyUserscript(name, data);
+  }
+
+  menu.update();
+}

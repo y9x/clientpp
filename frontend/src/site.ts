@@ -1,12 +1,9 @@
-const paths = {
+const paths: Record<string, "game" | "social" | "editor" | undefined> = {
   "/": "game",
   "/social.html": "social",
   "/editor.html": "editor",
 };
 
-/**
- * @type {"game"|"social"|"editor"|undefined}
- */
-const currentSite = paths[location.pathname];
+const currentSite = paths[global.location.pathname];
 
 export default currentSite;

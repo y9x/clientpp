@@ -1,19 +1,46 @@
 {
-  "extends": ["eslint:recommended"],
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
   "env": {
-    "node": true,
     "browser": true,
+    "node": true,
     "es6": true
   },
+  "extends": [
+    "eslint:recommended",
+    "react-app",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
   "parserOptions": {
-    "sourceType": "module",
-    "ecmaVersion": "latest"
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "globals": {
+    "global": true
   },
   "rules": {
-    "quotes": ["error", "double"],
-    "indent": ["error", 2],
+    "quotes": "off",
+    "indent": "off",
     "no-implicit-globals": "error",
     "prefer-const": "error",
-    "eqeqeq": "error"
+    "eqeqeq": "error",
+    "no-mixed-spaces-and-tabs": "off",
+    "no-lone-blocks": "off",
+    "no-var": "error",
+    "import/no-anonymous-default-export": "error",
+    "@typescript-eslint/consistent-type-imports": "error",
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/adjacent-overload-signatures": "off",
+    "@typescript-eslint/ban-types": "off",
+    "no-constant-condition": [
+      "error",
+      {
+        "checkLoops": false
+      }
+    ]
   }
 }
