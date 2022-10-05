@@ -115,6 +115,11 @@ class Menu extends ExtendMenu {
       walk: "game.seek.F4",
     });
 
+    Game.control("Custom seek options (enables Seek map, Seek mode, and Seek customs)", {
+      type: "boolean",
+      walk: "game.seek.custom_logic",
+    });
+
     Game.control("Seek map", {
       type: "textbox",
       walk: "game.seek.map",

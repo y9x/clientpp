@@ -1,31 +1,32 @@
 {
-	"game": {
-		"seek": {
-			"F4": true,
-			"mode": "",
-			"map": "",
-			"customs": false
-		}
-	},
-	"client": {
-		"devtools": false
-	},
-	"render": {
-		"uncap_fps": false,
-		"fullscreen": false,
-		"angle": "default",
-		"color": "default"
-	},
-	"rpc": {
-		"enabled": true,
-		"name": false
-	},
-	"window": {
-		"meta": {
-			"replace": false,
-			"title": "Krunker",
-			"icon": "Krunker.ico"
-		}
-	},
-	"userscripts": {}
+  "game": {
+    "seek": {
+      "F4": true,
+      "custom_logic": true,
+      "mode": "",
+      "map": "",
+      "customs": false
+    }
+  },
+  "client": {
+    "devtools": false
+  },
+  "render": {
+    "uncap_fps": false,
+    "fullscreen": false,
+    "angle": "default",
+    "color": "default"
+  },
+  "rpc": {
+    "enabled": true,
+    "name": false
+  },
+  "window": {
+    "meta": {
+      "replace": false,
+      "title": "Krunker",
+      "icon": "Krunker.ico"
+    }
+  },
+  "userscripts": {}
 }
