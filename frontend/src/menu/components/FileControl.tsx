@@ -37,11 +37,7 @@ export default function FileControl({
             ]);
           }
 
-          const file = (await ipc.post(
-            IM.browse_file,
-            title,
-            filters
-          )) as string;
+          const file = await ipc.post<string>(IM.browse_file, title, filters);
 
           if (onPick) onPick(file);
         }}
