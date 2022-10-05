@@ -1,10 +1,12 @@
+type TrueLike<T> = Exclude<NonNullable<T>, false>;
+
 /**
  * Poll a condition every x MS.
  */
 export function wait_for<T>(
   check: () => T,
   interval = 50
-): Promise<NonNullable<T>> {
+): Promise<TrueLike<T>> {
   return new Promise((resolve) => {
     let set: ReturnType<typeof setInterval>;
 
@@ -14,7 +16,7 @@ export function wait_for<T>(
 
         if (result) {
           if (set) clearInterval(set);
-          resolve(result as NonNullable<T>);
+          resolve(result as TrueLike<T>);
 
           return true;
         }

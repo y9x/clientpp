@@ -1,4 +1,5 @@
 import "./menu";
+import "./menu/newMenu";
 import "./fixes";
 import "./resources";
 import "./accountManager";
