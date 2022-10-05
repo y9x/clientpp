@@ -1,25 +1,19 @@
-import "./menu";
-import "./menu/newMenu";
+import "./menu/createUI";
 import "./fixes";
 import "./resources";
 import "./accountManager";
 import { createKeybind } from "./Keybind";
 import ipc, { IM } from "./ipc";
 
+window.addEventListener("beforeunload", (event) => {
+  // Catch beforeunload event
+  event.stopImmediatePropagation();
+});
+
 try {
-  Object.defineProperties(window, {
-    onbeforeunload: {
-      writable: false,
-      value: () => {
-        //
-      },
-    },
-    closeClient: {
-      writable: false,
-      value() {
-        ipc.send(IM.close_window);
-      },
-    },
+  Reflect.defineProperty(window, "closeClient", {
+    writable: false,
+    value: () => ipc.send(IM.close_window),
   });
 } catch (err) {
   //

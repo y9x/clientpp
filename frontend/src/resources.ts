@@ -3,7 +3,7 @@ import { css, js } from "./runtime";
 import console from "./console";
 import evalLegacyUserscript from "./legacyUserscript";
 import evalChiefUserscript from "./chiefUserscript";
-import menu from "./menu";
+import currentSite from "./site";
 
 const add_css = () => {
   for (const [, data] of css) {
@@ -42,7 +42,7 @@ new MutationObserver((mutations, observer) => {
   subtree: true,
 });
 
-if (menu) {
+if (currentSite === "game") {
   for (const [name, data, metadata, errors] of js) {
     for (const error of errors) console.error(error);
 
@@ -52,5 +52,5 @@ if (menu) {
     else evalLegacyUserscript(name, data);
   }
 
-  menu.update();
+  // menu.update();
 }

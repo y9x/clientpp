@@ -6,7 +6,6 @@ import { ipcConsole } from "./ipc";
 import console from "./console";
 import type { Userscript } from "./userscript";
 import currentSite from "./site";
-import menu from "./menu";
 
 export default function evalChiefUserscript(
   name: string,
@@ -35,7 +34,7 @@ export default function evalChiefUserscript(
     return false;
   }
 
-  if (menu) {
+  /*if (menu) {
     const { userscripts } = menu.config;
     const { author, features } = metadata;
 
@@ -44,7 +43,7 @@ export default function evalChiefUserscript(
         return userscripts[author];
       },
     });
-  }
+  }*/
 
   try {
     run(

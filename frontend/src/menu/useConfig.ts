@@ -4,6 +4,13 @@ import { config } from "../runtime";
 const listeners = new Set<() => unknown>();
 let currentConfig = config;
 
+/**
+ * Returns latest config.
+ */
+export default function getConfig() {
+  return currentConfig;
+}
+
 export function useConfig(): [
   config: typeof config,
   setConfig: (newConfig: typeof config) => void
