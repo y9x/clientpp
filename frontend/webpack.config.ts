@@ -7,7 +7,8 @@ import getCSSModuleLocalIdent from "react-dev-utils/getCSSModuleLocalIdent.js";
 import TerserPlugin from "terser-webpack-plugin";
 import { fileURLToPath } from "node:url";
 import ESLintPlugin from "eslint-webpack-plugin";
-import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
+import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
+import TryCatchPlugin from "./TryCatchWebpackPlugin.js";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
 import type { Configuration, RuleSetRule } from "webpack";
@@ -196,8 +197,9 @@ const config: Configuration = {
   },
   plugins: [
     new ModuleNotFoundPlugin(resolve(".")),
-    new ForkTsCheckerWebpackPlugin(),
+    new ForkTsCheckerPlugin(),
     new ESLintPlugin(),
+    new TryCatchPlugin(),
   ],
 };
 
