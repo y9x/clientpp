@@ -11,5 +11,5 @@
     "typeRoots": ["node_modules/@types", "types"],
     "resolveJsonModule": true
   },
-  "include": ["src/react-env.d.ts", "src/**/*"]
+  "include": ["src/react-env.d.ts", "src/menu/window.d.ts", "src/**/*"]
 }

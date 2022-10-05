@@ -1,7 +1,6 @@
 import "./menu/createUI";
 import "./fixes";
 import "./resources";
-import "./accountManager";
 import { createKeybind } from "./Keybind";
 import ipc, { IM } from "./ipc";
 

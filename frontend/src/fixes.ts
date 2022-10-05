@@ -77,14 +77,13 @@ if (currentSite === "game") {
             height: height / width_scale,
           };
 
-    wait_for(
-      () => document.querySelector("#uiBase") as HTMLDivElement | null
-    ).then((ui_base) =>
-      setTimeout(() => {
-        ui_base.style.transform = "scale(" + style.transform.toFixed(3) + ")";
-        ui_base.style.width = style.width.toFixed(3) + "px";
-        ui_base.style.height = style.height.toFixed(3) + "px";
-      }, 10)
+    wait_for(() => document.querySelector<HTMLDivElement>("#uiBase")).then(
+      (ui_base) =>
+        setTimeout(() => {
+          ui_base.style.transform = "scale(" + style.transform.toFixed(3) + ")";
+          ui_base.style.width = style.width.toFixed(3) + "px";
+          ui_base.style.height = style.height.toFixed(3) + "px";
+        }, 10)
     );
   }
 }
