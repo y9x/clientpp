@@ -65,7 +65,7 @@ LANGUAGE LANG_ENGLISH,
 
     ICON_KRUNKER RCDATA "..\\images\\krunker.ico"
 
-    JSON_DEFAULT_USERSCRIPT RCDATA "..\\resources\\DefaultUserscript.json"
+    JSON_USERSCRIPT_SCHEMA RCDATA "..\\resources\\userscript-schema.json"
 
     HTML_ERROR RCDATA "..\\resources\\error.html"
 

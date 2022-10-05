@@ -40,7 +40,7 @@ rapidjson::Document KrunkerWindow::get_userscript_schema()
   rapidjson::Document schema_doc;
 
   std::string schema_raw;
-  if (!load_resource(JSON_DEFAULT_USERSCRIPT, schema_raw))
+  if (!load_resource(JSON_USERSCRIPT_SCHEMA, schema_raw))
     clog::error << "Error loading userscript schema" << clog::endl;
 
   rapidjson::ParseResult ok = schema_doc.Parse(schema_raw.data(), schema_raw.size());
