@@ -367,7 +367,7 @@ bool KrunkerWindow::send_resource(
   return true;
 }
 
-std::string KrunkerWindow::status_name(COREWEBVIEW2_WEB_ERROR_STATUS status)
+std::string status_name(COREWEBVIEW2_WEB_ERROR_STATUS status)
 {
   switch (status)
   {
@@ -559,8 +559,9 @@ void KrunkerWindow::register_events()
               args->get_WebErrorStatus(&status);
 
               if (status ==
-                  COREWEBVIEW2_WEB_ERROR_STATUS::
-                      COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_ABORTED)
+                      COREWEBVIEW2_WEB_ERROR_STATUS::
+                          COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_ABORTED ||
+                  status == COREWEBVIEW2_WEB_ERROR_STATUS::COREWEBVIEW2_WEB_ERROR_STATUS_OPERATION_CANCELED)
               {
                 return S_OK;
               }
