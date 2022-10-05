@@ -4,7 +4,5 @@ import Menu from "./Menu";
 
 if (currentSite === "game") {
   // settings = 0
-  extendRoot("Client").then((root) => {
-    root.render(<Menu />);
-  });
+  extendRoot("Client", (root) => root.render(<Menu />));
 }

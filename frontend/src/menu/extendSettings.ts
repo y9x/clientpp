@@ -1,8 +1,8 @@
 /**
  * createRoot
  */
-import { createRoot } from "react-dom/client";
 import { wait_for } from "../utils";
+import type { RenderOnDemand } from "./settHolderProxy";
 import createSettHolderProxy from "./settHolderProxy";
 
 interface GameWindowTab {
@@ -29,7 +29,10 @@ declare global {
 // x - 1
 const id = 0;
 
-export default async function extendSettings(name: string) {
+export default async function extendSettings(
+  name: string,
+  render: RenderOnDemand
+) {
   const window = (
     await wait_for(
       () => typeof windows === "object" && Array.isArray(windows) && windows
@@ -52,14 +55,12 @@ export default async function extendSettings(name: string) {
     });
   }
 
-  const proxy = createSettHolderProxy();
+  const html = createSettHolderProxy(render);
 
   window.getSettings = new Proxy(window.getSettings, {
     apply: (target, thisArg, argArray) =>
       window.tabIndex === indexes[window.settingType]
-        ? proxy.html
+        ? html
         : Reflect.apply(target, thisArg, argArray),
   });
-
-  return createRoot(proxy.fragment);
 }
