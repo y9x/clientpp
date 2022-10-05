@@ -27,10 +27,10 @@ export const ipcConsole = {
 
 class IPC extends EventEmitter {
   ongoing_posts = new Set<number>();
-  send(event: number, ...data: unknown[]) {
-    if (typeof event !== "number")
-      throw new TypeError(`Event must be a number. Recieved '${event}'`);
-    webview.postMessage(JSON.stringify([event, ...data]));
+  send(id: number, ...data: unknown[]) {
+    if (typeof id !== "number")
+      throw new TypeError(`Event must be a number. Recieved '${id}'`);
+    webview.postMessage(JSON.stringify([id, ...data]));
     return true;
   }
   post(event: number, ...data: unknown[]) {
@@ -38,13 +38,13 @@ class IPC extends EventEmitter {
 
     for (; id < 0xffff; id++) if (!this.ongoing_posts.has(id)) break;
 
-    return new Promise((resolve, reject) => {
-      this.once(id.toString(), (data, err) => {
+    return new Promise<unknown>((resolve, reject) => {
+      this.once(id, (data, err) => {
         this.ongoing_posts.delete(id);
         if (err) reject(err);
         else resolve(data);
       });
-      this.send(event, id.toString(), ...data);
+      this.send(event, id, ...data);
     });
   }
 }
