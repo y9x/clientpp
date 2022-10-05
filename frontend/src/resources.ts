@@ -1,6 +1,6 @@
 /* eslint-disable no-new-func */
 import { css, js } from "./Runtime";
-import console from "./Console";
+import console from "./console";
 import evalLegacyUserscript from "./legacyUserscript";
 import evalChiefUserscript from "./chiefUserscript";
 import menu from "./menu";

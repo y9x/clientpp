@@ -3,7 +3,7 @@
  */
 /* eslint-disable no-new-func */
 import { ipcConsole } from "./ipc";
-import console from "./Console";
+import console from "./console";
 import type { Userscript } from "./userscript";
 import currentSite from "./site";
 import menu from "./menu";
