@@ -1,4 +1,4 @@
-console.log("Initializing Chief Client++...")
+console.log("Initializing Chief Client++...");
 
 try {
   const run = new Function(
