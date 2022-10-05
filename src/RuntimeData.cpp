@@ -29,34 +29,34 @@ void KrunkerWindow::load_userscripts()
 bool KrunkerWindow::block_uri(const std::wstring &uri)
 {
   for (const std::wregex &pattern : additional_block_patterns)
-    if (std::regex_match(uri, pattern))
+    if (std::regex_search(uri, pattern))
       return true;
 
   return false;
 }
 
-rapidjson::Value
-KrunkerWindow::load_userscripts(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator)
+rapidjson::Document KrunkerWindow::get_userscript_schema()
+{
+  rapidjson::Document schema_doc;
+
+  std::string schema_raw;
+  if (!load_resource(JSON_DEFAULT_USERSCRIPT, schema_raw))
+    clog::error << "Error loading userscript schema" << clog::endl;
+
+  rapidjson::ParseResult ok = schema_doc.Parse(schema_raw.data(), schema_raw.size());
+
+  if (!ok)
+    clog::error << "Error parsing userscript schema: " << GetParseError_En(ok.Code()) << " (" << ok.Offset() << ")" << clog::endl;
+
+  return schema_doc;
+}
+
+rapidjson::Value KrunkerWindow::load_userscripts(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator)
 {
   additional_block_patterns.clear();
   additional_command_line.clear();
 
   rapidjson::Value result(rapidjson::kArrayType);
-
-  rapidjson::Document default_userscript;
-
-  {
-    std::string sdefault_userscript;
-    if (!load_resource(JSON_DEFAULT_USERSCRIPT, sdefault_userscript))
-      clog::error << "Error loading default userscript" << clog::endl;
-
-    rapidjson::ParseResult ok = default_userscript.Parse(sdefault_userscript.data(), sdefault_userscript.size());
-
-    if (!ok)
-      clog::error << "Error parsing default userscript: " << GetParseError_En(ok.Code()) << " (" << ok.Offset() << ")" << clog::endl;
-  }
-
-  rapidjson::SchemaDocument schema(default_userscript);
 
   for (IOUtil::WDirectoryIterator it(folder.directory + folder.p_scripts,
                                      L"*.js");
@@ -82,13 +82,16 @@ KrunkerWindow::load_userscripts(rapidjson::MemoryPoolAllocator<rapidjson::CrtAll
         rapidjson::ParseResult ok = metadata.Parse(jsonMatch.data(), jsonMatch.size());
 
         if (!ok)
+        {
           errors.push_back(std::string("Error parsing userscript: ") + GetParseError_En(ok.Code()) + " (" + std::to_string(ok.Offset()) + ")");
+          clog::info << "Here: " << jsonMatch.substr(ok.Offset() - 10, 20) << clog::endl;
+        }
         else
         {
           buffer.replace(match[0].first, match[0].second,
                          "const metadata = _metadata;");
 
-          rapidjson::SchemaValidator validator(schema);
+          rapidjson::SchemaValidator validator(userscript_schema);
 
           if (!metadata.Accept(validator))
           {
@@ -105,9 +108,8 @@ KrunkerWindow::load_userscripts(rapidjson::MemoryPoolAllocator<rapidjson::CrtAll
 
           if (metadata.HasMember("features"))
           {
-            if (metadata["features"].HasMember("block_hosts"))
-              for (rapidjson::Value::ValueIterator it = metadata["features"]["block_hosts"].Begin(); it != metadata["features"]["block_hosts"].End(); ++it)
-                additional_block_patterns.push_back(std::wregex(JT::wstring(*it)));
+            if (metadata["features"].HasMember("block"))
+              additional_block_patterns.push_back(std::wregex(JT::wstring(metadata["features"]["block"])));
 
             if (metadata["features"].HasMember("command_line"))
               for (rapidjson::Value::ValueIterator it = metadata["features"]["command_line"].Begin(); it != metadata["features"]["command_line"].End(); ++it)

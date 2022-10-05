@@ -1,11 +1,12 @@
 #pragma once
+#include <rapidjson/fwd.h>
+#include <rapidjson/schema.h>
 #include <WebView2.h>
 #include <regex>
 #include <atlbase.h>
 #include <atlenc.h>
 #include <atlwin.h>
 #include <functional>
-#include <rapidjson/fwd.h>
 #include <mutex>
 #include <string>
 #include <wil/com.h>
@@ -43,6 +44,9 @@ public:
   static long long now();
 
 private:
+  std::string js_bootstrap, js_frontend;
+  rapidjson::Document get_userscript_schema();
+  rapidjson::SchemaDocument userscript_schema;
   bool seeking = false;
   std::mutex mtx;
   std::function<bool(JSMessage)> on_unknown_message;

@@ -32,8 +32,8 @@ std::wstring fromList(UriPathSegmentW *xs, const std::wstring &delim)
     return accum;
 }
 
-UriA::UriA(const std::string &uri)
-    : uri(uri)
+UriA::UriA(const std::string &u)
+    : uri(u)
 {
     UriParserStateA state_;
     state_.uri = &uriParse;
@@ -50,8 +50,8 @@ std::string UriA::fragment() const { return fromRange(uriParse.fragment); }
 std::string UriA::toString() const { return uri; }
 UriA::operator std::string() const { return uri; }
 
-UriW::UriW(const std::wstring &uri)
-    : uri(uri)
+UriW::UriW(const std::wstring &u)
+    : uri(u)
 {
     UriParserStateW state_;
     state_.uri = &uriParse;

@@ -1,3 +1,4 @@
+#include <rapidjson/schema.h>
 #include <rapidjson/writer.h>
 #include <sstream>
 #include <regex>
@@ -34,8 +35,23 @@ KrunkerWindow::KrunkerWindow(ClientFolder &_folder, Type _type, Vector2 s,
     : type(_type), title(_title), og_title(_title), scale(s), folder(_folder),
       last_pointer_poll(now()), on_webview2_startup(_on_startup),
       on_unknown_message(_on_unknown_message),
-      on_destroy_callback(_on_destroy_callback)
+      on_destroy_callback(_on_destroy_callback), userscript_schema(get_userscript_schema())
 {
+  if (load_resource(JS_BOOTSTRAP, js_bootstrap))
+  {
+    if (load_resource(JS_FRONTEND, js_frontend))
+    {
+      js_frontend += "//# sourceMappingURL=https://chief/frontend.js.map";
+    }
+    else
+    {
+      js_frontend = "alert(\"Error: Failure loading frontend\");";
+      clog::error << "Failure loading frontend" << clog::endl;
+    }
+  }
+  else
+    clog::error << "Failure loading bootstrapper" << clog::endl;
+
   raw_input.usUsagePage = 0x01;
   raw_input.usUsage = 0x02;
 }
@@ -514,32 +530,19 @@ void KrunkerWindow::register_events()
 
               if (uri.host() == L"krunker.io")
               {
-                std::string js_frontend =
-                    "throw Error('Failure loading frontend');";
-                load_resource(JS_FRONTEND, js_frontend);
-                std::string js_frontend_map;
-                if (load_resource(JS_FRONTEND_MAP, js_frontend_map))
-                  js_frontend +=
-                      "\n//# sourceMappingURL=data:application/json;base64," +
-                      Base64::Encode(js_frontend_map);
+                rapidjson::StringBuffer buffer;
+                rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+                rapidjson::Value(js_frontend.data(), js_frontend.size()).Accept(writer);
 
-                std::string bootstrap;
-                if (load_resource(JS_BOOTSTRAP, bootstrap))
-                {
-                  rapidjson::StringBuffer buffer;
-                  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-                  rapidjson::Value(js_frontend.data(), js_frontend.size()).Accept(writer);
+                std::string execute = js_bootstrap;
 
-                  bootstrap = ST::replace_all(bootstrap, "$FRONTEND",
-                                              {buffer.GetString(), buffer.GetSize()});
-                  bootstrap = ST::replace_all(bootstrap, "$RUNTIME",
-                                              runtime_data());
+                execute = ST::replace_all(execute, "$FRONTEND",
+                                          {buffer.GetString(), buffer.GetSize()});
+                execute = ST::replace_all(execute, "$RUNTIME",
+                                          runtime_data());
 
-                  webview->ExecuteScript(ST::wstring(bootstrap).c_str(),
-                                         nullptr);
-                }
-                else
-                  clog::error << "Error loading bootstrapper" << clog::endl;
+                webview->ExecuteScript(ST::wstring(execute).c_str(),
+                                       nullptr);
               }
 
               return S_OK;
@@ -625,6 +628,8 @@ void KrunkerWindow::register_events()
                 send_resource(args, HTML_ERROR, L"text/html");
               else if (uri.path() == L"/GameFont.ttf")
                 send_resource(args, FONT_GAME, L"font/ttf");
+              else if (uri.path() == L"/frontend.js.map")
+                send_resource(args, JS_FRONTEND_MAP, L"application/json");
             }
             else if (host_is_krunker(uri.host()))
             {
