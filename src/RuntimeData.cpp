@@ -1,5 +1,5 @@
 #include <rapidjson/document.h>
-#include <rapidjson/prettywriter.h>
+#include <rapidjson/writer.h>
 #include <rapidjson/allocators.h>
 #include <rapidjson/schema.h>
 #include <rapidjson/error/en.h>
@@ -212,7 +212,7 @@ std::string KrunkerWindow::runtime_data()
   data.AddMember("js", load_userscripts(allocator), allocator);
 
   rapidjson::StringBuffer buffer;
-  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   data.Accept(writer);
 
   return {buffer.GetString(), buffer.GetSize()};
