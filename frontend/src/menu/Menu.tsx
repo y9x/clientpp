@@ -109,6 +109,34 @@ export default function Menu() {
             ipc.send(IM.relaunch_webview);
           }}
         />
+        <SelectControl
+          title="Angle backend"
+          defaultValue={config.render.angle}
+          onChange={(event) => {
+            config.render.angle = event.currentTarget.value;
+            setConfig(config);
+            ipc.send(IM.relaunch_webview);
+          }}
+        >
+          <option value="default">Default</option>
+          <option value="d3d11on12">Direct3D 11 on 12</option>
+          <option value="d3d11">Direct3D 11</option>
+          <option value="d3d9">Direct3D 9 </option>
+          <option value="gl">OpenGL</option>
+        </SelectControl>
+        <SelectControl
+          title="Color profile"
+          defaultValue={config.render.color}
+          onChange={(event) => {
+            config.render.color = event.currentTarget.value;
+            setConfig(config);
+            ipc.send(IM.relaunch_webview);
+          }}
+        >
+          <option value="default">Default</option>
+          <option value="d3d11on12">SRGB</option>
+          <option value="generic-rgb">RGB</option>
+        </SelectControl>
       </Set>
       <Set title="Game">
         <SwitchControl
