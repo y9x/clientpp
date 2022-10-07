@@ -8,8 +8,7 @@
 #include <discord_register.h>
 #include <discord_rpc.h>
 
-class Client
-{
+class Client {
 private:
   static const char *version;
   static const char *discord_rpc;

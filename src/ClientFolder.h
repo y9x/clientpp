@@ -3,8 +3,7 @@
 #include <string>
 #include <vector>
 
-class ClientFolder
-{
+class ClientFolder {
 public:
   std::wstring directory;
   std::wstring p_profile = L"\\Profile";

@@ -1,27 +1,25 @@
-#include <rapidjson/schema.h>
-#include <rapidjson/writer.h>
-#include <sstream>
-#include <regex>
-#include <WebView2EnvironmentOptions.h>
-#include "../utils/Uri.h"
-#include "../utils/Base64.h"
-#include "../utils/StringUtil.h"
-#include "../utils/JsonUtil.h"
 #include "./KrunkerWindow.h"
+#include "../utils/Base64.h"
+#include "../utils/JsonUtil.h"
+#include "../utils/StringUtil.h"
+#include "../utils/Uri.h"
 #include "./LoadRes.h"
 #include "./Log.h"
 #include "./resource.h"
+#include <WebView2EnvironmentOptions.h>
+#include <rapidjson/schema.h>
+#include <rapidjson/writer.h>
+#include <regex>
+#include <sstream>
 
 using Microsoft::WRL::Callback;
 using Microsoft::WRL::Make;
 
-bool host_is_krunker(std::wstring host)
-{
+bool host_is_krunker(std::wstring host) {
   return host == L"krunker.io" || host.ends_with(L".krunker.io");
 }
 
-long long KrunkerWindow::now()
-{
+long long KrunkerWindow::now() {
   return duration_cast<std::chrono::milliseconds>(
              std::chrono::system_clock::now().time_since_epoch())
       .count();
@@ -35,16 +33,14 @@ KrunkerWindow::KrunkerWindow(ClientFolder &_folder, Type _type, Vector2 s,
     : type(_type), title(_title), og_title(_title), scale(s), folder(_folder),
       last_pointer_poll(now()), on_webview2_startup(_on_startup),
       on_unknown_message(_on_unknown_message),
-      on_destroy_callback(_on_destroy_callback), userscript_schema(get_userscript_schema())
-{
+      on_destroy_callback(_on_destroy_callback),
+      userscript_schema(get_userscript_schema()) {
   std::string str_js_frontend;
 
-  if (load_resource(JS_FRONTEND, str_js_frontend))
-  {
-    js_frontend = ST::wstring(str_js_frontend) + L"//# sourceMappingURL=https://chief/frontend.js.map";
-  }
-  else
-  {
+  if (load_resource(JS_FRONTEND, str_js_frontend)) {
+    js_frontend = ST::wstring(str_js_frontend) +
+                  L"//# sourceMappingURL=https://chief/frontend.js.map";
+  } else {
     clog::error << "Failure loading frontend" << clog::endl;
   }
 
@@ -52,28 +48,24 @@ KrunkerWindow::KrunkerWindow(ClientFolder &_folder, Type _type, Vector2 s,
   raw_input.usUsage = 0x02;
 }
 
-KrunkerWindow::~KrunkerWindow()
-{
+KrunkerWindow::~KrunkerWindow() {
   if (mouse_hooked)
     unhook_mouse();
   if (::IsWindow(m_hWnd))
     DestroyWindow();
 }
 
-HINSTANCE KrunkerWindow::get_hinstance()
-{
+HINSTANCE KrunkerWindow::get_hinstance() {
   return (HINSTANCE)GetWindowLong(GWL_HINSTANCE);
 }
 
-bool KrunkerWindow::create_window(HINSTANCE inst, int cmdshow)
-{
+bool KrunkerWindow::create_window(HINSTANCE inst, int cmdshow) {
   Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
 
   Vector2 scr_pos;
   Vector2 scr_size;
 
-  if (monitor_data(scr_pos, scr_size))
-  {
+  if (monitor_data(scr_pos, scr_size)) {
     Rect2D r;
 
     r.width = long(scr_size.x * scale.x);
@@ -83,8 +75,7 @@ bool KrunkerWindow::create_window(HINSTANCE inst, int cmdshow)
     r.y = long(scr_pos.y + ((scr_size.y - r.height) / 2));
 
     SetWindowPos(NULL, r.get(), 0);
-  }
-  else
+  } else
     ResizeClient(700, 500);
 
   ShowWindow(cmdshow);
@@ -93,14 +84,12 @@ bool KrunkerWindow::create_window(HINSTANCE inst, int cmdshow)
   return true;
 }
 
-COREWEBVIEW2_COLOR KrunkerWindow::ColorRef(COLORREF color)
-{
+COREWEBVIEW2_COLOR KrunkerWindow::ColorRef(COLORREF color) {
   return COREWEBVIEW2_COLOR{255, GetRValue(color), GetGValue(color),
                             GetBValue(color)};
 }
 
-bool KrunkerWindow::enter_fullscreen()
-{
+bool KrunkerWindow::enter_fullscreen() {
   if (fullscreen)
     return false;
 
@@ -125,8 +114,7 @@ bool KrunkerWindow::enter_fullscreen()
   return fullscreen = true;
 }
 
-bool KrunkerWindow::exit_fullscreen()
-{
+bool KrunkerWindow::exit_fullscreen() {
   if (!fullscreen)
     return false;
 
@@ -140,8 +128,7 @@ bool KrunkerWindow::exit_fullscreen()
   return true;
 }
 
-bool KrunkerWindow::resize_wv()
-{
+bool KrunkerWindow::resize_wv() {
   if (control == nullptr)
     return false;
 
@@ -152,14 +139,12 @@ bool KrunkerWindow::resize_wv()
   return true;
 }
 
-bool KrunkerWindow::monitor_data(RECT &rect)
-{
+bool KrunkerWindow::monitor_data(RECT &rect) {
   HMONITOR monitor = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
   MONITORINFO info;
   info.cbSize = sizeof(info);
 
-  if (!GetMonitorInfo(monitor, &info))
-  {
+  if (!GetMonitorInfo(monitor, &info)) {
     clog::error << "Can't get monitor info" << clog::endl;
     return false;
   }
@@ -169,8 +154,7 @@ bool KrunkerWindow::monitor_data(RECT &rect)
   return true;
 }
 
-bool KrunkerWindow::monitor_data(Vector2 &pos, Vector2 &size)
-{
+bool KrunkerWindow::monitor_data(Vector2 &pos, Vector2 &size) {
   RECT r;
 
   if (!monitor_data(r))
@@ -186,15 +170,13 @@ bool KrunkerWindow::monitor_data(Vector2 &pos, Vector2 &size)
 }
 
 LRESULT KrunkerWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam,
-                                 BOOL &fHandled)
-{
+                                 BOOL &fHandled) {
   return resize_wv();
 }
 
 Vector2 movebuffer;
 
-JSMessage msgFct(unsigned short event, std::vector<double> nums)
-{
+JSMessage msgFct(unsigned short event, std::vector<double> nums) {
   JSMessage msg(event);
   for (double num : nums)
     msg.args.PushBack(rapidjson::Value(num), msg.allocator);
@@ -202,15 +184,13 @@ JSMessage msgFct(unsigned short event, std::vector<double> nums)
 }
 
 LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam,
-                                BOOL &fHandled)
-{
+                                BOOL &fHandled) {
   unsigned size = sizeof(RAWINPUT);
   static RAWINPUT raw[sizeof(RAWINPUT)];
   GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw, &size,
                   sizeof(RAWINPUTHEADER));
 
-  if (raw->header.dwType == RIM_TYPEMOUSE)
-  {
+  if (raw->header.dwType == RIM_TYPEMOUSE) {
     RAWMOUSE mouse = raw->data.mouse;
     USHORT flags = mouse.usButtonFlags;
 
@@ -246,13 +226,11 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam,
 }
 
 LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam,
-                                              LPARAM lParam)
-{
+                                              LPARAM lParam) {
   return 1;
 }
 
-void KrunkerWindow::hook_mouse()
-{
+void KrunkerWindow::hook_mouse() {
   clog::debug << "Hooking mouse" << clog::endl;
 
   INPUT input = {};
@@ -273,8 +251,7 @@ void KrunkerWindow::hook_mouse()
   mouse_hooked = true;
 }
 
-void KrunkerWindow::unhook_mouse()
-{
+void KrunkerWindow::unhook_mouse() {
   clog::debug << "Unhooked mouse" << clog::endl;
 
   raw_input.dwFlags = RIDEV_REMOVE;
@@ -286,8 +263,7 @@ void KrunkerWindow::unhook_mouse()
 }
 
 // https://peter.sh/experiments/chromium-command-line-switches/
-std::wstring KrunkerWindow::cmdline()
-{
+std::wstring KrunkerWindow::cmdline() {
   load_userscripts();
 
   std::vector<std::wstring> cmds = {
@@ -302,8 +278,7 @@ std::wstring KrunkerWindow::cmdline()
   for (std::wstring cmd : additional_command_line)
     cmds.push_back(cmd);
 
-  if (folder.config["render"]["uncap_fps"].GetBool())
-  {
+  if (folder.config["render"]["uncap_fps"].GetBool()) {
     cmds.push_back(L"--disable-frame-rate-limit");
     // if (!folder.config["render"]["vsync"])
     cmds.push_back(L"--disable-gpu-vsync");
@@ -319,8 +294,7 @@ std::wstring KrunkerWindow::cmdline()
   std::wstring cmdline;
   bool first = false;
 
-  for (std::wstring cmd : cmds)
-  {
+  for (std::wstring cmd : cmds) {
     if (first)
       first = false;
     else
@@ -334,27 +308,23 @@ std::wstring KrunkerWindow::cmdline()
 
 bool KrunkerWindow::send_resource(
     ICoreWebView2WebResourceRequestedEventArgs *args, int resource,
-    std::wstring mime)
-{
+    std::wstring mime) {
   IStream *stream = nullptr;
   std::string data;
 
-  if (!load_resource(resource, data))
-  {
+  if (!load_resource(resource, data)) {
     clog::error << "Unable to load resource " << resource << clog::endl;
     return false;
   }
 
-  if (CreateStreamOnHGlobal(NULL, TRUE, (LPSTREAM *)&stream) != S_OK)
-  {
+  if (CreateStreamOnHGlobal(NULL, TRUE, (LPSTREAM *)&stream) != S_OK) {
     clog::error << "Unable to create IStream on HGlobal" << clog::endl;
     return false;
   }
 
   ULONG written = 0;
 
-  if (stream->Write(data.data(), data.size(), &written) != S_OK)
-  {
+  if (stream->Write(data.data(), data.size(), &written) != S_OK) {
     clog::error << "Unable to write data to IStream" << clog::endl;
     return false;
   }
@@ -367,10 +337,8 @@ bool KrunkerWindow::send_resource(
   return true;
 }
 
-std::string status_name(COREWEBVIEW2_WEB_ERROR_STATUS status)
-{
-  switch (status)
-  {
+std::string status_name(COREWEBVIEW2_WEB_ERROR_STATUS status) {
+  switch (status) {
   case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_COMMON_NAME_IS_INCORRECT:
     return "CertificateErrCommonNameIsIncorrect";
     break;
@@ -426,13 +394,11 @@ std::string status_name(COREWEBVIEW2_WEB_ERROR_STATUS status)
   }
 }
 
-std::wstring encodeURIComponent(std::wstring decoded)
-{
+std::wstring encodeURIComponent(std::wstring decoded) {
   std::wostringstream oss;
   std::wregex r(L"[!'\\(\\)*-.0-9A-Za-z_~]");
 
-  for (wchar_t &c : decoded)
-  {
+  for (wchar_t &c : decoded) {
     std::wstring cw;
     cw += c;
     if (std::regex_match(cw, r))
@@ -444,15 +410,13 @@ std::wstring encodeURIComponent(std::wstring decoded)
   return oss.str();
 }
 
-void KrunkerWindow::register_events()
-{
+void KrunkerWindow::register_events() {
   EventRegistrationToken token;
 
   webview->add_WebMessageReceived(
       Callback<ICoreWebView2WebMessageReceivedEventHandler>(
           [this](ICoreWebView2 *sender,
-                 ICoreWebView2WebMessageReceivedEventArgs *args)
-          {
+                 ICoreWebView2WebMessageReceivedEventArgs *args) {
             wil::unique_cotaskmem_string mpt;
             args->TryGetWebMessageAsString(&mpt);
             if (!mpt)
@@ -471,8 +435,7 @@ void KrunkerWindow::register_events()
   webview->add_NavigationStarting(
       Callback<ICoreWebView2NavigationStartingEventHandler>(
           [this](ICoreWebView2 *sender,
-                 ICoreWebView2NavigationStartingEventArgs *args) -> HRESULT
-          {
+                 ICoreWebView2NavigationStartingEventArgs *args) -> HRESULT {
             if (mouse_hooked)
               unhook_mouse();
             return S_OK;
@@ -483,13 +446,11 @@ void KrunkerWindow::register_events()
   webview->add_PermissionRequested(
       Callback<ICoreWebView2PermissionRequestedEventHandler>(
           [this](ICoreWebView2 *sender,
-                 ICoreWebView2PermissionRequestedEventArgs *args) -> HRESULT
-          {
+                 ICoreWebView2PermissionRequestedEventArgs *args) -> HRESULT {
             COREWEBVIEW2_PERMISSION_KIND kind;
             args->get_PermissionKind(&kind);
 
-            switch (kind)
-            {
+            switch (kind) {
             case COREWEBVIEW2_PERMISSION_KIND::
                 COREWEBVIEW2_PERMISSION_KIND_MICROPHONE:
             case COREWEBVIEW2_PERMISSION_KIND::
@@ -513,23 +474,20 @@ void KrunkerWindow::register_events()
   */
 
   if (wil::com_ptr<ICoreWebView2_2> webview_2 =
-          webview.query<ICoreWebView2_2>())
-  {
+          webview.query<ICoreWebView2_2>()) {
     webview_2->add_ContentLoading(
         Callback<ICoreWebView2ContentLoadingEventHandler>(
             [this](ICoreWebView2 *sender,
-                   ICoreWebView2ContentLoadingEventArgs *args) -> HRESULT
-            {
+                   ICoreWebView2ContentLoadingEventArgs *args) -> HRESULT {
               wil::unique_cotaskmem_string urir;
               webview->get_Source(&urir);
               UriW uri(urir.get());
 
-              if (uri.host() == L"krunker.io")
-              {
-                std::wstring setup = L"window._RUNTIME_DATA_ = " + ST::wstring(runtime_data()) + L";";
+              if (uri.host() == L"krunker.io") {
+                std::wstring setup = L"window._RUNTIME_DATA_ = " +
+                                     ST::wstring(runtime_data()) + L";";
 
-                webview->ExecuteScript(setup.c_str(),
-                                       nullptr);
+                webview->ExecuteScript(setup.c_str(), nullptr);
 
                 webview->ExecuteScript(js_frontend.c_str(), nullptr);
               }
@@ -543,8 +501,7 @@ void KrunkerWindow::register_events()
   webview->add_NavigationCompleted(
       Callback<ICoreWebView2NavigationCompletedEventHandler>(
           [this](ICoreWebView2 *sender,
-                 ICoreWebView2NavigationCompletedEventArgs *args) -> HRESULT
-          {
+                 ICoreWebView2NavigationCompletedEventArgs *args) -> HRESULT {
             BOOL success = true;
             args->get_IsSuccess(&success);
 
@@ -552,41 +509,44 @@ void KrunkerWindow::register_events()
             webview->get_Source(&urir);
             std::string uri(ST::string(urir.get()));
 
-            if (!success)
-            {
+            if (!success) {
               COREWEBVIEW2_WEB_ERROR_STATUS status;
               args->get_WebErrorStatus(&status);
 
               if (status ==
                       COREWEBVIEW2_WEB_ERROR_STATUS::
                           COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_ABORTED ||
-                  status == COREWEBVIEW2_WEB_ERROR_STATUS::COREWEBVIEW2_WEB_ERROR_STATUS_OPERATION_CANCELED)
-              {
+                  status ==
+                      COREWEBVIEW2_WEB_ERROR_STATUS::
+                          COREWEBVIEW2_WEB_ERROR_STATUS_OPERATION_CANCELED) {
                 return S_OK;
               }
 
               // renderer freezes when navigating from an error page that occurs
               // on startup
               control->Close();
-              call_create_webview([this, status, uri]()
-                                  {
-                                    // = {status}
+              call_create_webview([this, status, uri]() {
+                // = {status}
                 rapidjson::Document data(rapidjson::kArrayType);
-                rapidjson::Document::AllocatorType allocator = data.GetAllocator();
+                rapidjson::Document::AllocatorType allocator =
+                    data.GetAllocator();
                 std::string name = status_name(status);
-               
+
                 data.PushBack(rapidjson::Value(status), allocator);
-                data.PushBack(rapidjson::Value(name.data(), name.size()), allocator);
-                data.PushBack(rapidjson::Value(uri.data(), uri.size()), allocator);
+                data.PushBack(rapidjson::Value(name.data(), name.size()),
+                              allocator);
+                data.PushBack(rapidjson::Value(uri.data(), uri.size()),
+                              allocator);
 
                 rapidjson::StringBuffer buffer;
                 rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
                 data.Accept(writer);
 
-                webview->Navigate(
-                    (L"https://chief/error?data=" +
-                     encodeURIComponent(ST::wstring({ buffer.GetString(), buffer.GetSize() })))
-                        .c_str()); });
+                webview->Navigate((L"https://chief/error?data=" +
+                                   encodeURIComponent(ST::wstring(
+                                       {buffer.GetString(), buffer.GetSize()})))
+                                      .c_str());
+              });
             }
 
             return S_OK;
@@ -597,37 +557,30 @@ void KrunkerWindow::register_events()
   webview->add_WebResourceRequested(
       Callback<ICoreWebView2WebResourceRequestedEventHandler>(
           [this](ICoreWebView2 *sender,
-                 ICoreWebView2WebResourceRequestedEventArgs *args) -> HRESULT
-          {
+                 ICoreWebView2WebResourceRequestedEventArgs *args) -> HRESULT {
             wil::com_ptr<ICoreWebView2WebResourceRequest> request;
             args->get_Request(&request);
             wil::unique_cotaskmem_string urir;
             request->get_Uri(&urir);
             UriW uri(urir.get());
 
-            if (uri.path() == L"/favicon.ico")
-            {
+            if (uri.path() == L"/favicon.ico") {
               wil::com_ptr<ICoreWebView2WebResourceResponse> response;
               env->CreateWebResourceResponse(nullptr, 403, L"Unused", L"",
                                              &response);
               args->put_Response(response.get());
-            }
-            else if (uri.host() == L"chief")
-            {
+            } else if (uri.host() == L"chief") {
               if (uri.path() == L"/error")
                 send_resource(args, HTML_ERROR, L"text/html");
               else if (uri.path() == L"/GameFont.ttf")
                 send_resource(args, FONT_GAME, L"font/ttf");
               else if (uri.path() == L"/frontend.js.map")
                 send_resource(args, JS_FRONTEND_MAP, L"application/json");
-            }
-            else if (host_is_krunker(uri.host()))
-            {
+            } else if (host_is_krunker(uri.host())) {
               std::wstring swap =
                   folder.directory + folder.p_swapper + uri.path();
 
-              if (IOUtil::file_exists(swap))
-              {
+              if (IOUtil::file_exists(swap)) {
                 clog::info << "Swapping " << ST::string(uri.path())
                            << clog::endl;
                 // Create an empty IStream:
@@ -635,8 +588,7 @@ void KrunkerWindow::register_events()
 
                 if (SHCreateStreamOnFileEx(swap.c_str(),
                                            STGM_READ | STGM_SHARE_DENY_WRITE, 0,
-                                           false, 0, &stream) == S_OK)
-                {
+                                           false, 0, &stream) == S_OK) {
                   wil::com_ptr<ICoreWebView2WebResourceResponse> response;
                   env->CreateWebResourceResponse(
                       stream, 200, L"OK",
@@ -647,14 +599,11 @@ void KrunkerWindow::register_events()
                       L"X-Google-Trace",
                       &response);
                   args->put_Response(response.get());
-                }
-                else
+                } else
                   clog::error << "Unable to create IStream for file: "
                               << ST::string(swap) << clog::endl;
               }
-            }
-            else if (block_uri(uri.toString()))
-            {
+            } else if (block_uri(uri.toString())) {
               wil::com_ptr<ICoreWebView2WebResourceResponse> response;
               env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"",
                                              &response);
@@ -668,8 +617,7 @@ void KrunkerWindow::register_events()
 }
 
 KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow,
-                                            std::function<void()> callback)
-{
+                                            std::function<void()> callback) {
   bool was_open = open;
 
   if (folder.config["window"]["meta"]["replace"].GetBool())
@@ -687,8 +635,7 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow,
     SetIcon((HICON)LoadImage(
         inst,
         folder
-            .resolve_path(JT::wstring(
-                folder.config["window"]["meta"]["icon"]))
+            .resolve_path(JT::wstring(folder.config["window"]["meta"]["icon"]))
             .c_str(),
         IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
   else
@@ -704,8 +651,7 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow,
 }
 
 KrunkerWindow::Status
-KrunkerWindow::call_create_webview(std::function<void()> callback)
-{
+KrunkerWindow::call_create_webview(std::function<void()> callback) {
   auto options = Make<CoreWebView2EnvironmentOptions>();
 
   options->put_AdditionalBrowserArguments(cmdline().c_str());
@@ -714,10 +660,8 @@ KrunkerWindow::call_create_webview(std::function<void()> callback)
       nullptr, (folder.directory + folder.p_profile).c_str(), options.Get(),
       Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
           [this, callback](HRESULT result,
-                           ICoreWebView2Environment *envp) -> HRESULT
-          {
-            if (envp == nullptr)
-            {
+                           ICoreWebView2Environment *envp) -> HRESULT {
+            if (envp == nullptr) {
               clog::error << "Env was nullptr" << clog::endl;
 
               return S_FALSE;
@@ -730,10 +674,8 @@ KrunkerWindow::call_create_webview(std::function<void()> callback)
                     ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
                     [this,
                      callback](HRESULT result,
-                               ICoreWebView2Controller *controller) -> HRESULT
-                    {
-                      if (controller == nullptr)
-                      {
+                               ICoreWebView2Controller *controller) -> HRESULT {
+                      if (controller == nullptr) {
                         clog::error << "Controller was nullptr. Error code: 0x"
                                     << std::hex << result << clog::endl;
                         // call_create_webview(callback);
@@ -744,21 +686,18 @@ KrunkerWindow::call_create_webview(std::function<void()> callback)
                       control->get_CoreWebView2(&webview);
 
                       if (wil::com_ptr<ICoreWebView2Controller2> control2 =
-                              control.query<ICoreWebView2Controller2>())
-                      {
+                              control.query<ICoreWebView2Controller2>()) {
                         control2->put_DefaultBackgroundColor(
                             ColorRef(background));
                       }
 
                       if (wil::com_ptr<ICoreWebView2Controller3> control3 =
-                              control.query<ICoreWebView2Controller3>())
-                      {
+                              control.query<ICoreWebView2Controller3>()) {
                         control3->put_ShouldDetectMonitorScaleChanges(false);
                       }
 
                       wil::com_ptr<ICoreWebView2Settings> settings;
-                      if (SUCCEEDED(webview->get_Settings(&settings)))
-                      {
+                      if (SUCCEEDED(webview->get_Settings(&settings))) {
                         settings->put_AreDefaultContextMenusEnabled(false);
                         settings->put_IsScriptEnabled(true);
                         settings->put_AreDefaultScriptDialogsEnabled(true);
@@ -773,14 +712,12 @@ KrunkerWindow::call_create_webview(std::function<void()> callback)
 #endif
 
                         if (wil::com_ptr<ICoreWebView2Settings3> settings3 =
-                                settings.query<ICoreWebView2Settings3>())
-                        {
+                                settings.query<ICoreWebView2Settings3>()) {
                           settings3->put_AreBrowserAcceleratorKeysEnabled(
                               false);
                         }
                         if (wil::com_ptr<ICoreWebView2Settings4> settings4 =
-                                settings.query<ICoreWebView2Settings4>())
-                        {
+                                settings.query<ICoreWebView2Settings4>()) {
                           settings4->put_IsGeneralAutofillEnabled(false);
                           settings4->put_IsPasswordAutosaveEnabled(false);
                         }
@@ -804,12 +741,10 @@ KrunkerWindow::call_create_webview(std::function<void()> callback)
           })
           .Get());
 
-  if (!SUCCEEDED(create))
-  {
+  if (!SUCCEEDED(create)) {
     last_herror = create;
 
-    switch (create)
-    {
+    switch (create) {
     case HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND):
       return Status::MissingRuntime;
       break;
@@ -826,29 +761,22 @@ KrunkerWindow::call_create_webview(std::function<void()> callback)
       return Status::UnknownError;
       break;
     }
-  }
-  else
+  } else
     return Status::Ok;
 }
 
 KrunkerWindow::Status KrunkerWindow::get(HINSTANCE inst, int cmdshow,
-                                         std::function<void(bool)> callback)
-{
-  if (open)
-  {
+                                         std::function<void(bool)> callback) {
+  if (open) {
     // documentation for editor opens twice
-    if (!webview)
-    {
+    if (!webview) {
       return Status::RuntimeFatal;
     }
 
     callback(false);
     return Status::AlreadyOpen;
-  }
-  else
-  {
-    return create(inst, cmdshow, [this, callback]()
-                  { callback(true); });
+  } else {
+    return create(inst, cmdshow, [this, callback]() { callback(true); });
   }
 }
 
@@ -856,8 +784,7 @@ long long mouse_hz = 244;
 long long mouse_interval = 1000 / mouse_hz;
 long long then = KrunkerWindow::now();
 
-void KrunkerWindow::on_dispatch()
-{
+void KrunkerWindow::on_dispatch() {
   if (!open)
     return;
 
@@ -869,8 +796,7 @@ void KrunkerWindow::on_dispatch()
 
   pending_messages.clear();
 
-  for (std::wstring url : pending_navigations)
-  {
+  for (std::wstring url : pending_navigations) {
     webview->Stop();
     webview->Navigate(url.c_str());
   }
@@ -886,19 +812,16 @@ void KrunkerWindow::on_dispatch()
 
   time_t last_poll = now() - last_pointer_poll;
 
-  if (last_poll > 1500 && mouse_hooked)
-  {
+  if (last_poll > 1500 && mouse_hooked) {
     clog::error << "Pointer lock timeout: " << last_poll << "ms" << clog::endl;
     unhook_mouse();
   }
 
-  if (mouse_hooked)
-  {
+  if (mouse_hooked) {
     long long nw = now();
     long long delta = nw - then;
 
-    if (delta > mouse_interval)
-    {
+    if (delta > mouse_interval) {
       then = nw - (delta % mouse_interval);
       msgFct(IM::mousemove, {movebuffer.x, movebuffer.y}).send(webview);
       movebuffer.clear();
@@ -907,8 +830,7 @@ void KrunkerWindow::on_dispatch()
 }
 
 LRESULT KrunkerWindow::on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam,
-                                  BOOL &fHandled)
-{
+                                  BOOL &fHandled) {
   open = false;
   if (on_destroy_callback)
     on_destroy_callback();

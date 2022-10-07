@@ -1,33 +1,31 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
-#include <rapidjson/prettywriter.h>
-#include <ShellScalingApi.h>
-#include <shellapi.h>
-#include <sstream>
 #include "./Client.h"
 #include "../utils/JsonUtil.h"
 #include "../utils/StringUtil.h"
 #include "./Log.h"
+#include <ShellScalingApi.h>
+#include <rapidjson/prettywriter.h>
+#include <shellapi.h>
+#include <sstream>
 
 using Microsoft::WRL::Callback;
 
-namespace krunker
-{
-  constexpr const wchar_t *game = L"/";
-  constexpr const wchar_t *games = L"/games";
-  constexpr const wchar_t *editor = L"/editor.html";
-  constexpr const wchar_t *social = L"/social.html";
-  constexpr const wchar_t *viewer = L"/viewer.html";
-  constexpr const wchar_t *scripting = L"/scripting.html";
-  constexpr const wchar_t *docs = L"/docs/";
-  constexpr const wchar_t *tos = L"/docs/tos.html";
+namespace krunker {
+constexpr const wchar_t *game = L"/";
+constexpr const wchar_t *games = L"/games";
+constexpr const wchar_t *editor = L"/editor.html";
+constexpr const wchar_t *social = L"/social.html";
+constexpr const wchar_t *viewer = L"/viewer.html";
+constexpr const wchar_t *scripting = L"/scripting.html";
+constexpr const wchar_t *docs = L"/docs/";
+constexpr const wchar_t *tos = L"/docs/tos.html";
 }; // namespace krunker
 
 const char *Client::version = CLIENT_VERSION_STRING;
 const char *Client::discord_rpc = "899137303182716968";
 const wchar_t *Client::title = L"Chief Client++";
 
-bool Client::navigation_cancelled(ICoreWebView2 *sender, UriW uri)
-{
+bool Client::navigation_cancelled(ICoreWebView2 *sender, UriW uri) {
   if (uri.host() == L"chief")
     return false;
 
@@ -36,12 +34,12 @@ bool Client::navigation_cancelled(ICoreWebView2 *sender, UriW uri)
 
   KrunkerWindow *send = nullptr;
 
-  if (kru_owns)
-  {
+  if (kru_owns) {
     if (uri.host() == L"docs.krunker.io" ||
         uri.path().starts_with(krunker::docs))
       send = &documents;
-    else if (uri.path() == krunker::game || uri.path().starts_with(krunker::games))
+    else if (uri.path() == krunker::game ||
+             uri.path().starts_with(krunker::games))
       send = &game;
     else if (uri.path() == krunker::social)
       send = &social;
@@ -50,45 +48,41 @@ bool Client::navigation_cancelled(ICoreWebView2 *sender, UriW uri)
     else if (uri.path() == krunker::scripting)
       send = &scripting;
   }
-  if (!send)
-  {
+  if (!send) {
     cancel = true;
     std::wstring uristr = uri.toString();
     ShellExecute(NULL, L"open", uristr.c_str(), L"", L"", SW_SHOW);
   }
 
   // if send->webview exists
-  if (send && send->webview != sender)
-  {
+  if (send && send->webview != sender) {
     cancel = true;
-    send->get(inst, cmdshow, [this, uri, send](bool newly_created)
-              {
+    send->get(inst, cmdshow, [this, uri, send](bool newly_created) {
       if (newly_created)
         listen_navigation(*send);
       std::wstring uristr = uri.toString();
       send->webview->Navigate(uristr.c_str());
-      send->BringWindowToTop(); });
+      send->BringWindowToTop();
+    });
   }
 
   return cancel;
 }
 
-void Client::listen_navigation(KrunkerWindow &window)
-{
+void Client::listen_navigation(KrunkerWindow &window) {
   EventRegistrationToken token;
 
   window.webview->add_NewWindowRequested(
       Callback<ICoreWebView2NewWindowRequestedEventHandler>(
           [this](ICoreWebView2 *sender,
-                 ICoreWebView2NewWindowRequestedEventArgs *args) -> HRESULT
-          {
+                 ICoreWebView2NewWindowRequestedEventArgs *args) -> HRESULT {
             wil::unique_cotaskmem_string uri;
             args->get_Uri(&uri);
 
-            if (navigation_cancelled(sender, UriW(uri.get()))) /* TODO: SET OPENER */
+            if (navigation_cancelled(sender,
+                                     UriW(uri.get()))) /* TODO: SET OPENER */
               args->put_Handled(true);
-            else
-            {
+            else {
               args->put_Handled(true);
               sender->Navigate(uri.get());
             }
@@ -101,8 +95,7 @@ void Client::listen_navigation(KrunkerWindow &window)
   window.webview->add_NavigationStarting(
       Callback<ICoreWebView2NavigationStartingEventHandler>(
           [this](ICoreWebView2 *sender,
-                 ICoreWebView2NavigationStartingEventArgs *args) -> HRESULT
-          {
+                 ICoreWebView2NavigationStartingEventArgs *args) -> HRESULT {
             wil::unique_cotaskmem_string urir;
             args->get_Uri(&urir);
             UriW uri(urir.get());
@@ -115,8 +108,7 @@ void Client::listen_navigation(KrunkerWindow &window)
       &token);
 }
 
-void Client::rpc_loading()
-{
+void Client::rpc_loading() {
   DiscordRichPresence presence;
   memset(&presence, 0, sizeof(presence));
 
@@ -128,10 +120,8 @@ void Client::rpc_loading()
   Discord_UpdatePresence(&presence);
 }
 
-bool Client::on_message(JSMessage msg, KrunkerWindow &window)
-{
-  switch (msg.event)
-  {
+bool Client::on_message(JSMessage msg, KrunkerWindow &window) {
+  switch (msg.event) {
   case IM::rpc_init:
 
     if (!folder.config["rpc"]["enabled"].GetBool())
@@ -145,8 +135,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
     Discord_ClearPresence();
 
     break;
-  case IM::rpc_update:
-  {
+  case IM::rpc_update: {
     {
       if (!folder.config["rpc"]["enabled"].GetBool())
         break;
@@ -173,35 +162,30 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
 
       Discord_UpdatePresence(&presence);
     }
-  }
-  break;
-  case IM::account_password:
-  {
+  } break;
+  case IM::account_password: {
     JSMessage res(msg.args[0].GetInt());
     std::string dec;
     std::string account_name = JT::string(msg.args[1]);
 
-    if (!accounts.data.contains(account_name))
-    {
+    if (!accounts.data.contains(account_name)) {
       res.args.PushBack(rapidjson::Value(rapidjson::kNullType), res.allocator);
-      res.args.PushBack(rapidjson::Value("Account doesn't exist", res.allocator), res.allocator);
-    }
-    else if (!accounts.decrypt(accounts.data[account_name].password, dec))
-    {
+      res.args.PushBack(
+          rapidjson::Value("Account doesn't exist", res.allocator),
+          res.allocator);
+    } else if (!accounts.decrypt(accounts.data[account_name].password, dec)) {
       res.args.PushBack(rapidjson::Value(rapidjson::kNullType), res.allocator);
-      res.args.PushBack(rapidjson::Value("Unknown", res.allocator), res.allocator);
-    }
-    else
-    {
-      res.args.PushBack(rapidjson::Value(dec.data(), dec.size(), res.allocator), res.allocator);
+      res.args.PushBack(rapidjson::Value("Unknown", res.allocator),
+                        res.allocator);
+    } else {
+      res.args.PushBack(rapidjson::Value(dec.data(), dec.size(), res.allocator),
+                        res.allocator);
     }
 
     if (!res.send(window.webview))
       clog::error << "Unable to send " << res.dump() << clog::endl;
-  }
-  break;
-  case IM::account_remove:
-  {
+  } break;
+  case IM::account_remove: {
 
     accounts.data.erase(JT::string(msg.args[0]));
     accounts.save();
@@ -210,10 +194,8 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
     res.args.PushBack(accounts.dump(res.allocator), res.allocator);
     if (!res.send(window.webview))
       clog::error << "Unable to send " << res.dump() << clog::endl;
-  }
-  break;
-  case IM::account_set:
-  {
+  } break;
+  case IM::account_set: {
 
     std::string name = JT::string(msg.args[0]);
     Account &account = accounts.data[name];
@@ -225,15 +207,12 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
     res.args.PushBack(accounts.dump(res.allocator), res.allocator);
     if (!res.send(window.webview))
       clog::error << "Unable to send " << res.dump() << clog::endl;
-  }
-  break;
+  } break;
   // and creation
-  case IM::account_set_password:
-  {
+  case IM::account_set_password: {
 
     std::string enc;
-    if (accounts.encrypt(JT::string(msg.args[1]), enc))
-    {
+    if (accounts.encrypt(JT::string(msg.args[1]), enc)) {
       Account account;
       account.color = JT::string(msg.args[2]);
       account.order = msg.args[3].GetInt();
@@ -246,20 +225,16 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
       res.args.PushBack(accounts.dump(res.allocator), res.allocator);
       if (!res.send(window.webview))
         clog::error << "Unable to send " << res.dump() << clog::endl;
-    }
-    else
+    } else
       clog::error << "Failure encrypting password" << clog::endl;
-  }
-  break;
-  case IM::account_list:
-  {
+  } break;
+  case IM::account_list: {
 
     JSMessage res(msg.args[0].GetInt());
     res.args.PushBack(accounts.dump(res.allocator), res.allocator);
     if (!res.send(window.webview))
       clog::error << "Unable to send " << res.dump() << clog::endl;
-  }
-  break;
+  } break;
 
   default:
     return false;
@@ -268,18 +243,15 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window)
   return true;
 }
 
-void Client::install_runtimes()
-{
+void Client::install_runtimes() {
   if (MessageBox(NULL,
                  L"You are missing runtimes. Install the WebView2 Runtime?",
-                 title, MB_YESNO) == IDYES)
-  {
+                 title, MB_YESNO) == IDYES) {
     WebView2Installer::Error error;
     MessageBox(NULL, L"Relaunch the client after installation is complete.",
                title, MB_OK);
     if (!installer.Install(error))
-      switch (error)
-      {
+      switch (error) {
       case WebView2Installer::Error::CantOpenProcess:
         clog::error << "CantOpenProcess during WebView2 installation"
                     << clog::endl;
@@ -303,8 +275,7 @@ void Client::install_runtimes()
         MessageBox(NULL, L"An unknown error occurred.", title, MB_OK);
         break;
       }
-  }
-  else
+  } else
     MessageBox(NULL, L"Cannot continue without runtimes. Client will now exit.",
                title, MB_OK);
 }
@@ -316,52 +287,37 @@ Client::Client(HINSTANCE h, int c)
       folder(L"GC++"),
       game(
           folder, KrunkerWindow::Type::Game, {0.8, 0.8}, title,
-          [this]()
-          { listen_navigation(game); },
-          [this](JSMessage msg) -> bool
-          { return on_message(msg, game); },
-          []()
-          { PostQuitMessage(EXIT_SUCCESS); }),
+          [this]() { listen_navigation(game); },
+          [this](JSMessage msg) -> bool { return on_message(msg, game); },
+          []() { PostQuitMessage(EXIT_SUCCESS); }),
       social(
           folder, KrunkerWindow::Type::Social, {0.7, 0.7},
           (std::wstring(title) + L": Social").c_str(),
-          [this]()
-          { listen_navigation(social); },
-          [this](JSMessage msg) -> bool
-          { return on_message(msg, social); }),
+          [this]() { listen_navigation(social); },
+          [this](JSMessage msg) -> bool { return on_message(msg, social); }),
       editor(
           folder, KrunkerWindow::Type::Editor, {0.7, 0.7},
           (std::wstring(title) + L": Editor").c_str(),
-          [this]()
-          { listen_navigation(editor); },
-          [this](JSMessage msg) -> bool
-          { return on_message(msg, editor); }),
+          [this]() { listen_navigation(editor); },
+          [this](JSMessage msg) -> bool { return on_message(msg, editor); }),
       scripting(
           folder, KrunkerWindow::Type::Scripting, {0.6, 0.6},
           (std::wstring(title) + L": Scripting").c_str(),
-          [this]()
-          { listen_navigation(scripting); },
-          [this](JSMessage msg) -> bool
-          { return on_message(msg, scripting); }),
+          [this]() { listen_navigation(scripting); },
+          [this](JSMessage msg) -> bool { return on_message(msg, scripting); }),
       documents(
           folder, KrunkerWindow::Type::Documents, {0.4, 0.6},
           (std::wstring(title) + L": Documents").c_str(),
-          [this]()
-          { listen_navigation(documents); },
-          [this](JSMessage msg) -> bool
-          { return on_message(msg, documents); }),
+          [this]() { listen_navigation(documents); },
+          [this](JSMessage msg) -> bool { return on_message(msg, documents); }),
       accounts(folder),
-      shcore(LoadLibrary(L"api-ms-win-shcore-scaling-l1-1-1.dll"))
-{
-}
+      shcore(LoadLibrary(L"api-ms-win-shcore-scaling-l1-1-1.dll")) {}
 
-bool Client::create()
-{
+bool Client::create() {
   memset(&presence_events, 0, sizeof(presence_events));
   Discord_Initialize(discord_rpc, &presence_events, 1, NULL);
 
-  if (!folder.create())
-  {
+  if (!folder.create()) {
     clog::debug << "Error creating folder" << clog::endl;
     MessageBox(NULL, L"Error creating folder. See Error.log.", title, MB_OK);
     return false;
@@ -383,8 +339,7 @@ bool Client::create()
 
   clog::info << "Main initialized" << clog::endl;
 
-  if (!installer.Installed())
-  {
+  if (!installer.Installed()) {
     install_runtimes();
     return false;
   }
@@ -392,25 +347,22 @@ bool Client::create()
   game.can_fullscreen = true;
   documents.background = RGB(0xFF, 0xFF, 0xFF);
 
-  if (shcore)
-  {
+  if (shcore) {
     using dec = decltype(::SetProcessDpiAwareness);
     if (std::function SetProcessDpiAwareness =
-            (dec *)GetProcAddress(shcore, "SetProcessDpiAwareness"))
-    {
+            (dec *)GetProcAddress(shcore, "SetProcessDpiAwareness")) {
       HRESULT sda = SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
       if (!SUCCEEDED(sda))
         clog::error << "SetProcessDpiAwareness returned 0x" << std::hex
                     << HRESULT_CODE(sda) << clog::endl;
-    }
-    else
+    } else
       clog::error << "Unable to get address of SetProcessDpiAwareness"
                   << clog::endl;
   }
 
-  switch (game.create(inst, cmdshow, [this]()
-                      { game.webview->Navigate(L"https://krunker.io"); }))
-  {
+  switch (game.create(inst, cmdshow, [this]() {
+    game.webview->Navigate(L"https://krunker.io");
+  })) {
   case KrunkerWindow::Status::Ok:
     break;
   case KrunkerWindow::Status::MissingRuntime:
@@ -451,27 +403,25 @@ bool Client::create()
   };
 
   // checking updates causes delay
-  new std::thread([this]()
-                  {
+  new std::thread([this]() {
     UpdaterServing serving;
     if (updater.UpdatesAvailable(serving) &&
         MessageBox(game.m_hWnd, L"A new client update is available. Download?",
                    title, MB_YESNO) == IDYES) {
-      ShellExecute(game.m_hWnd, L"open", ST::wstring(serving.url).c_str(),
-                   L"", L"", SW_SHOW);
+      ShellExecute(game.m_hWnd, L"open", ST::wstring(serving.url).c_str(), L"",
+                   L"", SW_SHOW);
       exit(EXIT_SUCCESS);
-    } });
+    }
+  });
 
   return true;
 }
 
-int Client::messages()
-{
+int Client::messages() {
   MSG msg;
   BOOL ret;
 
-  while (ret = GetMessage(&msg, 0, 0, 0))
-  {
+  while (ret = GetMessage(&msg, 0, 0, 0)) {
     game.on_dispatch();
     social.on_dispatch();
     editor.on_dispatch();
@@ -485,8 +435,7 @@ int Client::messages()
 }
 
 int APIENTRY WinMain(HINSTANCE _In_ hInstance, HINSTANCE _In_opt_ hPrevInstance,
-                     _In_ LPSTR cmdline, _In_ int nCmdShow)
-{
+                     _In_ LPSTR cmdline, _In_ int nCmdShow) {
   Client client(hInstance, nCmdShow);
   if (client.create())
     return client.messages();

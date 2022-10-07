@@ -1,29 +1,27 @@
 #pragma once
-#include <rapidjson/fwd.h>
-#include <rapidjson/schema.h>
-#include <WebView2.h>
-#include <regex>
-#include <atlbase.h>
-#include <atlenc.h>
-#include <atlwin.h>
-#include <functional>
-#include <mutex>
-#include <string>
-#include <wil/com.h>
-#include <wrl.h>
 #include "../utils/IOUtil.h"
 #include "./ClientFolder.h"
 #include "./IPCMessages.h"
 #include "./JSMessage.h"
 #include "./Points.h"
+#include <WebView2.h>
+#include <atlbase.h>
+#include <atlenc.h>
+#include <atlwin.h>
+#include <functional>
+#include <mutex>
+#include <rapidjson/fwd.h>
+#include <rapidjson/schema.h>
+#include <regex>
+#include <string>
+#include <wil/com.h>
+#include <wrl.h>
 
 bool host_is_krunker(std::wstring host);
 
-class KrunkerWindow : public CWindowImpl<KrunkerWindow>
-{
+class KrunkerWindow : public CWindowImpl<KrunkerWindow> {
 public:
-  enum class Status
-  {
+  enum class Status {
     Ok,
     UserDataExists,
     FailCreateUserData,
@@ -33,8 +31,7 @@ public:
     AlreadyOpen,
     NotImplemented,
   };
-  enum class Type
-  {
+  enum class Type {
     Game,
     Social,
     Editor,
@@ -72,8 +69,10 @@ private:
   std::wstring cmdline();
   bool send_resource(ICoreWebView2WebResourceRequestedEventArgs *args,
                      int resource, std::wstring mime);
-  rapidjson::Value load_css(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
-  rapidjson::Value load_userscripts(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
+  rapidjson::Value
+  load_css(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
+  rapidjson::Value load_userscripts(
+      rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
   void load_userscripts();
   LRESULT on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
   LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);

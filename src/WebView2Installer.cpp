@@ -4,15 +4,14 @@
 #include <WebView2EnvironmentOptions.h>
 #include <net.h>
 
-#define X64_webview \
+#define X64_webview                                                            \
   LR"(SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5})"
-#define X86_webview \
+#define X86_webview                                                            \
   LR"(SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5})"
 
 WebView2Installer::WebView2Installer(std::wstring u) : url(u) {}
 
-std::wstring WebView2Installer::BinPath()
-{
+std::wstring WebView2Installer::BinPath() {
   std::wstring path;
   path.resize(5000);
   path.resize(GetTempPath(path.size(), path.data()));
@@ -20,15 +19,13 @@ std::wstring WebView2Installer::BinPath()
   return path;
 }
 
-bool WebView2Installer::Install(Error &error)
-{
+bool WebView2Installer::Install(Error &error) {
   error = Error::OK;
 
   std::wstring bin_path = BinPath();
   auto res = net::fetch_request(net::url(url));
 
-  if (!res.size())
-  {
+  if (!res.size()) {
     error = Error::NoBytesDownloaded;
     return false;
   }
@@ -36,8 +33,7 @@ bool WebView2Installer::Install(Error &error)
   HANDLE file = CreateFile(bin_path.c_str(), GENERIC_WRITE, FILE_SHARE_READ,
                            NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
-  if (file != INVALID_HANDLE_VALUE)
-  {
+  if (file != INVALID_HANDLE_VALUE) {
     DWORD bytes;
     WriteFile(file, res.data(), res.size(), &bytes, nullptr);
     CloseHandle(file);
@@ -52,22 +48,18 @@ bool WebView2Installer::Install(Error &error)
   ZeroMemory(&process, sizeof(process));
 
   if (CreateProcess(bin_path.c_str(), NULL, NULL, NULL, FALSE, 0, NULL, NULL,
-                    &startup, &process))
-  {
+                    &startup, &process)) {
     CloseHandle(process.hProcess);
     CloseHandle(process.hThread);
 
     return true;
-  }
-  else
-  {
+  } else {
     error = Error::CantOpenProcess;
     return false;
   }
 }
 
-bool WebView2Installer::Installed()
-{
+bool WebView2Installer::Installed() {
   wchar_t *version;
   HRESULT result =
       GetAvailableCoreWebView2BrowserVersionString(nullptr, &version);

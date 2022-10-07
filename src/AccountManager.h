@@ -1,22 +1,21 @@
 #pragma once
 #include "./ClientFolder.h"
 #include <map>
-#include <string>
 #include <rapidjson/fwd.h>
+#include <string>
 
-struct Account
-{
+struct Account {
   int order = -1;
   std::string username;
   std::string password;
   std::string color;
-  rapidjson::Value dump(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
+  rapidjson::Value
+  dump(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
   Account(const rapidjson::Value &data);
   Account();
 };
 
-class AccountManager
-{
+class AccountManager {
 private:
   ClientFolder &folder;
   std::wstring path = L"\\passwords.json";
@@ -29,6 +28,7 @@ public:
   std::map<std::string, Account> data;
   bool save();
   bool load();
-  rapidjson::Value dump(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
+  rapidjson::Value
+  dump(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
   AccountManager(ClientFolder &folder);
 };
