@@ -4,11 +4,6 @@
  */
 
 function main() {
-  window.FRVR = {
-    init: () => {},
-    lifecycle: {},
-  };
-
   const style = document.createElement("style");
   style.textContent = "#adCon, *[id*='aHider'] { display: none !IMPORTANT; }";
 
@@ -24,12 +19,13 @@ if (!localStorage.getItem("adblock enabled"))
 // set at page load
 const enabled = localStorage.getItem("adblock enabled") === "on";
 
+const adblock =
+  /^https:\/\/(?:cdn\.frvr\.com\/|imasdk\.googleapis\.com\/|cookie-cdn\.cookiepro\.com\/|api.adinplay.com\/|www\.googletagmanager\.com\/|pagead2\.googlesyndication\.com\/pagead\/|a\.pub\.network\/|unpkg\.com\/web3@latest\/dist\/web3\.min\.js)/;
+
 function filterURL(url) {
   if (!enabled) return false;
 
-  return /^https:\/\/(?:krunker.io\/libs\/frvr-|cookie-cdn\.cookiepro\.com\/|api.adinplay.com\/|www\.googletagmanager\.com\/|pagead2\.googlesyndication\.com\/pagead\/|a\.pub\.network\/|unpkg\.com\/web3@latest\/dist\/web3\.min\.js)/.test(
-    url.toString()
-  );
+  return adblock.test(url.toString());
 }
 
 function Settings() {
