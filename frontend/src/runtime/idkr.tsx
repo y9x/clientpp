@@ -79,7 +79,7 @@ interface ISetting {
   type: string;
   // type: "checkbox" | "select" | "text" | "slider" | string;
   needsRestart?: boolean;
-  html(): string;
+  html(): (config: Config) => ReactNode;
   set?(): void;
 }
 
@@ -102,10 +102,9 @@ interface ISliderSetting extends ISetting {
   val: number;
 }
 
-type ISettingsCollection = Record<
-  string,
-  ISelectSetting | ICheckboxSetting | ISliderSetting
->;
+type SomeSetting = ISelectSetting | ICheckboxSetting | ISliderSetting;
+
+type ISettingsCollection = Record<string, SomeSetting>;
 
 interface IClientUtil {
   events: typeof EventEmitter;
@@ -118,9 +117,7 @@ interface IClientUtil {
   /**
    * Sane API to generate settings...
    */
-  genCSettingsHTML(
-    setting: ISelectSetting | ICheckboxSetting | ISliderSetting
-  ): ReactNode;
+  genCSettingsHTML(setting: SomeSetting): (config: Config) => ReactNode;
   // initUtil();
 }
 
@@ -128,87 +125,83 @@ type UserscriptContext = (
   this: {
     clientUtils: IClientUtil;
   },
-  code: string,
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   console: typeof import("../console").default
 ) => IUserscript;
 
-const clientUtils: IClientUtil = {
+const clientUtils: IClientUtil = Object.freeze({
   events: EventEmitter,
-  genCSettingsHTML: (setting) => {
-    console.log("gen", setting, "...");
-    return <></>;
+  genCSettingsHTML: (setting: SomeSetting) => (config: Config) => {
+    switch (setting.type) {
+      case "checkbox":
+        return (
+          <SwitchControl
+            attention={setting.needsRestart}
+            description={setting.needsRestart ? "Requires Restart" : undefined}
+            title={setting.name}
+            defaultChecked={config.get(setting.id, setting.val)}
+            onChange={(event) => {
+              config.set(setting.id, event.currentTarget.value);
+              if (setting.needsRestart) global.location.reload();
+            }}
+          />
+        );
+      case "select":
+        return (
+          <SelectControl
+            attention={setting.needsRestart}
+            description={setting.needsRestart ? "Requires Restart" : undefined}
+            title={setting.name}
+            defaultValue={config.get(setting.id, setting.val)}
+            onChange={(event) => {
+              config.set(setting.id, event.currentTarget.value);
+              if (setting.needsRestart) global.location.reload();
+            }}
+          >
+            {Object.entries(setting.options).map(([id, name]) => (
+              <option value={id}>{name}</option>
+            ))}
+          </SelectControl>
+        );
+      case "slider":
+        return (
+          <SliderControl
+            attention={setting.needsRestart}
+            description={setting.needsRestart ? "Requires Restart" : undefined}
+            title={setting.name}
+            defaultValue={config.get(setting.id, setting.val)}
+            onChange={(event) => {
+              config.set(setting.id, event.currentTarget.value);
+              if (setting.needsRestart) global.location.reload();
+            }}
+          />
+        );
+    }
   },
-};
+});
 
 const renderFactory = (settings: ISettingsCollection, config: Config) => {
   const Component = () => {
     const categories: Record<string, ReactNode[]> = {};
 
-    for (const setting in settings) {
-      const data = settings[setting];
+    for (const key in settings) {
+      const setting = settings[key];
 
-      if (!(data.cat in categories)) categories[data.cat] = [];
+      if (!(setting.cat in categories)) categories[setting.cat] = [];
 
-      const category = categories[data.cat];
+      const category = categories[setting.cat];
 
-      switch (data.type) {
-        case "checkbox":
-          category.push(
-            <SwitchControl
-              attention={data.needsRestart}
-              description={data.needsRestart ? "Requires Restart" : undefined}
-              title={data.name}
-              defaultChecked={config.get(data.id, data.val)}
-              key={setting}
-              onChange={(event) => {
-                config.set(data.id, event.currentTarget.value);
-                if (data.needsRestart) global.location.reload();
-              }}
-            />
-          );
-          break;
-        case "select":
-          category.push(
-            <SelectControl
-              attention={data.needsRestart}
-              description={data.needsRestart ? "Requires Restart" : undefined}
-              title={data.name}
-              defaultValue={config.get(data.id, data.val)}
-              key={setting}
-              onChange={(event) => {
-                config.set(data.id, event.currentTarget.value);
-                if (data.needsRestart) global.location.reload();
-              }}
-            >
-              {Object.entries(data.options).map(([id, name]) => (
-                <option value={id}>{name}</option>
-              ))}
-            </SelectControl>
-          );
-          break;
-        case "slider":
-          category.push(
-            <SliderControl
-              attention={data.needsRestart}
-              description={data.needsRestart ? "Requires Restart" : undefined}
-              title={data.name}
-              defaultValue={config.get(data.id, data.val)}
-              key={setting}
-              onChange={(event) => {
-                config.set(data.id, event.currentTarget.value);
-                if (data.needsRestart) global.location.reload();
-              }}
-            />
-          );
-          break;
-      }
+      const render = setting.html();
+
+      category.push(render(config));
     }
 
     return (
       <>
         {Object.entries(categories).map(([title, children]) => (
-          <Set title={title}>{children}</Set>
+          <Set title={title} key={title}>
+            {children}
+          </Set>
         ))}
       </>
     );
@@ -225,20 +218,14 @@ export default function idkrRuntime(script: string, code: string) {
   const run = new Function(
     "code",
     "console",
-    "return eval(code)();"
+    code + "//# sourceURL=" + new URL("file:" + script).toString()
   ) as UserscriptContext;
 
   const userscript = run.apply(
     {
       clientUtils,
     },
-    [
-      "()=>{" +
-        code +
-        "\n}//# sourceURL=" +
-        new URL("file:" + script).toString(),
-      console,
-    ]
+    [console]
   );
 
   if (
