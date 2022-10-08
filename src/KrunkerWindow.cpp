@@ -455,7 +455,7 @@ const char *getCtxString(COREWEBVIEW2_WEB_RESOURCE_CONTEXT ctx) {
     return "font";
   case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
       COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT:
-    return "x";
+    return "script";
   case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
       COREWEBVIEW2_WEB_RESOURCE_CONTEXT_XML_HTTP_REQUEST:
     return "xml-http-request";
