@@ -1,6 +1,6 @@
 import "../styles/AccountManager.css";
-import { useRef } from "react";
 import ipc, { IM } from "../ipc";
+import { useRef } from "react";
 
 export default function AddAccount({
   accountManagerID,

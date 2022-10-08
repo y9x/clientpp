@@ -1,5 +1,5 @@
-import EventEmitter from "./EventEmitter";
 import { IM, LogType } from "../../src/IPCMessages.h";
+import EventEmitter from "./EventEmitter";
 
 declare const chrome: {
   webview: EventTarget & {

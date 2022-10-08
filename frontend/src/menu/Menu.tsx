@@ -1,6 +1,5 @@
-import type { MouseEvent } from "react";
-import ipc, { IM } from "../ipc";
 import RPC from "../RPC";
+import ipc, { IM } from "../ipc";
 import ButtonControl from "./components/ButtonControl";
 import FileControl from "./components/FileControl";
 import LinkControl from "./components/LinkControl";
@@ -9,6 +8,7 @@ import { HeadlessSet, Set } from "./components/Set";
 import SwitchControl from "./components/SwitchControl";
 import TextControl from "./components/TextControl";
 import { useConfig } from "./useConfig";
+import type { MouseEvent } from "react";
 
 const seek_modes = [
   "Free for All",

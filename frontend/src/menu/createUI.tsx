@@ -2,9 +2,9 @@ import currentSite from "../site";
 import { wait_for } from "../utils";
 import AccountManager from "./AccountManager";
 import AddAccount from "./AddAccount";
+import Menu from "./Menu";
 import extendRoot from "./extendSettings";
 import extendWindows from "./extendWindows";
-import Menu from "./Menu";
 
 if (currentSite === "game") {
   // settings = 0

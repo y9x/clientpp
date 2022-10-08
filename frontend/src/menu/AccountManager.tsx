@@ -1,7 +1,7 @@
 import "../styles/AccountManager.css";
-import { useEffect, useState } from "react";
 import ipc, { IM } from "../ipc";
 import ButtonControl from "./components/ButtonControl";
+import { useEffect, useState } from "react";
 
 function AccountTile({
   username,

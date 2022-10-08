@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
 import ipc, { IM } from "../ipc";
 import { config } from "../runtime";
+import { useEffect, useState } from "react";
+
 const listeners = new Set<() => unknown>();
 let currentConfig = config;
 

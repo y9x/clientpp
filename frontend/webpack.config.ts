@@ -1,16 +1,16 @@
-import type swcrcSchema from "./swcrc.js";
-import { resolve } from "path";
+import TryCatchPlugin from "./TryCatchWebpackPlugin.js";
 import type { CSSLoaderOptions } from "./css-loader.js";
+import type swcrcSchema from "./swcrc.js";
 import type { JsMinifyOptions } from "@swc/core";
+import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
+import ESLintPlugin from "eslint-webpack-plugin";
+import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import { fileURLToPath } from "node:url";
+import { resolve } from "path";
 import ModuleNotFoundPlugin from "react-dev-utils/ModuleNotFoundPlugin.js";
 import getCSSModuleLocalIdent from "react-dev-utils/getCSSModuleLocalIdent.js";
 import TerserPlugin from "terser-webpack-plugin";
-import { fileURLToPath } from "node:url";
-import ESLintPlugin from "eslint-webpack-plugin";
-import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
-import TryCatchPlugin from "./TryCatchWebpackPlugin.js";
-import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
 import type { Configuration, RuleSetRule } from "webpack";
 
 const isDevelopment = process.env.NODE_ENV === "development";

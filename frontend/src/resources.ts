@@ -1,10 +1,10 @@
 /* eslint-disable no-new-func */
-import { css, js } from "./runtime";
 import console from "./console";
+import ipc, { IM, ipcConsole } from "./ipc";
+import { css, js } from "./runtime";
 // import evalLegacyUserscript from "./legacyUserscript";
 // import evalChiefUserscript from "./chiefUserscript";
 import currentSite from "./site";
-import ipc, { IM, ipcConsole } from "./ipc";
 
 const add_css = () => {
   for (const [, data] of css) {

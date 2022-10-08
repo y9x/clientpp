@@ -1,8 +1,8 @@
+import type { SourceMap } from "magic-string";
+import MagicString from "magic-string";
 import { transfer } from "multi-stage-sourcemap";
 import { parse } from "path";
 import webpack from "webpack";
-import type { SourceMap } from "magic-string";
-import MagicString from "magic-string";
 import type { Compilation, Compiler, WebpackPluginInstance } from "webpack";
 
 type Source = Compilation["assets"][""];

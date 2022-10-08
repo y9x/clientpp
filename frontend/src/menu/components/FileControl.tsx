@@ -1,6 +1,6 @@
+import ipc, { IM } from "../../ipc";
 import Control from "./Control";
 import type { BaseControlProps } from "./Control";
-import ipc, { IM } from "../../ipc";
 import type { ReactElement } from "react";
 
 export interface FileControlProps extends BaseControlProps {
