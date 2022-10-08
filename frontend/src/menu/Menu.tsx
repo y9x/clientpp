@@ -1,5 +1,6 @@
 import RPC from "../RPC";
 import ipc, { IM } from "../ipc";
+import { renderSettings } from "../resources";
 import ButtonControl from "./components/ButtonControl";
 import FileControl from "./components/FileControl";
 import LinkControl from "./components/LinkControl";
@@ -246,6 +247,9 @@ export default function Menu() {
           <option value="*.*">All types</option>
         </FileControl>
       </Set>
+      {renderSettings.map((Settings, i) => (
+        <Settings key={i} />
+      ))}
     </>
   );
 }

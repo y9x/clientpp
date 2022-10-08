@@ -17,13 +17,40 @@ function main() {
   });
 }
 
+// set default
+if (!localStorage.getItem("adblock enabled"))
+  localStorage.setItem("adblock enabled", "on");
+
+// set at page load
+const enabled = localStorage.getItem("adblock enabled") === "on";
+
 function filterURL(url) {
+  if (!enabled) return false;
+
   return /^https:\/\/(?:krunker.io\/libs\/frvr-|cookie-cdn\.cookiepro\.com\/|api.adinplay.com\/|www\.googletagmanager\.com\/|pagead2\.googlesyndication\.com\/pagead\/|a\.pub\.network\/|unpkg\.com\/web3@latest\/dist\/web3\.min\.js)/.test(
     url.toString()
   );
 }
 
+function Settings() {
+  const [localEnabled, setLocalEnabled] = useLocalStorage("adblock enabled");
+
+  return html`
+  <${UI.Set} title="Adblock">
+    <${UI.SwitchControl}
+      title="Enabled"
+      defaultChecked=${localEnabled === "on"}
+      onChange=${(event) => {
+        const newValue = event.currentTarget.checked ? "on" : "off";
+        setLocalEnabled(newValue);
+        location.reload();
+      }}
+    />
+  </${UI.Set} />`;
+}
+
 exportUserscript({
   main,
   filterURL,
+  Settings,
 });

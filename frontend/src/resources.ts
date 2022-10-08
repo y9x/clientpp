@@ -14,6 +14,7 @@ import { css, js } from "./runtime";
 import currentSite from "./site";
 import useLocalStorage from "./useLocalStorage";
 import htm from "htm";
+import type { FunctionComponent } from "react";
 import React from "react";
 
 const UserscriptUI = Object.freeze({
@@ -88,6 +89,9 @@ const urlFilters: [
   filter: Required<ExportedUserscriptData>["filterURL"]
 ][] = [];
 
+export const renderSettings: Required<ExportedUserscriptData>["Settings"][] =
+  [];
+
 ipc.on(IM.will_block_url, (id: number, url: string, type: ResourceType) => {
   for (const [script, filter] of urlFilters)
     if (filter(new URL(url), type)) {
@@ -107,6 +111,10 @@ interface ExportedUserscriptData {
    * Feature - Filters an incoming network request.
    */
   filterURL?: (url: URL, resourceType: ResourceType) => boolean;
+  /**
+   * Feature - Extends the settings GUI.
+   */
+  Settings?: FunctionComponent;
 }
 
 type ExportUserscriptCallback = (data: ExportedUserscriptData) => void;
@@ -158,6 +166,8 @@ for (const [script, code] of js) {
         data.main({
           getSite: () => currentSite,
         });
+
+      if (data.Settings) renderSettings.push(data.Settings);
     }
   );
 
