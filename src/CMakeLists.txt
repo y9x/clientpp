@@ -1,15 +1,10 @@
-# Create a library called "Hello" which includes the source file "hello.cxx".
-# The extension is already found. Any number of sources could be listed here.
-# add_library (Hello hello.cxx)
-
-# Make sure the compiler can find include files for our Hello library
-# when other libraries or executables link to Hello
 
 file(GLOB src
     "*.cpp"
     "../utils/*.cpp"
 )
 
+add_definitions(-DCLIENT_VERSION_STRING="${CLIENT_VERSION_STRING}")
 add_executable(Client WIN32 ${src})
 target_sources(Client PRIVATE Resource.rc)
 target_include_directories(Client PRIVATE

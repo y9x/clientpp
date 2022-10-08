@@ -14,7 +14,7 @@ set(WIL ${PROJECT_SOURCE_DIR}/packages/Microsoft.Windows.ImplementationLibrary.1
 set(DISCORD_RPC ${PROJECT_SOURCE_DIR}/discord-rpc)
 set(URIPARSER ${PROJECT_SOURCE_DIR}/uriparser)
 
-add_definitions(-DUNICODE -DNOMINMAX -DCLIENT_VERSION_STRING="${CLIENT_VERSION_STRING}")
+add_definitions(-DUNICODE -DNOMINMAX)
 
 add_subdirectory (uriparser-lib)
 add_subdirectory (discord-rpc-lib)
