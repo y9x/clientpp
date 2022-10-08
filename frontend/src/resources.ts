@@ -41,13 +41,12 @@ new MutationObserver((mutations, observer) => {
   subtree: true,
 });
 
-for (const [script, code] of js) {
-  if (script.endsWith(".chief.js")) chiefRuntime(script, code);
-  else if (script.endsWith(".idkr.js")) idkrRuntime(script, code);
-  else if (script.endsWith(".user.js")) tampermonkeyRuntime(script, code);
-
-  console.log("GOT SCRIPT", script, "....");
-
-  // if (metadata) evalChiefUserscript(name, metadata, data);
-  // else evalLegacyUserscript(name, data);
-}
+for (const [script, code] of js)
+  try {
+    if (script.endsWith(".chief.js")) chiefRuntime(script, code);
+    else if (script.endsWith(".idkr.js")) idkrRuntime(script, code);
+    else if (script.endsWith(".user.js")) tampermonkeyRuntime(script, code);
+  } catch (err) {
+    console.error(`Failure loading ${script}:`);
+    console.error(err);
+  }
