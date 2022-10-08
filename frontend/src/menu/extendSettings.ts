@@ -1,4 +1,4 @@
-/**
+/*
  * createRoot
  */
 import { wait_for } from "../utils";

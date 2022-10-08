@@ -4,6 +4,9 @@ const paths: Record<string, "game" | "social" | "editor" | undefined> = {
   "/editor.html": "editor",
 };
 
-const currentSite = paths[global.location.pathname];
+const currentSite =
+  global.location.hostname === "docs.krunker.io"
+    ? "docs"
+    : paths[global.location.pathname];
 
 export default currentSite;

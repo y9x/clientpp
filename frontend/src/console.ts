@@ -1,4 +1,4 @@
-/**
+/*
  * Protect global console and allow logging before devtools can hook the context's console.
  */
 

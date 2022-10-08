@@ -1,6 +1,6 @@
 import RPC from "../RPC";
 import ipc, { IM } from "../ipc";
-import { renderSettings } from "../resources";
+import { renderSettings } from "../runtime/chief";
 import ButtonControl from "./components/ButtonControl";
 import FileControl from "./components/FileControl";
 import LinkControl from "./components/LinkControl";
