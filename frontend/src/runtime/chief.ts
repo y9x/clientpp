@@ -15,6 +15,7 @@ import TextControl from "../menu/components/TextControl";
 import currentSite from "../site";
 import useLocalStorage from "../useLocalStorage";
 import htm from "htm";
+import MagicString from "magic-string";
 import type { FunctionComponent } from "react";
 import React from "react";
 
@@ -84,6 +85,7 @@ interface ExportedUserscriptData {
 type ExportUserscriptCallback = (data: ExportedUserscriptData) => void;
 
 type UserscriptContext = (
+  code: string,
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   React: typeof import("react"),
   // expose `htm` to allow for manipulating JSX
@@ -108,16 +110,32 @@ interface UserscriptRuntime {
 export default function chiefRuntime(script: string, code: string) {
   // eslint-disable-next-line no-new-func
   const run = new Function(
+    "code",
     "React",
     "html",
     "useLocalStorage",
     "UI",
     "console",
     "exportUserscript",
-    code + "\n//# sourceURL=" + new URL("file:" + script).toString()
+    "eval(code)"
   ) as UserscriptContext;
 
+  const magic = new MagicString(code);
+
+  const identifier = "sourceMappingURL";
+
   run(
+    magic.toString() +
+      "//# " +
+      identifier +
+      "=data:application/json," +
+      encodeURI(
+        JSON.stringify(
+          magic.generateMap({
+            source: new URL("file:" + script).toString(),
+          })
+        )
+      ),
     React,
     htm.bind(React.createElement),
     useLocalStorage,

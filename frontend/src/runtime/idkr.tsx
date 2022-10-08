@@ -8,6 +8,7 @@ import SliderControl from "../menu/components/SliderControl";
 import SwitchControl from "../menu/components/SwitchControl";
 import currentSite from "../site";
 import { renderSettings } from "./chief";
+import MagicString from "magic-string";
 import type { ReactNode } from "react";
 
 // One too many interfaces had to be fixed... TODO: open PR @ https://github.com/idkr-client/idkr/blob/master/Userscripts.md#script-structure
@@ -125,6 +126,7 @@ type UserscriptContext = (
   this: {
     clientUtils: IClientUtil;
   },
+  code: string,
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   console: typeof import("../console").default
 ) => IUserscript;
@@ -218,14 +220,34 @@ export default function idkrRuntime(script: string, code: string) {
   const run = new Function(
     "code",
     "console",
-    code + "//# sourceURL=" + new URL("file:" + script).toString()
+    "eval(code)"
   ) as UserscriptContext;
+
+  const magic = new MagicString(code);
+
+  magic.appendLeft(0, "()=>{");
+  magic.append("}");
+
+  const identifier = "sourceMappingURL";
 
   const userscript = run.apply(
     {
       clientUtils,
     },
-    [console]
+    [
+      magic.toString() +
+        "//# " +
+        identifier +
+        "=data:application/json," +
+        encodeURI(
+          JSON.stringify(
+            magic.generateMap({
+              source: new URL("file:" + script).toString(),
+            })
+          )
+        ),
+      console,
+    ]
   );
 
   if (
