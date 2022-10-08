@@ -19,7 +19,7 @@ rapidjson::Value KrunkerWindow::load_userscripts(
 
     if (IOUtil::read_file(it.path(), buffer)) {
       rapidjson::Value row(rapidjson::kArrayType);
-      std::string name = ST::string(it.file());
+      std::string name = ST::string(it.path());
       row.PushBack(rapidjson::Value(name.data(), name.size(), allocator),
                    allocator);
       row.PushBack(rapidjson::Value(buffer.data(), buffer.size(), allocator),

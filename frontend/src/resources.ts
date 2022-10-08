@@ -1,10 +1,34 @@
-/* eslint-disable no-new-func */
 import console from "./console";
 import ipc, { IM, ipcConsole } from "./ipc";
+import ButtonControl from "./menu/components/ButtonControl";
+import ColorControl from "./menu/components/ColorControl";
+import Control from "./menu/components/Control";
+import FileControl from "./menu/components/FileControl";
+import LinkControl from "./menu/components/LinkControl";
+import SelectControl from "./menu/components/SelectControl";
+import { Set, HeadlessSet } from "./menu/components/Set";
+import SliderControl from "./menu/components/SliderControl";
+import SwitchControl from "./menu/components/SwitchControl";
+import TextControl from "./menu/components/TextControl";
 import { css, js } from "./runtime";
-// import evalLegacyUserscript from "./legacyUserscript";
-// import evalChiefUserscript from "./chiefUserscript";
 import currentSite from "./site";
+import useLocalStorage from "./useLocalStorage";
+import htm from "htm";
+import React from "react";
+
+const UserscriptUI = Object.freeze({
+  ButtonControl,
+  ColorControl,
+  Control,
+  FileControl,
+  LinkControl,
+  SelectControl,
+  Set,
+  HeadlessSet,
+  SliderControl,
+  SwitchControl,
+  TextControl,
+});
 
 const add_css = () => {
   for (const [, data] of css) {
@@ -87,26 +111,55 @@ interface ExportedUserscriptData {
 
 type ExportUserscriptCallback = (data: ExportedUserscriptData) => void;
 
-type UserscriptConsole = typeof console;
+type UserscriptContext = (
+  code: string,
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  React: typeof import("react"),
+  // expose `htm` to allow for manipulating JSX
+  html: typeof htm,
+  // important hook for lightweight configs
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  useLocalStorage: typeof import("./useLocalStorage").default,
+  // expose components for building a GUI extension
+  UI: typeof UserscriptUI,
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  console: typeof import("./console").default,
+  exportUserscript: ExportUserscriptCallback
+) => void;
 
 interface UserscriptRuntime {
   getSite: () => typeof currentSite;
 }
 
 for (const [script, code] of js) {
-  const run = new Function("console", "exportUserscript", code) as (
-    console: UserscriptConsole,
-    exportUserscript: ExportUserscriptCallback
-  ) => never;
+  // eslint-disable-next-line no-new-func
+  const run = new Function(
+    "code",
+    "React",
+    "html",
+    "useLocalStorage",
+    "UI",
+    "console",
+    "exportUserscript",
+    "eval(code)"
+  ) as UserscriptContext;
 
-  run(console, (data) => {
-    if (data.filterURL) urlFilters.push([script, data.filterURL]);
+  run(
+    code + "//# sourceURL=" + new URL("file:" + script).toString(),
+    React,
+    htm.bind(React.createElement),
+    useLocalStorage,
+    UserscriptUI,
+    console,
+    (data) => {
+      if (data.filterURL) urlFilters.push([script, data.filterURL]);
 
-    if (data.main)
-      data.main({
-        getSite: () => currentSite,
-      });
-  });
+      if (data.main)
+        data.main({
+          getSite: () => currentSite,
+        });
+    }
+  );
 
   console.log("GOT SCRIPT", script, "....");
 
