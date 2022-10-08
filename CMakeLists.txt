@@ -9,8 +9,8 @@ set(CLIENT_VERSION_STRING "${CLIENT_MAJOR_VERSION}.${CLIENT_MINOR_VERSION}.${CLI
 set(RAPIDJSON ${PROJECT_SOURCE_DIR}/rapidjson)
 set(SEMVER ${PROJECT_SOURCE_DIR}/semver)
 set(JSON ${PROJECT_SOURCE_DIR}/json)
-set(WEBVIEW2 ${PROJECT_SOURCE_DIR}/packages/Microsoft.Web.WebView2.1.0.992.28)
-set(WIL ${PROJECT_SOURCE_DIR}/packages/Microsoft.Windows.ImplementationLibrary.1.0.211019.2)
+set(WEBVIEW2 ${PROJECT_SOURCE_DIR}/packages/Microsoft.Web.WebView2.1.0.1343.22)
+set(WIL ${PROJECT_SOURCE_DIR}/packages/Microsoft.Windows.ImplementationLibrary.1.0.220914.1)
 set(DISCORD_RPC ${PROJECT_SOURCE_DIR}/discord-rpc)
 set(URIPARSER ${PROJECT_SOURCE_DIR}/uriparser)
 
