@@ -4,7 +4,6 @@
 #include "../utils/StringUtil.h"
 #include "./Log.h"
 #include <ShellScalingApi.h>
-#include <rapidjson/prettywriter.h>
 #include <shellapi.h>
 #include <sstream>
 
@@ -182,7 +181,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window) {
                         res.allocator);
     }
 
-    if (!res.send(window.webview))
+    if (!window.sendMessage(res))
       clog::error << "Unable to send " << res.dump() << clog::endl;
   } break;
   case IM::account_remove: {
@@ -192,7 +191,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window) {
 
     JSMessage res(IM::account_regen);
     res.args.PushBack(accounts.dump(res.allocator), res.allocator);
-    if (!res.send(window.webview))
+    if (!window.sendMessage(res))
       clog::error << "Unable to send " << res.dump() << clog::endl;
   } break;
   case IM::account_set: {
@@ -205,7 +204,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window) {
 
     JSMessage res(IM::account_regen);
     res.args.PushBack(accounts.dump(res.allocator), res.allocator);
-    if (!res.send(window.webview))
+    if (!window.sendMessage(res))
       clog::error << "Unable to send " << res.dump() << clog::endl;
   } break;
   // and creation
@@ -223,7 +222,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window) {
 
       JSMessage res(IM::account_regen);
       res.args.PushBack(accounts.dump(res.allocator), res.allocator);
-      if (!res.send(window.webview))
+      if (!window.sendMessage(res))
         clog::error << "Unable to send " << res.dump() << clog::endl;
     } else
       clog::error << "Failure encrypting password" << clog::endl;
@@ -232,7 +231,7 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window) {
 
     JSMessage res(msg.args[0].GetInt());
     res.args.PushBack(accounts.dump(res.allocator), res.allocator);
-    if (!res.send(window.webview))
+    if (!window.sendMessage(res))
       clog::error << "Unable to send " << res.dump() << clog::endl;
   } break;
 

@@ -7,7 +7,6 @@
 #include "./Log.h"
 #include "./resource.h"
 #include <WebView2EnvironmentOptions.h>
-#include <rapidjson/schema.h>
 #include <rapidjson/writer.h>
 #include <regex>
 #include <sstream>
@@ -33,8 +32,7 @@ KrunkerWindow::KrunkerWindow(ClientFolder &_folder, Type _type, Vector2 s,
     : type(_type), title(_title), og_title(_title), scale(s), folder(_folder),
       last_pointer_poll(now()), on_webview2_startup(_on_startup),
       on_unknown_message(_on_unknown_message),
-      on_destroy_callback(_on_destroy_callback),
-      userscript_schema(get_userscript_schema()) {
+      on_destroy_callback(_on_destroy_callback) {
   std::string str_js_frontend;
 
   if (load_resource(JS_FRONTEND, str_js_frontend)) {
@@ -43,6 +41,9 @@ KrunkerWindow::KrunkerWindow(ClientFolder &_folder, Type _type, Vector2 s,
   } else {
     clog::error << "Failure loading frontend" << clog::endl;
   }
+
+  if (!load_resource(CSS_CLIENT, css_builtin))
+    clog::error << "Unable to load built-in CSS" << clog::endl;
 
   raw_input.usUsagePage = 0x01;
   raw_input.usUsage = 0x02;
@@ -196,28 +197,27 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam,
 
     if (flags & RI_MOUSE_WHEEL)
       msgFct(IM::mousewheel,
-             {double((*(short *)&mouse.usButtonData) / WHEEL_DELTA) * -100})
-          .send(webview);
+             {double((*(short *)&mouse.usButtonData) / WHEEL_DELTA) * -100});
     if (flags & RI_MOUSE_BUTTON_1_DOWN)
-      msgFct(IM::mousedown, {0}).send(webview);
+      sendMessage(msgFct(IM::mousedown, {0}));
     if (flags & RI_MOUSE_BUTTON_1_UP)
-      msgFct(IM::mouseup, {0}).send(webview);
+      sendMessage(msgFct(IM::mouseup, {0}));
     if (flags & RI_MOUSE_BUTTON_2_DOWN)
-      msgFct(IM::mousedown, {2}).send(webview);
+      sendMessage(msgFct(IM::mousedown, {2}));
     if (flags & RI_MOUSE_BUTTON_2_UP)
-      msgFct(IM::mouseup, {2}).send(webview);
+      sendMessage(msgFct(IM::mouseup, {2}));
     if (flags & RI_MOUSE_BUTTON_3_DOWN)
-      msgFct(IM::mousedown, {1}).send(webview);
+      sendMessage(msgFct(IM::mousedown, {1}));
     if (flags & RI_MOUSE_BUTTON_3_UP)
-      msgFct(IM::mouseup, {1}).send(webview);
+      sendMessage(msgFct(IM::mouseup, {1}));
     if (flags & RI_MOUSE_BUTTON_4_DOWN)
-      msgFct(IM::mousedown, {3}).send(webview);
+      sendMessage(msgFct(IM::mousedown, {3}));
     if (flags & RI_MOUSE_BUTTON_4_UP)
-      msgFct(IM::mouseup, {3}).send(webview);
+      sendMessage(msgFct(IM::mouseup, {3}));
     if (flags & RI_MOUSE_BUTTON_5_DOWN)
-      msgFct(IM::mousedown, {4}).send(webview);
+      sendMessage(msgFct(IM::mousedown, {4}));
     if (flags & RI_MOUSE_BUTTON_5_UP)
-      msgFct(IM::mouseup, {4}).send(webview);
+      sendMessage(msgFct(IM::mouseup, {4}));
     if (mouse.lLastX || mouse.lLastY)
       movebuffer += Vector2(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
   }
@@ -264,8 +264,6 @@ void KrunkerWindow::unhook_mouse() {
 
 // https://peter.sh/experiments/chromium-command-line-switches/
 std::wstring KrunkerWindow::cmdline() {
-  load_userscripts();
-
   std::vector<std::wstring> cmds = {
       L"--disable-background-timer-throttling",
       L"--disable-features=msSmartScreenProtection",
@@ -274,9 +272,6 @@ std::wstring KrunkerWindow::cmdline() {
       L"--webrtc-max-cpu-consumption-percentage=100",
       L"--autoplay-policy=no-user-gesture-required",
   };
-
-  for (std::wstring cmd : additional_command_line)
-    cmds.push_back(cmd);
 
   if (folder.config["render"]["uncap_fps"].GetBool()) {
     cmds.push_back(L"--disable-frame-rate-limit");
@@ -394,6 +389,35 @@ std::string status_name(COREWEBVIEW2_WEB_ERROR_STATUS status) {
   }
 }
 
+bool KrunkerWindow::sendMessage(const JSMessage &message) {
+  return SUCCEEDED(
+      webview->PostWebMessageAsJson(ST::wstring(message.dump()).c_str()));
+}
+
+bool KrunkerWindow::postMessage(
+    const JSMessage &message,
+    std::function<void(const rapidjson::Value &)> then,
+    std::function<void(const rapidjson::Value &)> catchError) {
+  short id = 0xff; // reserved
+
+  for (; id < 0xffff; id++)
+    if (!postedMessages.contains(id))
+      break;
+
+  postedMessages[id] = {then, catchError};
+
+  JSMessage send(message.event);
+
+  send.args.PushBack(rapidjson::Value(id), send.allocator);
+
+  for (rapidjson::Value::ConstValueIterator it = message.args.Begin();
+       it != message.args.End(); ++it)
+    send.args.PushBack(rapidjson::Value(*it, send.allocator), send.allocator);
+
+  return SUCCEEDED(
+      webview->PostWebMessageAsJson(ST::wstring(send.dump()).c_str()));
+}
+
 std::wstring encodeURIComponent(std::wstring decoded) {
   std::wostringstream oss;
   std::wregex r(L"[!'\\(\\)*-.0-9A-Za-z_~]");
@@ -408,6 +432,63 @@ std::wstring encodeURIComponent(std::wstring decoded) {
   }
 
   return oss.str();
+}
+
+const char *getCtxString(COREWEBVIEW2_WEB_RESOURCE_CONTEXT ctx) {
+  switch (ctx) {
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL:
+    return "all";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_DOCUMENT:
+    return "document";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_STYLESHEET:
+    return "stylesheet";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE:
+    return "image";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_MEDIA:
+    return "media";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_FONT:
+    return "font";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT:
+    return "x";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_XML_HTTP_REQUEST:
+    return "xml-http-request";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_FETCH:
+    return "fetch";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_TEXT_TRACK:
+    return "text-track";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_EVENT_SOURCE:
+    return "event-source";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_WEBSOCKET:
+    return "websocket";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_MANIFEST:
+    return "manifest";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SIGNED_EXCHANGE:
+    return "signed";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_PING:
+    return "ping";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_CSP_VIOLATION_REPORT:
+    return "csp-violation-report";
+  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_OTHER:
+    return "other";
+  default:
+    return "unknown";
+  }
 }
 
 void KrunkerWindow::register_events() {
@@ -522,8 +603,8 @@ void KrunkerWindow::register_events() {
                 return S_OK;
               }
 
-              // renderer freezes when navigating from an error page that occurs
-              // on startup
+              // renderer freezes when navigating from an error page that
+              // occurs on startup
               control->Close();
               call_create_webview([this, status, uri]() {
                 // = {status}
@@ -603,11 +684,47 @@ void KrunkerWindow::register_events() {
                   clog::error << "Unable to create IStream for file: "
                               << ST::string(swap) << clog::endl;
               }
-            } else if (block_uri(uri.toString())) {
-              wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-              env->CreateWebResourceResponse(nullptr, 403, L"Blocked", L"",
-                                             &response);
-              args->put_Response(response.get());
+            } else {
+              COREWEBVIEW2_WEB_RESOURCE_CONTEXT ctx;
+              args->get_ResourceContext(&ctx);
+
+              if (ctx != COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
+                             COREWEBVIEW2_WEB_RESOURCE_CONTEXT_DOCUMENT) {
+                wil::com_ptr<ICoreWebView2Deferral> deferral;
+
+                args->GetDeferral(&deferral);
+
+                args->AddRef();
+
+                JSMessage post(IM::will_block_url);
+
+                std::string url = ST::string(uri.toString());
+
+                post.args.PushBack(rapidjson::Value(url.data(), url.size()),
+                                   post.allocator);
+
+                const char *ctxStr = getCtxString(ctx);
+
+                post.args.PushBack(rapidjson::Value(ctxStr, strlen(ctxStr)),
+                                   post.allocator);
+
+                postMessage(
+                    post,
+                    [this, args, deferral](const rapidjson::Value &value) {
+                      assert(value.IsBool());
+
+                      if (value.GetBool()) {
+                        wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+                        env->CreateWebResourceResponse(nullptr, 403, L"Blocked",
+                                                       L"", &response);
+                        args->put_Response(response.get());
+                      }
+
+                      args->Release();
+                      deferral->Complete();
+                    },
+                    [](const rapidjson::Value &value) {});
+              }
             }
 
             return S_OK;
@@ -791,7 +908,7 @@ void KrunkerWindow::on_dispatch() {
   mtx.lock();
 
   for (JSMessage msg : pending_messages)
-    if (!msg.send(webview))
+    if (!sendMessage(msg))
       clog::error << "Unable to send " << msg.dump() << clog::endl;
 
   pending_messages.clear();
@@ -823,7 +940,7 @@ void KrunkerWindow::on_dispatch() {
 
     if (delta > mouse_interval) {
       then = nw - (delta % mouse_interval);
-      msgFct(IM::mousemove, {movebuffer.x, movebuffer.y}).send(webview);
+      sendMessage(msgFct(IM::mousemove, {movebuffer.x, movebuffer.y}));
       movebuffer.clear();
     }
   }

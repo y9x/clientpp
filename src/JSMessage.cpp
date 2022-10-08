@@ -1,6 +1,7 @@
 #include "./JSMessage.h"
 #include "../utils/StringUtil.h"
 #include "./Log.h"
+#include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 #include <rapidjson/writer.h>
 
@@ -57,15 +58,16 @@ JSMessage::JSMessage(const std::string &raw)
   }
 }
 
-std::string JSMessage::dump() {
+std::string JSMessage::dump() const {
   rapidjson::Document message(rapidjson::kArrayType);
 
   message.PushBack(rapidjson::Value(static_cast<unsigned int>(event)),
                    message.GetAllocator());
 
-  for (rapidjson::Value::ValueIterator it = args.Begin(); it != args.End();
+  for (rapidjson::Value::ConstValueIterator it = args.Begin(); it != args.End();
        ++it) {
-    message.PushBack(*it, message.GetAllocator());
+    message.PushBack(rapidjson::Value(*it, message.GetAllocator()),
+                     message.GetAllocator());
   }
 
   rapidjson::StringBuffer buffer;
@@ -73,12 +75,4 @@ std::string JSMessage::dump() {
   message.Accept(writer);
 
   return {buffer.GetString(), buffer.GetSize()};
-}
-
-bool JSMessage::send(ICoreWebView2 *target) {
-  return SUCCEEDED(target->PostWebMessageAsJson(ST::wstring(dump()).c_str()));
-}
-
-bool JSMessage::send(wil::com_ptr<ICoreWebView2> target) {
-  return SUCCEEDED(target->PostWebMessageAsJson(ST::wstring(dump()).c_str()));
 }

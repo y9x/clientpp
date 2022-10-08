@@ -1,9 +1,10 @@
 /* eslint-disable no-new-func */
 import { css, js } from "./runtime";
 import console from "./console";
-import evalLegacyUserscript from "./legacyUserscript";
-import evalChiefUserscript from "./chiefUserscript";
+// import evalLegacyUserscript from "./legacyUserscript";
+// import evalChiefUserscript from "./chiefUserscript";
 import currentSite from "./site";
+import ipc, { IM, ipcConsole } from "./ipc";
 
 const add_css = () => {
   for (const [, data] of css) {
@@ -42,15 +43,73 @@ new MutationObserver((mutations, observer) => {
   subtree: true,
 });
 
-if (currentSite === "game") {
-  for (const [name, data, metadata, errors] of js) {
-    for (const error of errors) console.error(error);
+type ResourceType =
+  | "all"
+  | "document"
+  | "stylesheet"
+  | "image"
+  | "media"
+  | "font"
+  | "x"
+  | "fetch"
+  | "websocket"
+  | "manifest"
+  | "signed"
+  | "ping"
+  | "other"
+  | "unknown";
 
-    if (errors.length) continue;
+const urlFilters: [
+  script: string,
+  filter: Required<ExportedUserscriptData>["filterURL"]
+][] = [];
 
-    if (metadata) evalChiefUserscript(name, metadata, data);
-    else evalLegacyUserscript(name, data);
-  }
+ipc.on(IM.will_block_url, (id: number, url: string, type: ResourceType) => {
+  for (const [script, filter] of urlFilters)
+    if (filter(new URL(url), type)) {
+      ipcConsole.debug(`${script} blocked ${type}: ${url}`);
+      return ipc.send(id, true);
+    }
 
-  // menu.update();
+  ipc.send(id, false);
+});
+
+interface ExportedUserscriptData {
+  /**
+   * Core
+   */
+  main?: (data: UserscriptRuntime) => void;
+  /*
+   * Feature - Filters an incoming network request.
+   */
+  filterURL?: (url: URL, resourceType: ResourceType) => boolean;
+}
+
+type ExportUserscriptCallback = (data: ExportedUserscriptData) => void;
+
+type UserscriptConsole = typeof console;
+
+interface UserscriptRuntime {
+  getSite: () => typeof currentSite;
+}
+
+for (const [script, code] of js) {
+  const run = new Function("console", "exportUserscript", code) as (
+    console: UserscriptConsole,
+    exportUserscript: ExportUserscriptCallback
+  ) => never;
+
+  run(console, (data) => {
+    if (data.filterURL) urlFilters.push([script, data.filterURL]);
+
+    if (data.main)
+      data.main({
+        getSite: () => currentSite,
+      });
+  });
+
+  console.log("GOT SCRIPT", script, "....");
+
+  // if (metadata) evalChiefUserscript(name, metadata, data);
+  // else evalLegacyUserscript(name, data);
 }

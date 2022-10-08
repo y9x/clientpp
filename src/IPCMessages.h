@@ -5,6 +5,7 @@ constexpr unsigned char info = 0, error = 1, warn = 2, debug = 3;
 };
 
 namespace IM {
+// incoming
 constexpr unsigned char rpc_update = 0, rpc_clear = 1, rpc_init = 2,
                         save_config = 3, shell_open = 4, fullscreen = 5,
                         update_meta = 6, revert_meta = 7, reload_config = 8,
@@ -16,4 +17,6 @@ constexpr unsigned char rpc_update = 0, rpc_clear = 1, rpc_init = 2,
                         account_list = 23, account_password = 24,
                         account_set = 25, account_remove = 26,
                         account_set_password = 27, account_regen = 28;
-};
+// outgoing
+constexpr unsigned char will_block_url = 29;
+}; // namespace IM

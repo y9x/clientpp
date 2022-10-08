@@ -9,12 +9,7 @@ declare module "*IPCMessages.h" {
 declare var _RUNTIME_DATA_:
   | {
       css: [name: string, data: string][];
-      js: [
-        name: string,
-        data: string,
-        metadata: import("./userscript").Userscript,
-        errors: string
-      ][];
+      js: [name: string, data: string][];
       config: typeof import("../../resources/config.json");
     }
   | undefined;

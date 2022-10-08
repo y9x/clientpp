@@ -9,9 +9,9 @@
 #include <atlenc.h>
 #include <atlwin.h>
 #include <functional>
+#include <map>
 #include <mutex>
 #include <rapidjson/fwd.h>
-#include <rapidjson/schema.h>
 #include <regex>
 #include <string>
 #include <wil/com.h>
@@ -42,16 +42,12 @@ public:
 
 private:
   std::wstring js_frontend;
-  rapidjson::Document get_userscript_schema();
-  rapidjson::SchemaDocument userscript_schema;
+  std::string css_builtin;
   bool seeking = false;
   std::mutex mtx;
   std::function<bool(JSMessage)> on_unknown_message;
   std::function<void()> on_webview2_startup;
   std::function<void()> on_destroy_callback;
-  std::vector<std::wstring> additional_command_line;
-  std::vector<std::wregex> additional_block_patterns;
-  bool block_uri(const std::wstring &uri);
   std::vector<std::wstring> pending_navigations;
   std::vector<JSMessage> pending_messages;
   std::wstring og_title;
@@ -73,13 +69,20 @@ private:
   load_css(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
   rapidjson::Value load_userscripts(
       rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
-  void load_userscripts();
+  std::map<short, std::pair<std::function<void(const rapidjson::Value &)>,
+                            std::function<void(const rapidjson::Value &)>>>
+      postedMessages;
   LRESULT on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
   LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
   LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
 
 public:
   Type type;
+  bool postMessage(const JSMessage &msg,
+                   std::function<void(const rapidjson::Value &)> then,
+                   std::function<void(const rapidjson::Value &)> catchError);
+  bool sendMessage(const JSMessage &message);
+
   wil::com_ptr<ICoreWebView2Controller> control;
   wil::com_ptr<ICoreWebView2> webview;
   wil::com_ptr<ICoreWebView2Environment> env;

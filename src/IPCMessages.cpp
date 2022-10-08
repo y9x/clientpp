@@ -9,6 +9,19 @@
 #include <shellapi.h>
 
 void KrunkerWindow::handle_message(JSMessage msg) {
+  if (postedMessages.contains(msg.event)) {
+    const auto &[then, catchError] = postedMessages[msg.event];
+
+    if (msg.args.Size() == 2)
+      catchError(msg.args[1]);
+    else
+      then(msg.args[0]);
+
+    postedMessages.erase(msg.event);
+
+    return;
+  }
+
   switch (msg.event) {
   case IM::save_config: {
     folder.config.CopyFrom(msg.args[0], folder.config.GetAllocator());
@@ -141,7 +154,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
       msg.args.PushBack(rapidjson::Value(folder.config, msg.allocator),
                         msg.allocator);
 
-      if (!msg.send(webview))
+      if (!sendMessage(msg))
         clog::error << "Unable to send " << msg.dump() << clog::endl;
     }
   case IM::fullscreen:
