@@ -510,9 +510,6 @@ void KrunkerWindow::register_events() {
           .Get(),
       &token);
 
-  webview->AddWebResourceRequestedFilter(L"*",
-                                         COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
-
   webview->add_NavigationStarting(
       Callback<ICoreWebView2NavigationStartingEventHandler>(
           [this](ICoreWebView2 *sender,
@@ -634,6 +631,9 @@ void KrunkerWindow::register_events() {
           })
           .Get(),
       &token);
+
+  webview->AddWebResourceRequestedFilter(L"*",
+                                         COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
 
   webview->add_WebResourceRequested(
       Callback<ICoreWebView2WebResourceRequestedEventHandler>(
