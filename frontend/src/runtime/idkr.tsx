@@ -224,11 +224,10 @@ export default function idkrRuntime(script: string, code: string) {
   ) as UserscriptContext;
 
   const magic = new MagicString(code);
+  const identifier = "sourceMappingURL";
 
   magic.appendLeft(0, "()=>{");
   magic.append("}");
-
-  const identifier = "sourceMappingURL";
 
   const userscript = run.apply(
     {

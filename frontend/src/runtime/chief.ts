@@ -121,7 +121,6 @@ export default function chiefRuntime(script: string, code: string) {
   ) as UserscriptContext;
 
   const magic = new MagicString(code);
-
   const identifier = "sourceMappingURL";
 
   run(
