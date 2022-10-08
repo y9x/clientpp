@@ -10,12 +10,14 @@ export interface SwitchControlProps extends BaseControlProps {
 
 export default function SwitchControl({
   title,
+  attention,
+  description,
   checked,
   defaultChecked,
   onChange,
 }: SwitchControlProps) {
   return (
-    <Control title={title}>
+    <Control title={title} attention={attention} description={description}>
       <label className="switch" style={{ marginLeft: 10 }}>
         <input
           type="checkbox"

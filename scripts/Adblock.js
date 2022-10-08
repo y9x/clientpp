@@ -38,7 +38,9 @@ function Settings() {
   return html`
   <${UI.Set} title="Adblock">
     <${UI.SwitchControl}
-      title="Enabled"
+      title="Adblock"
+	  description="Requires Restart"
+	  attention
       defaultChecked=${localEnabled === "on"}
       onChange=${(event) => {
         const newValue = event.currentTarget.checked ? "on" : "off";

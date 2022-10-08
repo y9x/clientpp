@@ -5,35 +5,68 @@ export type onChange<T> = (value: T, init: boolean) => void;
 export interface BaseControlProps {
   /**
    * This control's title.
-   * Required for accessibility.
    */
   title: string;
-}
-
-export interface ControlProps extends BaseControlProps {
   /**
-   * If the title will be rendered in Control. Recommended to not disable, however it is necessary for links.
+   * Description of the control.
    */
-  renderTitle?: "on" | "off";
+  description?: string;
   /**
-   * This control's body.
+   * Asterisk symbol next to settings that require attention.
    */
-  children?: ReactNode;
+  attention?: boolean;
 }
 
 /**
- *
+ * Base title
+ */
+export function ControlTitle({
+  attention,
+  children,
+}: {
+  attention?: boolean;
+  children: string;
+}) {
+  return (
+    <>
+      {children} {attention && <span style={{ color: "#eb5656" }}>*</span>}
+    </>
+  );
+}
+
+/**
+ * Base title
+ */
+export function ControlContainer({
+  description,
+  children,
+}: {
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="settName" title={description}>
+      {children}
+    </div>
+  );
+}
+
+/**
+ * A control. If title isn't specified, this control will simply become a container.
  */
 export default function Control({
   title,
+  description,
+  attention,
   children,
-  renderTitle,
-}: ControlProps) {
+}: BaseControlProps & {
+  children: ReactNode;
+}) {
   return (
-    <div className="settName" title={title}>
-      {renderTitle !== "off" ? (
+    <div className="settName" title={description}>
+      {typeof title === "string" ? (
         <>
-          {title} {children}
+          <ControlTitle attention={attention}>{title}</ControlTitle> {children}
         </>
       ) : (
         children

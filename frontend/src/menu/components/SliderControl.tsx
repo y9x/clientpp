@@ -14,6 +14,8 @@ export interface SliderControlProps extends BaseControlProps {
 
 export default function SliderControl({
   title,
+  attention,
+  description,
   value,
   defaultValue,
   min,
@@ -24,7 +26,7 @@ export default function SliderControl({
   const [localValue, setLocalValue] = useState(value);
 
   return (
-    <Control title={title}>
+    <Control title={title} attention={attention} description={description}>
       <input
         type="number"
         className="sliderVal"

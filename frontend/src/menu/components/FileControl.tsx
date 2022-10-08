@@ -17,13 +17,15 @@ export interface FileControlProps extends BaseControlProps {
 
 export default function FileControl({
   title,
+  attention,
+  description,
   children,
   value,
   defaultValue,
   onPick,
 }: FileControlProps) {
   return (
-    <Control title={title}>
+    <Control title={title} attention={attention} description={description}>
       <div
         className="settingsBtn"
         style={{ width: 100 }}

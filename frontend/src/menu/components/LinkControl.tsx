@@ -1,4 +1,4 @@
-import Control from "./Control";
+import { ControlContainer, ControlTitle } from "./Control";
 import type { BaseControlProps } from "./Control";
 import type { MouseEvent } from "react";
 
@@ -9,14 +9,16 @@ export interface LinkControlProps extends BaseControlProps {
 
 export default function LinkControl({
   title,
+  attention,
+  description,
   href,
   onClick,
 }: LinkControlProps) {
   return (
-    <Control title={title} renderTitle="off">
+    <ControlContainer description={description}>
       <a href={href} onClick={onClick}>
-        {title}
+        <ControlTitle attention={attention}>{title}</ControlTitle>
       </a>
-    </Control>
+    </ControlContainer>
   );
 }

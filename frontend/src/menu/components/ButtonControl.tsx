@@ -9,11 +9,13 @@ export interface ButtonControlProps extends BaseControlProps {
 
 export default function ButtonControl({
   title,
+  attention,
+  description,
   text,
   onClick,
 }: ButtonControlProps) {
   return (
-    <Control title={title}>
+    <Control title={title} attention={attention} description={description}>
       <div className="settingsBtn" onClick={onClick}>
         {text}
       </div>

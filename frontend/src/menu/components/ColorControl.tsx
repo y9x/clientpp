@@ -10,12 +10,14 @@ export interface ColorControlProps extends BaseControlProps {
 
 export default function ColorControl({
   title,
+  attention,
+  description,
   value,
   defaultValue,
   onChange,
 }: ColorControlProps) {
   return (
-    <Control title={title}>
+    <Control title={title} attention={attention} description={description}>
       <input
         type="color"
         name="color"
