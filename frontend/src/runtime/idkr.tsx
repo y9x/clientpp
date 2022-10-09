@@ -42,8 +42,14 @@ class Config {
     this.data = data;
     this.saveConfig = saveConfig;
   }
+  /**
+   *
+   * @param key
+   * @param def Default value if key isn't set.
+   * @returns
+   */
   get<T = unknown>(key: string, def: T): T {
-    if (!(key in this.data) && def !== undefined) this.data[key] = def;
+    if (!(key in this.data) && typeof def !== "undefined") this.set(key, def);
 
     return this.data[key] as T;
   }
@@ -72,6 +78,7 @@ interface IUserscript {
   meta: IUserscriptMeta;
   load(config: Config): void;
   unload(): void;
+  clientUtils?: IClientUtil;
 }
 
 interface ISetting {
@@ -149,13 +156,20 @@ interface IClientUtil {
   // initUtil();
 }
 
+type IUserscriptExports =
+  | (Partial<IUserscriptModule> & {
+      run?: IUserscript["load"];
+    })
+  | void;
+type IUserscriptModule = { exports: IUserscriptExports };
+
 type UserscriptContext = (
-  this: {
-    clientUtils: IClientUtil;
-  },
   code: string,
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  console: typeof import("../console").default
+  console: typeof import("../console").default,
+  clientUtils: IClientUtil,
+  exports: IUserscriptExports,
+  module: IUserscriptModule
 ) => IUserscript;
 
 const clientUtils: IClientUtil = Object.freeze({
@@ -170,7 +184,7 @@ const clientUtils: IClientUtil = Object.freeze({
             title={setting.name}
             defaultChecked={config.get(setting.id, setting.val)}
             onChange={(event) => {
-              config.set(setting.id, event.currentTarget.value);
+              config.set(setting.id, event.currentTarget.checked);
               if (setting.needsRestart) global.location.reload();
             }}
           />
@@ -257,45 +271,47 @@ const clientUtils: IClientUtil = Object.freeze({
   },
 });
 
-const renderFactory = (settings: ISettingsCollection, config: Config) => {
-  const Component = () => {
-    const categories: Record<string, ReactNode[]> = {};
+const IDKRComponent = ({
+  settings,
+  config,
+}: {
+  settings: ISettingsCollection;
+  config: Config;
+}) => {
+  const categories: Record<string, ReactNode[]> = {};
 
-    for (const key in settings) {
-      const setting = settings[key];
+  for (const key in settings) {
+    const setting = settings[key];
 
-      if (!(setting.cat in categories)) categories[setting.cat] = [];
+    if (!(setting.cat in categories)) categories[setting.cat] = [];
 
-      const category = categories[setting.cat];
+    const category = categories[setting.cat];
 
-      const render = setting.html();
+    const render = setting.html();
 
-      category.push(render(config));
-    }
+    category.push(render(config));
+  }
 
-    return (
-      <>
-        {Object.entries(categories).map(([title, children]) => (
-          <Set title={title} key={title}>
-            {children}
-          </Set>
-        ))}
-      </>
-    );
-  };
-
-  return Component;
+  return (
+    <>
+      {Object.entries(categories).map(([title, children]) => (
+        <Set title={title} key={title}>
+          {children}
+        </Set>
+      ))}
+    </>
+  );
 };
 
-/**
- * Run a IDKR userscript
- */
-export default function idkrRuntime(script: string, code: string) {
+function executeUserscript(script: string, code: string): IUserscript {
   // eslint-disable-next-line no-new-func
   const run = new Function(
     "code",
     "console",
-    "eval(code)"
+    "clientUtils",
+    "exports",
+    "module",
+    "return eval(code)()"
   ) as UserscriptContext;
 
   const magic = new MagicString(code);
@@ -304,35 +320,58 @@ export default function idkrRuntime(script: string, code: string) {
   magic.appendLeft(0, "()=>{");
   magic.append("}");
 
-  const userscript = run.apply(
-    {
-      clientUtils,
-    },
-    [
-      magic.toString() +
-        "//# " +
-        identifier +
-        "=data:application/json," +
-        encodeURI(
-          JSON.stringify(
-            magic.generateMap({
-              source: new URL("file:" + script).toString(),
-            })
-          )
-        ),
-      console,
-    ]
+  const module = {
+    exports: {},
+  } as IUserscriptModule;
+
+  const ret = run(
+    magic.toString() +
+      "//# " +
+      identifier +
+      "=data:application/json," +
+      encodeURI(
+        JSON.stringify(
+          magic.generateMap({
+            source: new URL("file:" + script).toString(),
+          })
+        )
+      ),
+    console,
+    clientUtils,
+    module.exports,
+    module
   );
 
+  if (ret) {
+    ret.clientUtils = clientUtils;
+  }
+
+  const userscript = {
+    config: ret?.config || module?.exports,
+    meta: ret?.meta || module?.exports,
+    load: ret?.load || module?.exports?.run,
+    unload: ret?.unload,
+  } as IUserscript;
+
+  return userscript;
+}
+
+/**
+ * Run a IDKR userscript
+ */
+export default function idkrRuntime(script: string, code: string) {
+  const userscript = executeUserscript(script, code);
+
   if (
-    userscript?.config?.locations?.includes("all") ||
-    userscript?.config?.locations?.includes(currentSite || "unknown")
+    userscript.config?.locations?.includes("all") ||
+    userscript.config?.locations?.includes(currentSite || "unknown")
   ) {
     const config = createConfig(script);
     userscript.load(config);
 
-    if (userscript.config.settings) {
-      renderSettings.push(renderFactory(userscript.config.settings, config));
-    }
+    if (userscript.config.settings)
+      renderSettings.push(() => (
+        <IDKRComponent settings={userscript.config.settings!} config={config} />
+      ));
   }
 }
