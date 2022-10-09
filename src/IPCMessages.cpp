@@ -78,13 +78,17 @@ void KrunkerWindow::handle_message(JSMessage msg) {
   case IM::relaunch_webview: {
     wil::unique_cotaskmem_string uri;
     webview->get_Source(&uri);
-
-    control->Close();
-
     std::wstring uricopy(uri.get());
 
-    call_create_webview(
-        [this, uricopy]() { webview->Navigate(uricopy.c_str()); });
+    new std::thread([this, uricopy]() {
+      if (MessageBox(L"The game will be restarted for this setting to take "
+                     L"affect.",
+                     title.c_str(), MB_YESNO) == IDYES)
+        control->Close();
+
+      call_create_webview(
+          [this, uricopy]() { webview->Navigate(uricopy.c_str()); });
+    });
   } break;
   case IM::close_window:
     if (::IsWindow(m_hWnd))

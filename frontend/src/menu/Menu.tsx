@@ -104,6 +104,8 @@ export default function Menu() {
         <Switch
           title="Uncap FPS"
           defaultChecked={config.render.uncap_fps}
+          description="Restart Required"
+          attention
           onChange={(event) => {
             config.render.uncap_fps = event.currentTarget.checked;
             setConfig(config);
@@ -113,6 +115,8 @@ export default function Menu() {
         <Select
           title="Angle backend"
           defaultValue={config.render.angle}
+          description="Restart Required"
+          attention
           onChange={(event) => {
             config.render.angle = event.currentTarget.value;
             setConfig(config);
@@ -128,6 +132,8 @@ export default function Menu() {
         <Select
           title="Color profile"
           defaultValue={config.render.color}
+          description="Restart Required"
+          attention
           onChange={(event) => {
             config.render.color = event.currentTarget.value;
             setConfig(config);
