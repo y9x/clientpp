@@ -2,18 +2,18 @@ import Control from "./Control";
 import type { BaseControlProps } from "./Control";
 import type { MouseEvent } from "react";
 
-export interface ButtonControlProps extends BaseControlProps {
+export interface ButtonProps extends BaseControlProps {
   text: string;
   onClick?: (event: MouseEvent<HTMLDivElement>) => void;
 }
 
-export default function ButtonControl({
+export default function Button({
   title,
   attention,
   description,
   text,
   onClick,
-}: ButtonControlProps) {
+}: ButtonProps) {
   return (
     <Control title={title} attention={attention} description={description}>
       <div className="settingsBtn" onClick={onClick}>

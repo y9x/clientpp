@@ -2,14 +2,14 @@ import Control from "./Control";
 import type { BaseControlProps } from "./Control";
 import type { ChangeEvent } from "react";
 
-export interface TextControlProps extends BaseControlProps {
+export interface TextProps extends BaseControlProps {
   placeholder?: string;
   value?: string;
   defaultValue?: string;
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function TextControl({
+export default function Text({
   title,
   attention,
   description,
@@ -17,7 +17,7 @@ export default function TextControl({
   value,
   defaultValue,
   onChange,
-}: TextControlProps) {
+}: TextProps) {
   return (
     <Control title={title} attention={attention} description={description}>
       <input

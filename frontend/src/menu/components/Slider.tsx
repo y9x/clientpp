@@ -3,7 +3,7 @@ import type { BaseControlProps } from "./Control";
 import type { ChangeEvent } from "react";
 import { useState } from "react";
 
-export interface SliderControlProps extends BaseControlProps {
+export interface SliderProps extends BaseControlProps {
   value?: number;
   defaultValue?: number;
   min?: number;
@@ -12,7 +12,7 @@ export interface SliderControlProps extends BaseControlProps {
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function SliderControl({
+export default function Slider({
   title,
   attention,
   description,
@@ -22,7 +22,7 @@ export default function SliderControl({
   max,
   step,
   onChange,
-}: SliderControlProps) {
+}: SliderProps) {
   const [localValue, setLocalValue] = useState(value);
 
   return (
