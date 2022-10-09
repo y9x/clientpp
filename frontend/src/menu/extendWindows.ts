@@ -1,8 +1,8 @@
 /**
  * createRoot
  */
-import type { RenderOnDemand } from "./settHolderProxy";
-import createSettHolderProxy from "./settHolderProxy";
+import type { RenderOnDemand } from "./renderContainer";
+import createRenderContainer from "./renderContainer";
 
 /**
  * Create a native react window.
@@ -13,7 +13,7 @@ export default function extendWindows(
   options: Omit<Omit<GameWindow, "gen">, "html">,
   render: RenderOnDemand
 ) {
-  const html = createSettHolderProxy(render);
+  const html = createRenderContainer(render);
 
   const window = {
     ...options,

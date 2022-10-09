@@ -2,8 +2,8 @@
  * createRoot
  */
 import { waitFor } from "../utils";
-import type { RenderOnDemand } from "./settHolderProxy";
-import createSettHolderProxy from "./settHolderProxy";
+import type { RenderOnDemand } from "./renderContainer";
+import createRenderContainer from "./renderContainer";
 
 // settings window ID
 // showWindow(x)
@@ -39,7 +39,7 @@ export default async function extendSettings(
     });
   }
 
-  const html = createSettHolderProxy(render);
+  const html = createRenderContainer(render);
 
   window.getSettings = new Proxy(window.getSettings, {
     apply: (target, thisArg, argArray) =>
