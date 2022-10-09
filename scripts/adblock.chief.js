@@ -78,7 +78,10 @@ function Settings() {
       onChange=${(event) => {
         const newValue = event.currentTarget.checked ? "on" : "off";
         setLocalEnabled(newValue);
-        location.reload();
+        if (
+          confirm("The game will be reloaded for this setting to take affect.")
+        )
+          location.reload();
       }}
     />
   </${UI.Set} />`;
