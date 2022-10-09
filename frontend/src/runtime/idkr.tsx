@@ -2,10 +2,13 @@
  * IDKR Userscript support
  */
 import EventEmitter from "../EventEmitter";
+import ColorPicker from "../menu/components/ColorPicker";
+import Control from "../menu/components/Control";
 import Select from "../menu/components/Select";
 import { Set } from "../menu/components/Set";
 import Slider from "../menu/components/Slider";
 import Switch from "../menu/components/Switch";
+import Text from "../menu/components/Text";
 import currentSite from "../site";
 import { renderSettings } from "./chief";
 import MagicString from "magic-string";
@@ -103,7 +106,31 @@ interface ISliderSetting extends ISetting {
   val: number;
 }
 
-type SomeSetting = ISelectSetting | ICheckboxSetting | ISliderSetting;
+interface IColorSetting extends ISetting {
+  type: "color";
+  val: string;
+}
+
+interface ITextSetting extends ISetting {
+  type: "text";
+  val: string;
+  placeholder?: string;
+}
+
+interface IUnknownSetting extends ISetting {
+  type: "";
+  val: string | number | ReadonlyArray<string> | undefined;
+  placeholder?: string;
+}
+
+type SomeSetting =
+  | ISelectSetting
+  | ICheckboxSetting
+  | ISliderSetting
+  // extended UI
+  | ITextSetting
+  | IColorSetting
+  | IUnknownSetting;
 
 type ISettingsCollection = Record<string, SomeSetting>;
 
@@ -177,6 +204,54 @@ const clientUtils: IClientUtil = Object.freeze({
               if (setting.needsRestart) global.location.reload();
             }}
           />
+        );
+      // extended:
+      case "color":
+        return (
+          <ColorPicker
+            attention={setting.needsRestart}
+            description={setting.needsRestart ? "Requires Restart" : undefined}
+            title={setting.name}
+            defaultValue={config.get(setting.id, setting.val)}
+            onChange={(event) => {
+              config.set(setting.id, event.currentTarget.value);
+              if (setting.needsRestart) global.location.reload();
+            }}
+          />
+        );
+      case "text":
+        return (
+          <Text
+            attention={setting.needsRestart}
+            description={setting.needsRestart ? "Requires Restart" : undefined}
+            title={setting.name}
+            placeholder={setting.placeholder}
+            defaultValue={config.get(setting.id, setting.val)}
+            onChange={(event) => {
+              config.set(setting.id, event.currentTarget.value);
+              if (setting.needsRestart) global.location.reload();
+            }}
+          />
+        );
+      // catch-all similiar to the current one in IDKR
+      default:
+        return (
+          <Control
+            attention={setting.needsRestart}
+            description={setting.needsRestart ? "Requires Restart" : undefined}
+            title={setting.name}
+          >
+            <input
+              type={setting.type}
+              className="inputGrey2"
+              placeholder={setting.placeholder}
+              defaultValue={config.get(setting.id, setting.val)}
+              onChange={(event) => {
+                config.set(setting.id, event.currentTarget.value);
+                if (setting.needsRestart) global.location.reload();
+              }}
+            />
+          </Control>
         );
     }
   },
