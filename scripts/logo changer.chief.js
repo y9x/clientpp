@@ -80,6 +80,5 @@ function Settings() {
 }
 
 exportUserscript({
-  main,
   Settings,
 });

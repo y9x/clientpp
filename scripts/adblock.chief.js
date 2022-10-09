@@ -3,68 +3,66 @@
  * v1.0.0
  */
 
-function main() {
-  // set default
-  if (!localStorage.getItem("adblock enabled"))
-    localStorage.setItem("adblock enabled", "on");
+// set default
+if (!localStorage.getItem("adblock enabled"))
+  localStorage.setItem("adblock enabled", "on");
 
-  // set at page load
-  const enabled = localStorage.getItem("adblock enabled") === "on";
+// set at page load
+const enabled = localStorage.getItem("adblock enabled") === "on";
 
-  if (enabled) {
-    const style = document.createElement("style");
-    style.textContent = "#adCon, *[id*='aHider'] { display: none !IMPORTANT; }";
+if (enabled) {
+  const style = document.createElement("style");
+  style.textContent = "#adCon, *[id*='aHider'] { display: none !IMPORTANT; }";
 
-    document.addEventListener("DOMContentLoaded", () => {
-      document.documentElement.append(style);
-    });
+  document.addEventListener("DOMContentLoaded", () => {
+    document.documentElement.append(style);
+  });
 
-    const shimFRVR = Object.freeze({
-      init: () => {},
-      lifecycle: Object.freeze({}),
-      tracker: Object.freeze({
-        addExtraFieldFunction: () => {},
-        logEvent: () => {},
-      }),
-      bootstrapper: Object.freeze({
-        init: () => Promise.resolve(),
-        setProgress: () => {},
-        complete: () => {},
-      }),
-    });
+  const shimFRVR = Object.freeze({
+    init: () => {},
+    lifecycle: Object.freeze({}),
+    tracker: Object.freeze({
+      addExtraFieldFunction: () => {},
+      logEvent: () => {},
+    }),
+    bootstrapper: Object.freeze({
+      init: () => Promise.resolve(),
+      setProgress: () => {},
+      complete: () => {},
+    }),
+  });
 
-    // :((((
-    // we break the AD loader in head by making this non-configurable :(
-    Object.defineProperty(window, "FRVR", {
-      get: () => shimFRVR,
-      set: (value) => {
-        // krunker sets FRVR = window.FRVR || {}
-        // we can detect this expression by checking if the value is equal to window.FRVR
-        if (value === shimFRVR) {
-          console.error("Caught ADs.");
-          throw new Error("Adblock");
-        }
-      },
-    });
+  // :((((
+  // we break the AD loader in head by making this non-configurable :(
+  Object.defineProperty(window, "FRVR", {
+    get: () => shimFRVR,
+    set: (value) => {
+      // krunker sets FRVR = window.FRVR || {}
+      // we can detect this expression by checking if the value is equal to window.FRVR
+      if (value === shimFRVR) {
+        console.error("Caught ADs.");
+        throw new Error("Adblock");
+      }
+    },
+  });
 
-    // now we have to configure the AD networks ourselves...
-    window.canShowAds = false;
-    window.useFRANads = false;
-    window.useFreestarAds = false;
-    window.useAdinplayAds = false;
+  // now we have to configure the AD networks ourselves...
+  window.canShowAds = false;
+  window.useFRANads = false;
+  window.useFreestarAds = false;
+  window.useAdinplayAds = false;
 
-    // and the app restrictions...
-    window.canShowExternalLinks = true;
-    window.canShowPaypal = false;
-    window.canShowSocialHub = true;
-    window.canShowMods = true;
-    window.canConnectExternalAccounts = true;
-    window.canShowMarketplace = true;
-    window.canShowNFTs = true;
-    window.canShowTwitch = true;
-    window.canShowKrunkerEngine = true;
-    window.isFrvrDotCom = false;
-  }
+  // and the app restrictions...
+  window.canShowExternalLinks = true;
+  window.canShowPaypal = false;
+  window.canShowSocialHub = true;
+  window.canShowMods = true;
+  window.canConnectExternalAccounts = true;
+  window.canShowMarketplace = true;
+  window.canShowNFTs = true;
+  window.canShowTwitch = true;
+  window.canShowKrunkerEngine = true;
+  window.isFrvrDotCom = false;
 }
 
 function Settings() {
@@ -87,6 +85,5 @@ function Settings() {
 }
 
 exportUserscript({
-  main,
   Settings,
 });

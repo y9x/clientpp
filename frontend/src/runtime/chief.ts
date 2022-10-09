@@ -34,16 +34,11 @@ const UserscriptUI = Object.freeze({
   Text,
 });
 
-export const renderSettings: Required<ExportedUserscriptData>["Settings"][] =
-  [];
+export const renderSettings: FunctionComponent[] = [];
 
 interface ExportedUserscriptData {
   /**
-   * Core
-   */
-  main?: (data: UserscriptRuntime) => void;
-  /**
-   * Feature - Extends the settings GUI.
+   * Extend the client settings GUI.
    */
   Settings?: FunctionComponent;
 }
@@ -63,12 +58,9 @@ type UserscriptContext = (
   UI: typeof UserscriptUI,
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   console: typeof import("../console").default,
+  getSite: () => typeof currentSite,
   exportUserscript: ExportUserscriptCallback
 ) => void;
-
-interface UserscriptRuntime {
-  getSite: () => typeof currentSite;
-}
 
 /**
  * Run a Chief userscript
@@ -82,6 +74,7 @@ export default function chiefRuntime(script: string, code: string) {
     "useLocalStorage",
     "UI",
     "console",
+    "getSite",
     "exportUserscript",
     "eval(code)"
   ) as UserscriptContext;
@@ -106,12 +99,8 @@ export default function chiefRuntime(script: string, code: string) {
     useLocalStorage,
     UserscriptUI,
     console,
+    () => currentSite,
     (data) => {
-      if (data.main)
-        data.main({
-          getSite: () => currentSite,
-        });
-
       if (data.Settings) renderSettings.push(data.Settings);
     }
   );
