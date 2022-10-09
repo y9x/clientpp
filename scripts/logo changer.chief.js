@@ -7,26 +7,24 @@ let mainLogo;
 
 const defaultLogo = "https://krunker.io/img/logo_1.png";
 
-function main() {
-  // set default
-  if (!localStorage.getItem("logo changer enabled"))
-    localStorage.setItem("logo changer enabled", "off");
+// set default
+if (!localStorage.getItem("logo changer enabled"))
+  localStorage.setItem("logo changer enabled", "off");
 
-  new MutationObserver((mutations, observer) => {
-    for (const mutation of mutations)
-      for (const node of mutation.addedNodes) {
-        if (node instanceof HTMLImageElement && node.src === defaultLogo) {
-          observer.disconnect();
-          mainLogo = node;
-          updateLogo();
-          return;
-        }
+new MutationObserver((mutations, observer) => {
+  for (const mutation of mutations)
+    for (const node of mutation.addedNodes) {
+      if (node instanceof HTMLImageElement && node.src === defaultLogo) {
+        observer.disconnect();
+        mainLogo = node;
+        updateLogo();
+        return;
       }
-  }).observe(document, {
-    subtree: true,
-    childList: true,
-  });
-}
+    }
+}).observe(document, {
+  subtree: true,
+  childList: true,
+});
 
 async function updateLogo() {
   const enabled = localStorage.getItem("logo changer enabled") === "on";
