@@ -685,47 +685,6 @@ void KrunkerWindow::register_events() {
                   clog::error << "Unable to create IStream for file: "
                               << ST::string(swap) << clog::endl;
               }
-            } else {
-              COREWEBVIEW2_WEB_RESOURCE_CONTEXT ctx;
-              args->get_ResourceContext(&ctx);
-
-              if (ctx != COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-                             COREWEBVIEW2_WEB_RESOURCE_CONTEXT_DOCUMENT) {
-                wil::com_ptr<ICoreWebView2Deferral> deferral;
-
-                args->GetDeferral(&deferral);
-
-                args->AddRef();
-
-                JSMessage post(IM::will_block_url);
-
-                std::string url = ST::string(uri.toString());
-
-                post.args.PushBack(rapidjson::Value(url.data(), url.size()),
-                                   post.allocator);
-
-                const char *ctxStr = getCtxString(ctx);
-
-                post.args.PushBack(rapidjson::Value(ctxStr, strlen(ctxStr)),
-                                   post.allocator);
-
-                postMessage(
-                    post,
-                    [this, args, deferral](const rapidjson::Value &value) {
-                      assert(value.IsBool());
-
-                      if (value.GetBool()) {
-                        wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-                        env->CreateWebResourceResponse(nullptr, 403, L"Blocked",
-                                                       L"", &response);
-                        args->put_Response(response.get());
-                      }
-
-                      args->Release();
-                      deferral->Complete();
-                    },
-                    [](const rapidjson::Value &value) {});
-              }
             }
 
             return S_OK;

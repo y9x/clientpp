@@ -1,7 +1,6 @@
 /*
  * Chief Userscript support
  */
-import ipc, { IM, ipcConsole } from "../ipc";
 import ButtonControl from "../menu/components/ButtonControl";
 import ColorControl from "../menu/components/ColorControl";
 import Control from "../menu/components/Control";
@@ -33,49 +32,14 @@ const UserscriptUI = Object.freeze({
   TextControl,
 });
 
-type ResourceType =
-  | "all"
-  | "document"
-  | "stylesheet"
-  | "image"
-  | "media"
-  | "font"
-  | "x"
-  | "fetch"
-  | "websocket"
-  | "manifest"
-  | "signed"
-  | "ping"
-  | "other"
-  | "unknown";
-
-const urlFilters: [
-  script: string,
-  filter: Required<ExportedUserscriptData>["filterURL"]
-][] = [];
-
 export const renderSettings: Required<ExportedUserscriptData>["Settings"][] =
   [];
-
-ipc.on(IM.will_block_url, (id: number, url: string, type: ResourceType) => {
-  for (const [script, filter] of urlFilters)
-    if (filter(new URL(url), type)) {
-      ipcConsole.debug(`${script} blocked ${type}: ${url}`);
-      return ipc.send(id, true);
-    }
-
-  ipc.send(id, false);
-});
 
 interface ExportedUserscriptData {
   /**
    * Core
    */
   main?: (data: UserscriptRuntime) => void;
-  /*
-   * Feature - Filters an incoming network request.
-   */
-  filterURL?: (url: URL, resourceType: ResourceType) => boolean;
   /**
    * Feature - Extends the settings GUI.
    */
@@ -141,8 +105,6 @@ export default function chiefRuntime(script: string, code: string) {
     UserscriptUI,
     console,
     (data) => {
-      if (data.filterURL) urlFilters.push([script, data.filterURL]);
-
       if (data.main)
         data.main({
           getSite: () => currentSite,
