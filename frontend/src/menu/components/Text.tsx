@@ -6,6 +6,10 @@ export interface TextProps extends BaseControlProps {
   placeholder?: string;
   value?: string;
   defaultValue?: string;
+  /**
+   * False by default.
+   */
+  spellCheck?: boolean;
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -16,6 +20,7 @@ export default function Text({
   placeholder,
   value,
   defaultValue,
+  spellCheck,
   onChange,
 }: TextProps) {
   return (
@@ -28,6 +33,7 @@ export default function Text({
         value={value}
         defaultValue={defaultValue}
         onChange={onChange}
+        spellCheck={spellCheck === true}
       />
     </Control>
   );
