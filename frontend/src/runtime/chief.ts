@@ -5,6 +5,7 @@ import ButtonControl from "../menu/components/ButtonControl";
 import ColorControl from "../menu/components/ColorControl";
 import Control from "../menu/components/Control";
 import FilePathControl from "../menu/components/FilePathControl";
+import FilePickerControl from "../menu/components/FilePickerControl";
 import LinkControl from "../menu/components/LinkControl";
 import SelectControl from "../menu/components/SelectControl";
 import { Set, HeadlessSet } from "../menu/components/Set";
@@ -23,6 +24,7 @@ const UserscriptUI = Object.freeze({
   ColorControl,
   Control,
   FilePathControl,
+  FilePickerControl,
   LinkControl,
   SelectControl,
   Set,

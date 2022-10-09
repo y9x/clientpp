@@ -3,7 +3,7 @@ import Control from "./Control";
 import type { BaseControlProps } from "./Control";
 import type { ReactElement } from "react";
 
-export interface FileControlProps extends BaseControlProps {
+export interface FilePathControlProps extends BaseControlProps {
   onPick?: (file: string) => void;
   children: ReactElement<
     Omit<Omit<JSX.IntrinsicElements["option"], "children">, "value"> & {
@@ -15,7 +15,10 @@ export interface FileControlProps extends BaseControlProps {
   defaultValue?: string;
 }
 
-export default function FileControl({
+/**
+ * Control to get the location of a file, not the binary content.
+ */
+export default function FilePathControl({
   title,
   attention,
   description,
@@ -23,7 +26,7 @@ export default function FileControl({
   value,
   defaultValue,
   onPick,
-}: FileControlProps) {
+}: FilePathControlProps) {
   return (
     <Control title={title} attention={attention} description={description}>
       <div
