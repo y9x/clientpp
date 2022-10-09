@@ -500,6 +500,7 @@ void KrunkerWindow::register_events() {
                  ICoreWebView2WebMessageReceivedEventArgs *args) {
             wil::unique_cotaskmem_string mpt;
             args->TryGetWebMessageAsString(&mpt);
+
             if (!mpt)
               return S_OK;
 

@@ -1,20 +1,6 @@
 import { IM, LogType } from "../../src/IPCMessages.h";
 import EventEmitter from "./EventEmitter";
 
-declare const chrome: {
-  webview: EventTarget & {
-    postMessage: (data: string) => void;
-    addEventListener(
-      type: "message",
-      listener: (
-        this: Window,
-        ev: MessageEvent<[string, ...unknown[]]>
-      ) => unknown,
-      options?: boolean | AddEventListenerOptions
-    ): void;
-  };
-};
-
 export const ipcConsole = {
   log: (...args: unknown[]) =>
     ipc.send(IM.log, LogType.info, args.join(" ") + "\n"),
