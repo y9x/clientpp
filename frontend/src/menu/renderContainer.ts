@@ -4,9 +4,11 @@ import { createRoot } from "react-dom/client";
 export type RenderOnDemand = (root: Root) => void;
 
 /**
- * Unique HTML string that acts as a fragment.
+ *
+ * @description The raw HTML instantitates a custom element that executes code to create a react-dom root in it's parent. When the innerHTML of the parent is set, the react-dom root is unmounted. This allows for the mount and unmount lifecycles to be triggered.
+ * @returns Raw HTML to create a hook element.
  */
-export default function createSettHolderProxy(render: RenderOnDemand) {
+export default function createRenderContainer(render: RenderOnDemand) {
   const id = "a-" + Math.random().toString().slice(2);
 
   class HTMLProxyElement extends HTMLElement {
