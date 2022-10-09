@@ -2,7 +2,7 @@ import RPC from "../RPC";
 import ipc, { IM } from "../ipc";
 import { renderSettings } from "../runtime/chief";
 import ButtonControl from "./components/ButtonControl";
-import FileControl from "./components/FileControl";
+import FilePathControl from "./components/FilePathControl";
 import LinkControl from "./components/LinkControl";
 import SelectControl from "./components/SelectControl";
 import { HeadlessSet, Set } from "./components/Set";
@@ -234,7 +234,7 @@ export default function Menu() {
             if (config.window.meta.replace) ipc.send(IM.update_meta);
           }}
         />
-        <FileControl
+        <FilePathControl
           title="New Icon"
           defaultValue={config.window.meta.icon}
           onPick={(value) => {
@@ -245,7 +245,7 @@ export default function Menu() {
         >
           <option value="*.ico">Icon</option>
           <option value="*.*">All types</option>
-        </FileControl>
+        </FilePathControl>
       </Set>
       {renderSettings.map((Settings, i) => (
         <Settings key={i} />
