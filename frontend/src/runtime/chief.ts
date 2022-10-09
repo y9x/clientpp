@@ -13,7 +13,7 @@ import Slider from "../menu/components/Slider";
 import Switch from "../menu/components/Switch";
 import Text from "../menu/components/Text";
 import currentSite from "../site";
-import useLocalStorage from "../useLocalStorage";
+import useLocalStorage, { setLocalStorage } from "../useLocalStorage";
 import htm from "htm";
 import MagicString from "magic-string";
 import type { FunctionComponent } from "react";
@@ -48,17 +48,19 @@ type ExportUserscriptCallback = (data: ExportedUserscriptData) => void;
 type UserscriptContext = (
   code: string,
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  console: typeof import("../console").default,
+  getSite: () => typeof currentSite,
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   React: typeof import("react"),
   // expose `htm` to allow for manipulating JSX
   html: typeof htm,
+  // expose components for building a GUI extension
+  UI: typeof UserscriptUI,
   // important hook for lightweight configs
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   useLocalStorage: typeof import("../useLocalStorage").default,
-  // expose components for building a GUI extension
-  UI: typeof UserscriptUI,
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  console: typeof import("../console").default,
-  getSite: () => typeof currentSite,
+  setLocalStorage: typeof import("../useLocalStorage").setLocalStorage,
   exportUserscript: ExportUserscriptCallback
 ) => void;
 
@@ -69,12 +71,13 @@ export default function chiefRuntime(script: string, code: string) {
   // eslint-disable-next-line no-new-func
   const run = new Function(
     "code",
-    "React",
-    "html",
-    "useLocalStorage",
-    "UI",
     "console",
     "getSite",
+    "React",
+    "html",
+    "UI",
+    "useLocalStorage",
+    "setLocalStorage",
     "exportUserscript",
     "eval(code)"
   ) as UserscriptContext;
@@ -94,12 +97,13 @@ export default function chiefRuntime(script: string, code: string) {
           })
         )
       ),
-    React,
-    htm.bind(React.createElement),
-    useLocalStorage,
-    UserscriptUI,
     console,
     () => currentSite,
+    React,
+    htm.bind(React.createElement),
+    UserscriptUI,
+    useLocalStorage,
+    setLocalStorage,
     (data) => {
       if (data.Settings) renderSettings.push(data.Settings);
     }
