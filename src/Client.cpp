@@ -3,22 +3,12 @@
 #include "../utils/JsonUtil.h"
 #include "../utils/StringUtil.h"
 #include "./Log.h"
+#include "./Site.h"
 #include <ShellScalingApi.h>
 #include <shellapi.h>
 #include <sstream>
 
 using Microsoft::WRL::Callback;
-
-namespace krunker {
-constexpr const wchar_t *game = L"/";
-constexpr const wchar_t *games = L"/games";
-constexpr const wchar_t *editor = L"/editor.html";
-constexpr const wchar_t *social = L"/social.html";
-constexpr const wchar_t *viewer = L"/viewer.html";
-constexpr const wchar_t *scripting = L"/scripting.html";
-constexpr const wchar_t *docs = L"/docs/";
-constexpr const wchar_t *tos = L"/docs/tos.html";
-}; // namespace krunker
 
 const char *Client::version = CLIENT_VERSION_STRING;
 const char *Client::discord_rpc = "899137303182716968";
@@ -28,7 +18,7 @@ bool Client::navigation_cancelled(ICoreWebView2 *sender, UriW uri) {
   if (uri.host() == L"chief")
     return false;
 
-  bool kru_owns = host_is_krunker(uri.host());
+  bool kru_owns = krunker::host_is_krunker(uri.host());
   bool cancel = false;
 
   KrunkerWindow *send = nullptr;

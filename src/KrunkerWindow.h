@@ -17,8 +17,6 @@
 #include <wil/com.h>
 #include <wrl.h>
 
-bool host_is_krunker(std::wstring host);
-
 class KrunkerWindow : public CWindowImpl<KrunkerWindow> {
 public:
   enum class Status {

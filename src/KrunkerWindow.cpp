@@ -5,6 +5,7 @@
 #include "../utils/Uri.h"
 #include "./LoadRes.h"
 #include "./Log.h"
+#include "./Site.h"
 #include "./resource.h"
 #include <WebView2EnvironmentOptions.h>
 #include <rapidjson/writer.h>
@@ -13,10 +14,6 @@
 
 using Microsoft::WRL::Callback;
 using Microsoft::WRL::Make;
-
-bool host_is_krunker(std::wstring host) {
-  return host == L"krunker.io" || host.ends_with(L".krunker.io");
-}
 
 long long KrunkerWindow::now() {
   return duration_cast<std::chrono::milliseconds>(
@@ -658,7 +655,7 @@ void KrunkerWindow::register_events() {
                 send_resource(args, FONT_GAME, L"font/ttf");
               else if (uri.path() == L"/frontend.js.map")
                 send_resource(args, JS_FRONTEND_MAP, L"application/json");
-            } else if (host_is_krunker(uri.host())) {
+            } else if (krunker::host_is_krunker(uri.host())) {
               std::wstring swap =
                   folder.directory + folder.p_swapper + uri.path();
 
