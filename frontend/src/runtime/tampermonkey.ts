@@ -1,6 +1,7 @@
 /*
  * Tampermonky Userscript support
  */
+import console from "../console";
 import MagicString from "magic-string";
 import { parse } from "match-pattern";
 
@@ -61,6 +62,8 @@ const parseMetadata = (script: string) => {
 
 type UserscriptContext = (
   code: string,
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  console: typeof import("../console").default,
   unsafeWindow: typeof globalThis,
   GM_getValue: (key: string) => string | null,
   GM_setValue: (key: string, value: string) => void
@@ -149,6 +152,7 @@ export default function tampermonkeyRuntime(script: string, code: string) {
   // eslint-disable-next-line no-new-func
   const run = new Function(
     "code",
+    "console",
     "unsafeWindow",
     "GM_getValue",
     "GM_setValue",
@@ -170,6 +174,7 @@ export default function tampermonkeyRuntime(script: string, code: string) {
           })
         )
       ),
+    console,
     window,
     (key) => localStorage.getItem(key),
     (key, value) => localStorage.setItem(key, value)
