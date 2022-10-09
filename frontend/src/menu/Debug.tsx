@@ -1,14 +1,14 @@
 import console from "../console";
-import ColorControl from "./components/ColorControl";
-import FilePickerControl from "./components/FilePickerControl";
-import LinkControl from "./components/LinkControl";
+import ColorPicker from "./components/ColorPicker";
+import FilePicker from "./components/FilePicker";
+import Link from "./components/Link";
 import { Set } from "./components/Set";
-import SliderControl from "./components/SliderControl";
+import Slider from "./components/Slider";
 
 export default function DebugMenu() {
   return (
     <Set title="Debug">
-      <FilePickerControl
+      <FilePicker
         title="Upload File"
         accept=".js"
         multiple
@@ -22,19 +22,15 @@ export default function DebugMenu() {
           }
         }}
       />
-      <LinkControl
-        title="LinkControl"
-        href="about:blank"
-        onClick={() => alert("click")}
-      />
-      <SliderControl
-        title="SliderControl"
+      <Link title="Link" href="about:blank" onClick={() => alert("click")} />
+      <Slider
+        title="Slider"
         defaultValue={12}
         min={-100}
         max={100}
         step={4.5}
       />
-      <ColorControl title="ColorControl" defaultValue="#FF99DA" />
+      <ColorPicker title="ColorPicker" defaultValue="#FF99DA" />
     </Set>
   );
 }

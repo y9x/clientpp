@@ -1,17 +1,17 @@
 /*
  * Chief Userscript support
  */
-import ButtonControl from "../menu/components/ButtonControl";
-import ColorControl from "../menu/components/ColorControl";
+import Button from "../menu/components/Button";
+import ColorPicker from "../menu/components/ColorPicker";
 import Control from "../menu/components/Control";
-import FilePathControl from "../menu/components/FilePathControl";
-import FilePickerControl from "../menu/components/FilePickerControl";
-import LinkControl from "../menu/components/LinkControl";
-import SelectControl from "../menu/components/SelectControl";
+import FilePath from "../menu/components/FilePath";
+import FilePicker from "../menu/components/FilePicker";
+import Link from "../menu/components/Link";
+import Select from "../menu/components/Select";
 import { Set, HeadlessSet } from "../menu/components/Set";
-import SliderControl from "../menu/components/SliderControl";
-import SwitchControl from "../menu/components/SwitchControl";
-import TextControl from "../menu/components/TextControl";
+import Slider from "../menu/components/Slider";
+import Switch from "../menu/components/Switch";
+import Text from "../menu/components/Text";
 import currentSite from "../site";
 import useLocalStorage from "../useLocalStorage";
 import htm from "htm";
@@ -20,18 +20,18 @@ import type { FunctionComponent } from "react";
 import React from "react";
 
 const UserscriptUI = Object.freeze({
-  ButtonControl,
-  ColorControl,
+  Button,
+  ColorPicker,
   Control,
-  FilePathControl,
-  FilePickerControl,
-  LinkControl,
-  SelectControl,
+  FilePath,
+  FilePicker,
+  Link,
+  Select,
   Set,
   HeadlessSet,
-  SliderControl,
-  SwitchControl,
-  TextControl,
+  Slider,
+  Switch,
+  Text,
 });
 
 export const renderSettings: Required<ExportedUserscriptData>["Settings"][] =

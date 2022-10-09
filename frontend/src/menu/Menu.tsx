@@ -1,13 +1,13 @@
 import RPC from "../RPC";
 import ipc, { IM } from "../ipc";
 import { renderSettings } from "../runtime/chief";
-import ButtonControl from "./components/ButtonControl";
-import FilePathControl from "./components/FilePathControl";
-import LinkControl from "./components/LinkControl";
-import SelectControl from "./components/SelectControl";
+import Button from "./components/Button";
+import FilePath from "./components/FilePath";
+import Link from "./components/Link";
+import Select from "./components/Select";
 import { HeadlessSet, Set } from "./components/Set";
-import SwitchControl from "./components/SwitchControl";
-import TextControl from "./components/TextControl";
+import Switch from "./components/Switch";
+import Text from "./components/Text";
 import { useConfig } from "./useConfig";
 import type { MouseEvent } from "react";
 
@@ -55,17 +55,17 @@ export default function Menu() {
   return (
     <>
       <HeadlessSet>
-        <LinkControl
+        <Link
           title="GitHub"
           href="https://github.com/6ct/clientpp"
           onClick={open_in_shell}
         />
-        <LinkControl
+        <Link
           title="Discord"
           href="https://discord.gg/4r47ZwdSQj"
           onClick={open_in_shell}
         />
-        <SwitchControl
+        <Switch
           title="Devtools"
           defaultChecked={config.client.devtools}
           onChange={(event) => {
@@ -75,24 +75,24 @@ export default function Menu() {
         />
       </HeadlessSet>
       <Set title="Folders">
-        <ButtonControl
+        <Button
           title="Scripts"
           text="Open"
           onClick={() => ipc.send(IM.shell_open, "scripts")}
         />
-        <ButtonControl
+        <Button
           title="Styles"
           text="Open"
           onClick={() => ipc.send(IM.shell_open, "styles")}
         />
-        <ButtonControl
+        <Button
           title="Resource Swapper"
           text="Open"
           onClick={() => ipc.send(IM.shell_open, "swapper")}
         />
       </Set>
       <Set title="Rendering">
-        <SwitchControl
+        <Switch
           title="Fullscreen"
           defaultChecked={config.render.fullscreen}
           onChange={(event) => {
@@ -101,7 +101,7 @@ export default function Menu() {
             ipc.send(IM.fullscreen);
           }}
         />
-        <SwitchControl
+        <Switch
           title="Uncap FPS"
           defaultChecked={config.render.uncap_fps}
           onChange={(event) => {
@@ -110,7 +110,7 @@ export default function Menu() {
             ipc.send(IM.relaunch_webview);
           }}
         />
-        <SelectControl
+        <Select
           title="Angle backend"
           defaultValue={config.render.angle}
           onChange={(event) => {
@@ -124,8 +124,8 @@ export default function Menu() {
           <option value="d3d11">Direct3D 11</option>
           <option value="d3d9">Direct3D 9 </option>
           <option value="gl">OpenGL</option>
-        </SelectControl>
-        <SelectControl
+        </Select>
+        <Select
           title="Color profile"
           defaultValue={config.render.color}
           onChange={(event) => {
@@ -137,10 +137,10 @@ export default function Menu() {
           <option value="default">Default</option>
           <option value="d3d11on12">SRGB</option>
           <option value="generic-rgb">RGB</option>
-        </SelectControl>
+        </Select>
       </Set>
       <Set title="Game">
-        <SwitchControl
+        <Switch
           title="Seek new Lobby [F4]"
           defaultChecked={config.game.seek.F4}
           onChange={(event) => {
@@ -148,7 +148,7 @@ export default function Menu() {
             setConfig(config);
           }}
         />
-        <SwitchControl
+        <Switch
           title="Custom seek (enables map, mode, and customs)"
           defaultChecked={config.game.seek.custom_logic}
           onChange={(event) => {
@@ -156,7 +156,7 @@ export default function Menu() {
             setConfig(config);
           }}
         />
-        <TextControl
+        <Text
           title="Seek Map"
           placeholder="Map ID"
           defaultValue={config.game.seek.map}
@@ -165,7 +165,7 @@ export default function Menu() {
             setConfig(config);
           }}
         />
-        <SelectControl
+        <Select
           title="Seek mode"
           defaultValue={config.game.seek.mode}
           onChange={(event) => {
@@ -177,8 +177,8 @@ export default function Menu() {
           {seek_modes.map((mode, i) => (
             <option key={i}>{mode}</option>
           ))}
-        </SelectControl>
-        <SwitchControl
+        </Select>
+        <Switch
           title="Seek customs"
           defaultChecked={config.game.seek.customs}
           onChange={(event) => {
@@ -188,7 +188,7 @@ export default function Menu() {
         />
       </Set>
       <Set title="Discord RPC">
-        <SwitchControl
+        <Switch
           title="Enabled"
           defaultChecked={config.rpc.enabled}
           onChange={(event) => {
@@ -202,7 +202,7 @@ export default function Menu() {
             }
           }}
         />
-        <SwitchControl
+        <Switch
           title="Show username"
           defaultChecked={config.rpc.name}
           onChange={(event) => {
@@ -215,7 +215,7 @@ export default function Menu() {
         />
       </Set>
       <Set title="Window">
-        <SwitchControl
+        <Switch
           title="Replace Icon & Title "
           defaultChecked={config.window.meta.replace}
           onChange={(event) => {
@@ -225,7 +225,7 @@ export default function Menu() {
             else ipc.send(IM.revert_meta);
           }}
         />
-        <TextControl
+        <Text
           title="New Title"
           defaultValue={config.window.meta.title}
           onChange={(event) => {
@@ -234,7 +234,7 @@ export default function Menu() {
             if (config.window.meta.replace) ipc.send(IM.update_meta);
           }}
         />
-        <FilePathControl
+        <FilePath
           title="New Icon"
           defaultValue={config.window.meta.icon}
           onPick={(value) => {
@@ -245,7 +245,7 @@ export default function Menu() {
         >
           <option value="*.ico">Icon</option>
           <option value="*.*">All types</option>
-        </FilePathControl>
+        </FilePath>
       </Set>
       {renderSettings.map((Settings, i) => (
         <Settings key={i} />

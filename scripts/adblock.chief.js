@@ -72,7 +72,7 @@ function Settings() {
 
   return html`
   <${UI.Set} title="Adblock">
-    <${UI.SwitchControl}
+    <${UI.Switch}
       title="Adblock"
       description="Requires Restart"
       attention

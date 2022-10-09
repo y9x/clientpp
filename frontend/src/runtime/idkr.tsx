@@ -2,10 +2,10 @@
  * IDKR Userscript support
  */
 import EventEmitter from "../EventEmitter";
-import SelectControl from "../menu/components/SelectControl";
+import Select from "../menu/components/Select";
 import { Set } from "../menu/components/Set";
-import SliderControl from "../menu/components/SliderControl";
-import SwitchControl from "../menu/components/SwitchControl";
+import Slider from "../menu/components/Slider";
+import Switch from "../menu/components/Switch";
 import currentSite from "../site";
 import { renderSettings } from "./chief";
 import MagicString from "magic-string";
@@ -137,7 +137,7 @@ const clientUtils: IClientUtil = Object.freeze({
     switch (setting.type) {
       case "checkbox":
         return (
-          <SwitchControl
+          <Switch
             attention={setting.needsRestart}
             description={setting.needsRestart ? "Requires Restart" : undefined}
             title={setting.name}
@@ -150,7 +150,7 @@ const clientUtils: IClientUtil = Object.freeze({
         );
       case "select":
         return (
-          <SelectControl
+          <Select
             attention={setting.needsRestart}
             description={setting.needsRestart ? "Requires Restart" : undefined}
             title={setting.name}
@@ -163,11 +163,11 @@ const clientUtils: IClientUtil = Object.freeze({
             {Object.entries(setting.options).map(([id, name]) => (
               <option value={id}>{name}</option>
             ))}
-          </SelectControl>
+          </Select>
         );
       case "slider":
         return (
-          <SliderControl
+          <Slider
             attention={setting.needsRestart}
             description={setting.needsRestart ? "Requires Restart" : undefined}
             title={setting.name}

@@ -1,6 +1,6 @@
 import "../styles/AccountManager.css";
 import ipc, { IM } from "../ipc";
-import ButtonControl from "./components/ButtonControl";
+import Button from "./components/Button";
 import { useEffect, useState } from "react";
 
 function AccountTile({
@@ -95,7 +95,7 @@ export default function AccountManager({
       ) : (
         <>No accounts yet.</>
       )}
-      <ButtonControl
+      <Button
         title="Account"
         text="Add"
         onClick={() => showWindow(addAccountID())}
