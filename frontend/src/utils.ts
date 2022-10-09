@@ -3,7 +3,7 @@ type TrueLike<T> = Exclude<NonNullable<T>, false>;
 /**
  * Poll a condition every x MS.
  */
-export function wait_for<T>(
+export function waitFor<T>(
   check: () => T,
   interval = 50
 ): Promise<TrueLike<T>> {

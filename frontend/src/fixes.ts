@@ -1,6 +1,6 @@
 import ipc, { IM } from "./ipc";
 import currentSite from "./site";
-import { wait_for } from "./utils";
+import { waitFor } from "./utils";
 
 if (currentSite === "game") {
   let locked_node: Element | null;
@@ -77,7 +77,7 @@ if (currentSite === "game") {
             height: height / width_scale,
           };
 
-    wait_for(() => document.querySelector<HTMLDivElement>("#uiBase")).then(
+    waitFor(() => document.querySelector<HTMLDivElement>("#uiBase")).then(
       (ui_base) =>
         setTimeout(() => {
           ui_base.style.transform = "scale(" + style.transform.toFixed(3) + ")";

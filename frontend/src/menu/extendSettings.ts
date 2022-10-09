@@ -1,7 +1,7 @@
 /*
  * createRoot
  */
-import { wait_for } from "../utils";
+import { waitFor } from "../utils";
 import type { RenderOnDemand } from "./settHolderProxy";
 import createSettHolderProxy from "./settHolderProxy";
 
@@ -18,7 +18,7 @@ export default async function extendSettings(
   render: RenderOnDemand
 ) {
   const window = (
-    await wait_for(
+    await waitFor(
       () => typeof windows === "object" && Array.isArray(windows) && windows
     )
   )[id] as Settings | undefined;
