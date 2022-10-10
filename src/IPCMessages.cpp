@@ -83,11 +83,12 @@ void KrunkerWindow::handle_message(JSMessage msg) {
     new std::thread([this, uricopy]() {
       if (MessageBox(L"The game will be restarted for this setting to take "
                      L"affect.",
-                     title.c_str(), MB_YESNO) == IDYES)
+                     title.c_str(), MB_YESNO) == IDYES) {
         control->Close();
 
-      call_create_webview(
-          [this, uricopy]() { webview->Navigate(uricopy.c_str()); });
+        call_create_webview(
+            [this, uricopy]() { webview->Navigate(uricopy.c_str()); });
+      }
     });
   } break;
   case IM::close_window:
