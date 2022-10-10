@@ -5,7 +5,6 @@ import type { JsMinifyOptions } from "@swc/core";
 import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
 import ESLintPlugin from "eslint-webpack-plugin";
 import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
-import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import { fileURLToPath } from "node:url";
 import { resolve } from "path";
 import ModuleNotFoundPlugin from "react-dev-utils/ModuleNotFoundPlugin.js";
@@ -21,12 +20,7 @@ const getStyleLoaders = (
   preProcessor?: string
 ) => {
   const loaders: (RuleSetRule | string | false)[] = [
-    isDevelopment && "style-loader",
-    !isDevelopment && {
-      loader: MiniCssExtractPlugin.loader,
-      // css is located in `static/css`, use '../../' to locate index.html folder
-      // in production `paths.publicUrlOrPath` can be a relative path
-    },
+    "style-loader",
     {
       loader: "css-loader",
       options: cssOptions,
