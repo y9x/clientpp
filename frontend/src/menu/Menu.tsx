@@ -109,7 +109,12 @@ export default function Menu() {
           onChange={(event) => {
             config.render.uncap_fps = event.currentTarget.checked;
             setConfig(config);
-            ipc.send(IM.relaunch_webview);
+            if (
+              global.confirm(
+                "The game will be restarted for this setting to take affect."
+              )
+            )
+              ipc.send(IM.relaunch_webview);
           }}
         />
         <Select
@@ -120,7 +125,12 @@ export default function Menu() {
           onChange={(event) => {
             config.render.angle = event.currentTarget.value;
             setConfig(config);
-            ipc.send(IM.relaunch_webview);
+            if (
+              global.confirm(
+                "The game will be restarted for this setting to take affect."
+              )
+            )
+              ipc.send(IM.relaunch_webview);
           }}
         >
           <option value="default">Default</option>
@@ -137,7 +147,12 @@ export default function Menu() {
           onChange={(event) => {
             config.render.color = event.currentTarget.value;
             setConfig(config);
-            ipc.send(IM.relaunch_webview);
+            if (
+              global.confirm(
+                "The game will be restarted for this setting to take affect."
+              )
+            )
+              ipc.send(IM.relaunch_webview);
           }}
         >
           <option value="default">Default</option>
