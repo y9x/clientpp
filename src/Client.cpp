@@ -39,6 +39,7 @@ bool Client::navigation_cancelled(ICoreWebView2 *sender, UriW uri) {
     else if (uri.path() == krunker::scripting)
       send = &scripting;
   }
+
   if (!send) {
     cancel = true;
     ShellExecute(NULL, L"open", uri.toString().c_str(), L"", L"", SW_SHOW);
