@@ -27,8 +27,7 @@ bool Client::navigation_cancelled(ICoreWebView2 *sender, UriW uri) {
   KrunkerWindow *send = nullptr;
 
   if (kru_owns) {
-    if (uri.host() == L"docs.krunker.io" ||
-        uri.path().starts_with(krunker::docs))
+    if (uri.host() == L"docs.krunker.io")
       send = &documents;
     else if (uri.path() == krunker::game ||
              uri.path().starts_with(krunker::games))

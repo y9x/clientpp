@@ -12,7 +12,6 @@ extern const wchar_t *editor;
 extern const wchar_t *social;
 extern const wchar_t *viewer;
 extern const wchar_t *scripting;
-extern const wchar_t *docs;
 extern const wchar_t *tos;
 
 bool host_is_krunker(const std::wstring &host);
