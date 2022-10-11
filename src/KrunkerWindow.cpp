@@ -8,14 +8,12 @@
 #include "./Site.h"
 #include "./resource.h"
 #include <WebView2EnvironmentOptions.h>
+#include <chrono>
 #include <rapidjson/writer.h>
 #include <regex>
 #include <sstream>
 
-using Microsoft::WRL::Callback;
-using Microsoft::WRL::Make;
-
-long long KrunkerWindow::now() {
+long long now() {
   return duration_cast<std::chrono::milliseconds>(
              std::chrono::system_clock::now().time_since_epoch())
       .count();
@@ -431,68 +429,11 @@ std::wstring encodeURIComponent(std::wstring decoded) {
   return oss.str();
 }
 
-const char *getCtxString(COREWEBVIEW2_WEB_RESOURCE_CONTEXT ctx) {
-  switch (ctx) {
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL:
-    return "all";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_DOCUMENT:
-    return "document";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_STYLESHEET:
-    return "stylesheet";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE:
-    return "image";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_MEDIA:
-    return "media";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_FONT:
-    return "font";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT:
-    return "script";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_XML_HTTP_REQUEST:
-    return "xml-http-request";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_FETCH:
-    return "fetch";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_TEXT_TRACK:
-    return "text-track";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_EVENT_SOURCE:
-    return "event-source";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_WEBSOCKET:
-    return "websocket";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_MANIFEST:
-    return "manifest";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SIGNED_EXCHANGE:
-    return "signed";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_PING:
-    return "ping";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_CSP_VIOLATION_REPORT:
-    return "csp-violation-report";
-  case COREWEBVIEW2_WEB_RESOURCE_CONTEXT::
-      COREWEBVIEW2_WEB_RESOURCE_CONTEXT_OTHER:
-    return "other";
-  default:
-    return "unknown";
-  }
-}
-
 void KrunkerWindow::register_events() {
   EventRegistrationToken token;
 
   webview->add_WebMessageReceived(
-      Callback<ICoreWebView2WebMessageReceivedEventHandler>(
+      Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
           [this](ICoreWebView2 *sender,
                  ICoreWebView2WebMessageReceivedEventArgs *args) {
             wil::unique_cotaskmem_string mpt;
@@ -509,7 +450,7 @@ void KrunkerWindow::register_events() {
       &token);
 
   webview->add_NavigationStarting(
-      Callback<ICoreWebView2NavigationStartingEventHandler>(
+      Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
           [this](ICoreWebView2 *sender,
                  ICoreWebView2NavigationStartingEventArgs *args) -> HRESULT {
             if (mouse_hooked)
@@ -520,7 +461,7 @@ void KrunkerWindow::register_events() {
       &token);
 
   webview->add_PermissionRequested(
-      Callback<ICoreWebView2PermissionRequestedEventHandler>(
+      Microsoft::WRL::Callback<ICoreWebView2PermissionRequestedEventHandler>(
           [this](ICoreWebView2 *sender,
                  ICoreWebView2PermissionRequestedEventArgs *args) -> HRESULT {
             COREWEBVIEW2_PERMISSION_KIND kind;
@@ -541,18 +482,10 @@ void KrunkerWindow::register_events() {
           .Get(),
       &token);
 
-  // look into:
-  /*ICoreWebView2_2* a;
-  ICoreWebView2_3* b;
-  ICoreWebView2_4* c;
-  ICoreWebView2_5* d;
-  ICoreWebView2_6* e;
-  */
-
   if (wil::com_ptr<ICoreWebView2_2> webview_2 =
           webview.query<ICoreWebView2_2>()) {
     webview_2->add_ContentLoading(
-        Callback<ICoreWebView2ContentLoadingEventHandler>(
+        Microsoft::WRL::Callback<ICoreWebView2ContentLoadingEventHandler>(
             [this](ICoreWebView2 *sender,
                    ICoreWebView2ContentLoadingEventArgs *args) -> HRESULT {
               wil::unique_cotaskmem_string urir;
@@ -575,7 +508,7 @@ void KrunkerWindow::register_events() {
   }
 
   webview->add_NavigationCompleted(
-      Callback<ICoreWebView2NavigationCompletedEventHandler>(
+      Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
           [this](ICoreWebView2 *sender,
                  ICoreWebView2NavigationCompletedEventArgs *args) -> HRESULT {
             BOOL success = true;
@@ -634,7 +567,7 @@ void KrunkerWindow::register_events() {
                                          COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
 
   webview->add_WebResourceRequested(
-      Callback<ICoreWebView2WebResourceRequestedEventHandler>(
+      Microsoft::WRL::Callback<ICoreWebView2WebResourceRequestedEventHandler>(
           [this](ICoreWebView2 *sender,
                  ICoreWebView2WebResourceRequestedEventArgs *args) -> HRESULT {
             wil::com_ptr<ICoreWebView2WebResourceRequest> request;
@@ -726,13 +659,14 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow,
 
 KrunkerWindow::Status
 KrunkerWindow::call_create_webview(std::function<void()> callback) {
-  auto options = Make<CoreWebView2EnvironmentOptions>();
+  auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
 
   options->put_AdditionalBrowserArguments(cmdline().c_str());
 
   HRESULT create = CreateCoreWebView2EnvironmentWithOptions(
       nullptr, (folder.directory + folder.p_profile).c_str(), options.Get(),
-      Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
+      Microsoft::WRL::Callback<
+          ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
           [this, callback](HRESULT result,
                            ICoreWebView2Environment *envp) -> HRESULT {
             if (envp == nullptr) {
@@ -744,7 +678,7 @@ KrunkerWindow::call_create_webview(std::function<void()> callback) {
             env = envp;
             env->CreateCoreWebView2Controller(
                 m_hWnd,
-                Callback<
+                Microsoft::WRL::Callback<
                     ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
                     [this,
                      callback](HRESULT result,
@@ -771,6 +705,7 @@ KrunkerWindow::call_create_webview(std::function<void()> callback) {
                       }
 
                       wil::com_ptr<ICoreWebView2Settings> settings;
+
                       if (SUCCEEDED(webview->get_Settings(&settings))) {
                         settings->put_AreDefaultContextMenusEnabled(false);
                         settings->put_IsScriptEnabled(true);
@@ -785,11 +720,33 @@ KrunkerWindow::call_create_webview(std::function<void()> callback) {
                         webview->OpenDevToolsWindow();
 #endif
 
+                        // Insert io.krunker.steam useragent
+                        // Will break navigator.userAgentData
+                        if (wil::com_ptr<ICoreWebView2Settings2> settings2 =
+                                settings.query<ICoreWebView2Settings2>()) {
+                          wil::unique_cotaskmem_string _userAgent;
+                          settings2->get_UserAgent(&_userAgent);
+
+                          std::wstring userAgent = _userAgent.get();
+                          std::wstring target = L"(KHTML, like Gecko) Chrome/";
+
+                          settings2->put_UserAgent(
+                              userAgent
+                                  .replace(
+                                      userAgent.find(target), target.length(),
+                                      L"(KHTML, like Gecko) "
+                                      L"io.krunker.steam/" +
+                                          ST::wstring(CLIENT_VERSION_STRING) +
+                                          L" Chrome/")
+                                  .c_str());
+                        }
+
                         if (wil::com_ptr<ICoreWebView2Settings3> settings3 =
                                 settings.query<ICoreWebView2Settings3>()) {
                           settings3->put_AreBrowserAcceleratorKeysEnabled(
                               false);
                         }
+
                         if (wil::com_ptr<ICoreWebView2Settings4> settings4 =
                                 settings.query<ICoreWebView2Settings4>()) {
                           settings4->put_IsGeneralAutofillEnabled(false);
@@ -856,7 +813,7 @@ KrunkerWindow::Status KrunkerWindow::get(HINSTANCE inst, int cmdshow,
 
 long long mouse_hz = 244;
 long long mouse_interval = 1000 / mouse_hz;
-long long then = KrunkerWindow::now();
+long long then = now();
 
 void KrunkerWindow::on_dispatch() {
   if (!open)

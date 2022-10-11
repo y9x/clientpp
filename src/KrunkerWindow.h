@@ -17,6 +17,8 @@
 #include <wil/com.h>
 #include <wrl.h>
 
+long long now();
+
 class KrunkerWindow : public CWindowImpl<KrunkerWindow> {
 public:
   enum class Status {
@@ -36,7 +38,6 @@ public:
     Documents,
     Scripting,
   };
-  static long long now();
 
 private:
   std::wstring js_frontend;

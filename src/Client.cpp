@@ -8,11 +8,14 @@
 #include <shellapi.h>
 #include <sstream>
 
-using Microsoft::WRL::Callback;
-
-const char *Client::version = CLIENT_VERSION_STRING;
-const char *Client::discord_rpc = "899137303182716968";
-const wchar_t *Client::title = L"Chief Client++";
+constexpr const char *version = CLIENT_VERSION_STRING;
+constexpr const char *discord_rpc = "899137303182716968";
+constexpr const wchar_t *title = L"Chief Client";
+constexpr const wchar_t *title_game = title;
+constexpr const wchar_t *title_social = L"Chief Client: Social";
+constexpr const wchar_t *title_editor = L"Chief Client: Editor";
+constexpr const wchar_t *title_scripting = L"Chief Client: Scripting";
+constexpr const wchar_t *title_documents = L"Chief Client: Documents";
 
 bool Client::navigation_cancelled(ICoreWebView2 *sender, UriW uri) {
   if (uri.host() == L"chief")
@@ -39,8 +42,7 @@ bool Client::navigation_cancelled(ICoreWebView2 *sender, UriW uri) {
   }
   if (!send) {
     cancel = true;
-    std::wstring uristr = uri.toString();
-    ShellExecute(NULL, L"open", uristr.c_str(), L"", L"", SW_SHOW);
+    ShellExecute(NULL, L"open", uri.toString().c_str(), L"", L"", SW_SHOW);
   }
 
   // if send->webview exists
@@ -62,7 +64,7 @@ void Client::listen_navigation(KrunkerWindow &window) {
   EventRegistrationToken token;
 
   window.webview->add_NewWindowRequested(
-      Callback<ICoreWebView2NewWindowRequestedEventHandler>(
+      Microsoft::WRL::Callback<ICoreWebView2NewWindowRequestedEventHandler>(
           [this](ICoreWebView2 *sender,
                  ICoreWebView2NewWindowRequestedEventArgs *args) -> HRESULT {
             wil::unique_cotaskmem_string uri;
@@ -82,7 +84,7 @@ void Client::listen_navigation(KrunkerWindow &window) {
       &token);
 
   window.webview->add_NavigationStarting(
-      Callback<ICoreWebView2NavigationStartingEventHandler>(
+      Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
           [this](ICoreWebView2 *sender,
                  ICoreWebView2NavigationStartingEventArgs *args) -> HRESULT {
             wil::unique_cotaskmem_string urir;
@@ -275,28 +277,24 @@ Client::Client(HINSTANCE h, int c)
       installer(L"https://go.microsoft.com/fwlink/p/?LinkId=2124703"),
       folder(L"GC++"),
       game(
-          folder, KrunkerWindow::Type::Game, {0.8, 0.8}, title,
+          folder, KrunkerWindow::Type::Game, {0.8, 0.8}, title_game,
           [this]() { listen_navigation(game); },
           [this](JSMessage msg) -> bool { return on_message(msg, game); },
           []() { PostQuitMessage(EXIT_SUCCESS); }),
       social(
-          folder, KrunkerWindow::Type::Social, {0.7, 0.7},
-          (std::wstring(title) + L": Social").c_str(),
+          folder, KrunkerWindow::Type::Social, {0.7, 0.7}, title_social,
           [this]() { listen_navigation(social); },
           [this](JSMessage msg) -> bool { return on_message(msg, social); }),
       editor(
-          folder, KrunkerWindow::Type::Editor, {0.7, 0.7},
-          (std::wstring(title) + L": Editor").c_str(),
+          folder, KrunkerWindow::Type::Editor, {0.7, 0.7}, title_editor,
           [this]() { listen_navigation(editor); },
           [this](JSMessage msg) -> bool { return on_message(msg, editor); }),
       scripting(
-          folder, KrunkerWindow::Type::Scripting, {0.6, 0.6},
-          (std::wstring(title) + L": Scripting").c_str(),
+          folder, KrunkerWindow::Type::Scripting, {0.6, 0.6}, title_scripting,
           [this]() { listen_navigation(scripting); },
           [this](JSMessage msg) -> bool { return on_message(msg, scripting); }),
       documents(
-          folder, KrunkerWindow::Type::Documents, {0.4, 0.6},
-          (std::wstring(title) + L": Documents").c_str(),
+          folder, KrunkerWindow::Type::Documents, {0.4, 0.6}, title_documents,
           [this]() { listen_navigation(documents); },
           [this](JSMessage msg) -> bool { return on_message(msg, documents); }),
       accounts(folder),
