@@ -35,6 +35,7 @@ public:
     Game,
     Social,
     Editor,
+    Viewer,
     Documents,
     Scripting,
   };
@@ -81,7 +82,6 @@ public:
                    std::function<void(const rapidjson::Value &)> then,
                    std::function<void(const rapidjson::Value &)> catchError);
   bool sendMessage(const JSMessage &message);
-
   wil::com_ptr<ICoreWebView2Controller> control;
   wil::com_ptr<ICoreWebView2> webview;
   wil::com_ptr<ICoreWebView2Environment> env;
@@ -95,7 +95,7 @@ public:
   DWORD saved_ex_style = 0;
   COREWEBVIEW2_COLOR ColorRef(COLORREF color);
   HINSTANCE get_hinstance();
-  bool create_window(HINSTANCE inst, int cmdshow);
+  bool createWindow();
   bool enter_fullscreen();
   bool exit_fullscreen();
   bool resize_wv();
@@ -106,11 +106,9 @@ public:
   bool can_fullscreen = false;
   COLORREF background = RGB(28, 28, 28);
   ClientFolder &folder;
-  Status create(HINSTANCE inst, int cmdshow,
-                std::function<void()> callback = nullptr);
-  Status get(HINSTANCE inst, int cmdshow,
-             std::function<void(bool)> callback = nullptr);
-  void on_dispatch();
+  Status create(std::function<void()> callback = nullptr);
+  Status get(std::function<void(bool)> callback = nullptr);
+  void dispatch();
   KrunkerWindow(ClientFolder &folder, Type type, Vector2 scale,
                 std::wstring title,
                 std::function<void()> webview2_startup = nullptr,

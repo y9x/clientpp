@@ -26,7 +26,7 @@ interface IUserscriptMeta {
 interface IUserscriptConfig {
   apiversion?: "1.0";
   locations?:
-    | ("all" | "docs" | "game" | "social" | "viewer" | "editor" | "unknown")[]
+    | ("all" | "game" | "social" | "viewer" | "editor" | "unknown")[]
     | String[];
   platforms?: "all"[] | String[];
   settings?: ISettingsCollection;

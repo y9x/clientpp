@@ -54,8 +54,6 @@ bool write_resource(std::wstring path, int resource) {
   return ret;
 }
 
-ClientFolder::ClientFolder(std::wstring n) : name(n) {}
-
 bool ClientFolder::create_directory(std::wstring directory) {
   bool result = CreateDirectory(directory.c_str(), NULL);
 
@@ -96,7 +94,7 @@ std::wstring ClientFolder::relative_path(std::wstring path) {
   return ST::replace_all(path, directory + L"\\", L"");
 }
 
-bool ClientFolder::create() {
+bool ClientFolder::create(std::wstring name) {
   bool ret = true;
 
   PWSTR ppsz_path;

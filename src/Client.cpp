@@ -4,60 +4,55 @@
 #include "../utils/StringUtil.h"
 #include "./Log.h"
 #include "./Site.h"
-#include <ShellScalingApi.h>
-#include <shellapi.h>
 #include <sstream>
 
-constexpr const char *version = CLIENT_VERSION_STRING;
 constexpr const char *discord_rpc = "899137303182716968";
 constexpr const wchar_t *title = L"Chief Client";
 constexpr const wchar_t *title_game = title;
-constexpr const wchar_t *title_social = L"Chief Client: Social";
-constexpr const wchar_t *title_editor = L"Chief Client: Editor";
-constexpr const wchar_t *title_scripting = L"Chief Client: Scripting";
-constexpr const wchar_t *title_documents = L"Chief Client: Documents";
+constexpr const wchar_t *title_social = L"Social";
+constexpr const wchar_t *title_editor = L"Editor";
+constexpr const wchar_t *title_viewer = L"Viewer";
+constexpr const wchar_t *title_scripting = L"Scripting";
 
-bool Client::navigation_cancelled(ICoreWebView2 *sender, UriW uri) {
+bool Client::navigate(UriW uri, ICoreWebView2 *sender,
+                      std::function<void(KrunkerWindow *newWindow)> open) {
   if (uri.host() == L"chief")
     return false;
 
-  bool kru_owns = krunker::host_is_krunker(uri.host());
-  bool cancel = false;
-
   KrunkerWindow *send = nullptr;
 
-  if (kru_owns) {
-    if (uri.host() == L"docs.krunker.io")
-      send = &documents;
-    else if (uri.path() == krunker::game ||
-             uri.path().starts_with(krunker::games))
+  if (uri.host() == L"krunker.io") {
+    if (uri.path() == krunker::game || uri.path().starts_with(krunker::games))
       send = &game;
     else if (uri.path() == krunker::social)
       send = &social;
     else if (uri.path() == krunker::editor)
       send = &editor;
+    else if (uri.path() == krunker::viewer)
+      send = &viewer;
     else if (uri.path() == krunker::scripting)
       send = &scripting;
   }
 
   if (!send) {
-    cancel = true;
     ShellExecute(NULL, L"open", uri.toString().c_str(), L"", L"", SW_SHOW);
-  }
-
-  // if send->webview exists
-  if (send && send->webview != sender) {
-    cancel = true;
-    send->get(inst, cmdshow, [this, uri, send](bool newly_created) {
+    if (open)
+      open(nullptr);
+    return true;
+  } else if (!send->webview || send->webview != sender) {
+    send->get([this, uri, send, open](bool newly_created) {
       if (newly_created)
         listen_navigation(*send);
       std::wstring uristr = uri.toString();
       send->webview->Navigate(uristr.c_str());
       send->BringWindowToTop();
+      if (open)
+        open(send);
     });
+    return true;
   }
 
-  return cancel;
+  return false;
 }
 
 void Client::listen_navigation(KrunkerWindow &window) {
@@ -70,13 +65,20 @@ void Client::listen_navigation(KrunkerWindow &window) {
             wil::unique_cotaskmem_string uri;
             args->get_Uri(&uri);
 
-            if (navigation_cancelled(sender,
-                                     UriW(uri.get()))) /* TODO: SET OPENER */
-              args->put_Handled(true);
-            else {
-              args->put_Handled(true);
-              sender->Navigate(uri.get());
-            }
+            ICoreWebView2 *newWindow = nullptr;
+
+            wil::com_ptr<ICoreWebView2Deferral> defer;
+
+            // args->AddRef();
+            if (SUCCEEDED(args->GetDeferral(&defer)))
+              if (!navigate(UriW(uri.get()), sender,
+                            [defer, args](KrunkerWindow *newWindow) -> void {
+                              if (newWindow)
+                                args->put_NewWindow(newWindow->webview.get());
+                              args->put_Handled(true);
+                              defer->Complete();
+                            }))
+                defer->Complete();
 
             return S_OK;
           })
@@ -87,10 +89,9 @@ void Client::listen_navigation(KrunkerWindow &window) {
       Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
           [this](ICoreWebView2 *sender,
                  ICoreWebView2NavigationStartingEventArgs *args) -> HRESULT {
-            wil::unique_cotaskmem_string urir;
-            args->get_Uri(&urir);
-            UriW uri(urir.get());
-            if (navigation_cancelled(sender, uri))
+            wil::unique_cotaskmem_string uri;
+            args->get_Uri(&uri);
+            if (navigate(UriW(uri.get()), sender))
               args->put_Cancel(true);
 
             return S_OK;
@@ -234,48 +235,8 @@ bool Client::on_message(JSMessage msg, KrunkerWindow &window) {
   return true;
 }
 
-void Client::install_runtimes() {
-  if (MessageBox(NULL,
-                 L"You are missing runtimes. Install the WebView2 Runtime?",
-                 title, MB_YESNO) == IDYES) {
-    WebView2Installer::Error error;
-    MessageBox(NULL, L"Relaunch the client after installation is complete.",
-               title, MB_OK);
-    if (!installer.Install(error))
-      switch (error) {
-      case WebView2Installer::Error::CantOpenProcess:
-        clog::error << "CantOpenProcess during WebView2 installation"
-                    << clog::endl;
-        MessageBox(NULL,
-                   (L"Unable to open " + installer.bin +
-                    L". You will need to run the exe manually.")
-                       .c_str(),
-                   title, MB_OK);
-        break;
-      case WebView2Installer::Error::NoBytesDownloaded:
-        clog::error << "NoBytesDownloaded during WebView2 installation"
-                    << clog::endl;
-        MessageBox(NULL,
-                   L"Unable to download MicrosoftEdgeWebview2Setup. Relaunch "
-                   L"the client then try again.",
-                   title, MB_OK);
-        break;
-      default:
-        clog::error << "Unknown error " << (int)error
-                    << " during WebView2 installation" << clog::endl;
-        MessageBox(NULL, L"An unknown error occurred.", title, MB_OK);
-        break;
-      }
-  } else
-    MessageBox(NULL, L"Cannot continue without runtimes. Client will now exit.",
-               title, MB_OK);
-}
-
-Client::Client(HINSTANCE h, int c)
-    : inst(h), cmdshow(c),
-      updater(version, L"https://6ct.github.io/serve/updates.json"),
-      installer(L"https://go.microsoft.com/fwlink/p/?LinkId=2124703"),
-      folder(L"GC++"),
+Client::Client(ClientFolder &_folder, AccountManager &_accounts)
+    : accounts(accounts), folder(_folder),
       game(
           folder, KrunkerWindow::Type::Game, {0.8, 0.8}, title_game,
           [this]() { listen_navigation(game); },
@@ -289,29 +250,18 @@ Client::Client(HINSTANCE h, int c)
           folder, KrunkerWindow::Type::Editor, {0.7, 0.7}, title_editor,
           [this]() { listen_navigation(editor); },
           [this](JSMessage msg) -> bool { return on_message(msg, editor); }),
+      viewer(
+          folder, KrunkerWindow::Type::Viewer, {0.4, 0.6}, title_viewer,
+          [this]() { listen_navigation(viewer); },
+          [this](JSMessage msg) -> bool { return on_message(msg, viewer); }),
       scripting(
           folder, KrunkerWindow::Type::Scripting, {0.6, 0.6}, title_scripting,
           [this]() { listen_navigation(scripting); },
-          [this](JSMessage msg) -> bool { return on_message(msg, scripting); }),
-      documents(
-          folder, KrunkerWindow::Type::Documents, {0.4, 0.6}, title_documents,
-          [this]() { listen_navigation(documents); },
-          [this](JSMessage msg) -> bool { return on_message(msg, documents); }),
-      accounts(folder),
-      shcore(LoadLibrary(L"api-ms-win-shcore-scaling-l1-1-1.dll")) {}
-
-bool Client::create() {
+          [this](JSMessage msg) -> bool {
+            return on_message(msg, scripting);
+          }) {
   memset(&presence_events, 0, sizeof(presence_events));
   Discord_Initialize(discord_rpc, &presence_events, 1, NULL);
-
-  if (!folder.create()) {
-    clog::debug << "Error creating folder" << clog::endl;
-    MessageBox(NULL, L"Error creating folder. See Error.log.", title, MB_OK);
-    return false;
-  }
-
-  folder.load_config();
-  accounts.load();
 
   if (folder.config["rpc"]["enabled"].GetBool())
     rpc_loading();
@@ -326,106 +276,13 @@ bool Client::create() {
 
   clog::info << "Main initialized" << clog::endl;
 
-  if (!installer.Installed()) {
-    install_runtimes();
-    return false;
-  }
-
   game.can_fullscreen = true;
-  documents.background = RGB(0xFF, 0xFF, 0xFF);
-
-  if (shcore) {
-    using dec = decltype(::SetProcessDpiAwareness);
-    if (std::function SetProcessDpiAwareness =
-            (dec *)GetProcAddress(shcore, "SetProcessDpiAwareness")) {
-      HRESULT sda = SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-      if (!SUCCEEDED(sda))
-        clog::error << "SetProcessDpiAwareness returned 0x" << std::hex
-                    << HRESULT_CODE(sda) << clog::endl;
-    } else
-      clog::error << "Unable to get address of SetProcessDpiAwareness"
-                  << clog::endl;
-  }
-
-  switch (game.create(inst, cmdshow, [this]() {
-    game.webview->Navigate(L"https://krunker.io");
-  })) {
-  case KrunkerWindow::Status::Ok:
-    break;
-  case KrunkerWindow::Status::MissingRuntime:
-    clog::error
-        << "WebView2 installation check failed. Unable to create game window."
-        << clog::endl;
-    install_runtimes();
-    return false;
-  case KrunkerWindow::Status::UserDataExists:
-    clog::error << "Unable to create user data folder." << clog::endl;
-    game.MessageBox(L"Unable to create the user data folder. Delete the GC++ "
-                    L"folder in your documents then relaunch the client.",
-                    title);
-    break;
-  case KrunkerWindow::Status::RuntimeFatal:
-    clog::error << "Fatal Edge runtime error occured." << clog::endl;
-    game.MessageBox(
-        L"An unknown Edge runtime error occured. Try relaunching the client.",
-        title);
-    ;
-    break;
-  case KrunkerWindow::Status::UnknownError:
-  default:
-    std::wstringstream sstream;
-    sstream << std::hex << game.last_herror;
-
-    game.MessageBox(
-        (std::wstring(
-             L"An unknown error ocurred during game creation. Create a issue "
-             L"on GitHub ( https://github.com/6ct/clientpp/issues ) and "
-             L"provide the following error details:\n") +
-         L"Error code: 0x" + sstream.str())
-            .c_str(),
-        title, MB_ICONERROR);
-
-    return false;
-    break;
-  };
-
-  // checking updates causes delay
-  new std::thread([this]() {
-    UpdaterServing serving;
-    if (updater.UpdatesAvailable(serving) &&
-        MessageBox(game.m_hWnd, L"A new client update is available. Download?",
-                   title, MB_YESNO) == IDYES) {
-      ShellExecute(game.m_hWnd, L"open", ST::wstring(serving.url).c_str(), L"",
-                   L"", SW_SHOW);
-      exit(EXIT_SUCCESS);
-    }
-  });
-
-  return true;
 }
 
-int Client::messages() {
-  MSG msg;
-  BOOL ret;
-
-  while (ret = GetMessage(&msg, 0, 0, 0)) {
-    game.on_dispatch();
-    social.on_dispatch();
-    editor.on_dispatch();
-    documents.on_dispatch();
-
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
-  }
-
-  return EXIT_SUCCESS;
-}
-
-int APIENTRY WinMain(HINSTANCE _In_ hInstance, HINSTANCE _In_opt_ hPrevInstance,
-                     _In_ LPSTR cmdline, _In_ int nCmdShow) {
-  Client client(hInstance, nCmdShow);
-  if (client.create())
-    return client.messages();
-  else
-    return false;
+void Client::dispatch() {
+  game.dispatch();
+  social.dispatch();
+  editor.dispatch();
+  viewer.dispatch();
+  scripting.dispatch();
 }

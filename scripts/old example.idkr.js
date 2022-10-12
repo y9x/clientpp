@@ -8,7 +8,7 @@ module.exports = {
   // Version of the script
   version: "1.0.0",
 
-  // Allowed values: "all" | "docs" | "game" | "social" | "viewer" | "editor"
+  // Allowed values: "all" | "game" | "social" | "viewer" | "editor"
   locations: ["game"],
 
   settings: {

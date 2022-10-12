@@ -16,8 +16,7 @@ public:
   std::wstring p_logs = L"\\Logs";
   rapidjson::Document default_config;
   rapidjson::Document config;
-  ClientFolder(std::wstring name);
-  bool create();
+  bool create(std::wstring name);
   bool create_directory(std::wstring directory);
   bool load_config();
   bool save_config();
@@ -25,7 +24,6 @@ public:
   std::wstring resolve_path(std::wstring file);
 
 private:
-  std::wstring name;
   std::vector<std::wstring> directories{p_logs, p_scripts, p_styles, p_swapper,
                                         p_profile};
 };

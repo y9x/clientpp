@@ -6,6 +6,7 @@
 #include "./LoadRes.h"
 #include "./Log.h"
 #include "./Site.h"
+#include "./main.h"
 #include "./resource.h"
 #include <WebView2EnvironmentOptions.h>
 #include <chrono>
@@ -55,7 +56,7 @@ HINSTANCE KrunkerWindow::get_hinstance() {
   return (HINSTANCE)GetWindowLong(GWL_HINSTANCE);
 }
 
-bool KrunkerWindow::create_window(HINSTANCE inst, int cmdshow) {
+bool KrunkerWindow::createWindow() {
   Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
 
   Vector2 scr_pos;
@@ -74,7 +75,7 @@ bool KrunkerWindow::create_window(HINSTANCE inst, int cmdshow) {
   } else
     ResizeClient(700, 500);
 
-  ShowWindow(cmdshow);
+  ShowWindow(SW_SHOW);
   UpdateWindow();
 
   return true;
@@ -588,7 +589,7 @@ void KrunkerWindow::register_events() {
                 send_resource(args, FONT_GAME, L"font/ttf");
               else if (uri.path() == L"/frontend.js.map")
                 send_resource(args, JS_FRONTEND_MAP, L"application/json");
-            } else if (krunker::host_is_krunker(uri.host())) {
+            } else if (uri.host() == L"krunker.io") {
               std::wstring swap =
                   folder.directory + folder.p_swapper + uri.path();
 
@@ -623,14 +624,13 @@ void KrunkerWindow::register_events() {
       &token);
 }
 
-KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow,
-                                            std::function<void()> callback) {
+KrunkerWindow::Status KrunkerWindow::create(std::function<void()> callback) {
   bool was_open = open;
 
   if (folder.config["window"]["meta"]["replace"].GetBool())
     title = JT::wstring(folder.config["window"]["meta"]["title"]);
 
-  create_window(inst, cmdshow);
+  createWindow();
 
   SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND,
                   (LONG_PTR)CreateSolidBrush(background));
@@ -638,15 +638,16 @@ KrunkerWindow::Status KrunkerWindow::create(HINSTANCE inst, int cmdshow,
   if (can_fullscreen && folder.config["render"]["fullscreen"].GetBool())
     enter_fullscreen();
 
+  // hInstance is optional !
   if (folder.config["window"]["meta"]["replace"].GetBool())
     SetIcon((HICON)LoadImage(
-        inst,
+        NULL,
         folder
             .resolve_path(JT::wstring(folder.config["window"]["meta"]["icon"]))
             .c_str(),
         IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
   else
-    SetIcon(LoadIcon(inst, MAKEINTRESOURCE(MAINICON)));
+    SetIcon(getMainIcon());
 
   open = true;
 
@@ -796,8 +797,7 @@ KrunkerWindow::call_create_webview(std::function<void()> callback) {
     return Status::Ok;
 }
 
-KrunkerWindow::Status KrunkerWindow::get(HINSTANCE inst, int cmdshow,
-                                         std::function<void(bool)> callback) {
+KrunkerWindow::Status KrunkerWindow::get(std::function<void(bool)> callback) {
   if (open) {
     // documentation for editor opens twice
     if (!webview) {
@@ -807,7 +807,7 @@ KrunkerWindow::Status KrunkerWindow::get(HINSTANCE inst, int cmdshow,
     callback(false);
     return Status::AlreadyOpen;
   } else {
-    return create(inst, cmdshow, [this, callback]() { callback(true); });
+    return create([this, callback]() { callback(true); });
   }
 }
 
@@ -815,7 +815,7 @@ long long mouse_hz = 244;
 long long mouse_interval = 1000 / mouse_hz;
 long long then = now();
 
-void KrunkerWindow::on_dispatch() {
+void KrunkerWindow::dispatch() {
   if (!open)
     return;
 

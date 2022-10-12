@@ -3,34 +3,37 @@
 #include "./AccountManager.h"
 #include "./ClientFolder.h"
 #include "./KrunkerWindow.h"
-#include "./Updater.h"
-#include "./WebView2Installer.h"
 #include <discord_register.h>
 #include <discord_rpc.h>
 
 class Client {
 private:
-  AccountManager accounts;
-  Updater updater;
-  WebView2Installer installer;
-  ClientFolder folder;
+  AccountManager &accounts;
+  ClientFolder &folder;
   KrunkerWindow game;
   KrunkerWindow social;
   KrunkerWindow editor;
+  KrunkerWindow viewer;
   KrunkerWindow scripting;
-  KrunkerWindow documents;
   DiscordEventHandlers presence_events{};
-  HINSTANCE inst;
-  HMODULE shcore;
-  int cmdshow;
   void rpc_loading();
   void install_runtimes();
   bool on_message(JSMessage msg, KrunkerWindow &window);
-  bool navigation_cancelled(ICoreWebView2 *sender, UriW uri);
   void listen_navigation(KrunkerWindow &window);
 
 public:
-  Client(HINSTANCE h, int c);
-  bool create();
-  int messages();
+  Client(ClientFolder &folder, AccountManager &accounts);
+  // Dispatch events to individual windows.
+  void dispatch();
+  /**
+   * @param uri
+   * @param sender Window to reference to determine if navigation should be
+   * blocked.
+   * @param open Called when the window is created/fetched. newWindow will be
+   * a nullptr if the URL was opened via the shell
+   * @return if the navigation will take place in a new window (if open() will
+   * be called)
+   */
+  bool navigate(UriW uri, ICoreWebView2 *sender = nullptr,
+                std::function<void(KrunkerWindow *newWindow)> open = nullptr);
 };

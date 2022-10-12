@@ -3,6 +3,7 @@
 #include "./KrunkerWindow.h"
 #include "./LobbySeeker.h"
 #include "./Log.h"
+#include "./main.h"
 #include "./resource.h"
 #include <commdlg.h>
 #include <rapidjson/prettywriter.h>
@@ -165,7 +166,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
   case IM::update_meta:
     title = JT::wstring(folder.config["window"]["meta"]["title"]);
     SetIcon((HICON)LoadImage(
-        get_hinstance(),
+        NULL,
         folder
             .resolve_path(JT::wstring(folder.config["window"]["meta"]["icon"]))
             .c_str(),
@@ -175,7 +176,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
     break;
   case IM::revert_meta:
     title = og_title;
-    SetIcon(LoadIcon(get_hinstance(), MAKEINTRESOURCE(MAINICON)));
+    SetIcon(getMainIcon());
     SetWindowText(title.c_str());
 
     break;
