@@ -1,6 +1,5 @@
 #include "./KrunkerWindow.h"
 
-constexpr const char *discordRPC = "899137303182716968";
 constexpr const wchar_t *title = L"Chief Client";
 constexpr const wchar_t *titleGame = title;
 constexpr const wchar_t *titleSocial = L"Social";

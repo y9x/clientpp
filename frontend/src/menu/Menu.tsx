@@ -1,4 +1,4 @@
-import RPC from "../RPC";
+import { updateRPC } from "../RPC";
 import ipc, { IM } from "../ipc";
 import { renderSettings } from "../runtime/chief";
 import Button from "./components/Button";
@@ -46,8 +46,6 @@ function openShell(event: MouseEvent<HTMLAnchorElement>) {
   event.preventDefault();
   ipc.send(IM.shell_open, "url", event.currentTarget.href);
 }
-
-const rpc = new RPC();
 
 export default function Menu() {
   const [config, setConfig] = useConfig();
@@ -215,23 +213,16 @@ export default function Menu() {
           onChange={(event) => {
             config.rpc.enabled = event.currentTarget.checked;
             setConfig(config);
-            if (config.rpc.enabled) {
-              ipc.send(IM.rpc_init);
-              rpc.update(true);
-            } else {
-              ipc.send(IM.rpc_clear);
-            }
+            updateRPC();
           }}
         />
         <Switch
           title="Show username"
           defaultChecked={config.rpc.name}
           onChange={(event) => {
-            config.rpc.enabled = event.currentTarget.checked;
+            config.rpc.name = event.currentTarget.checked;
             setConfig(config);
-            ipc.send(IM.rpc_clear);
-            ipc.send(IM.rpc_init);
-            rpc.update(true);
+            updateRPC();
           }}
         />
       </Set>

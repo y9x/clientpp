@@ -16,6 +16,7 @@
 
 constexpr const char *version = CLIENT_VERSION_STRING;
 constexpr const wchar_t *title = L"Chief Client";
+constexpr const char *discordRPC = "899137303182716968";
 
 namespace {
 HICON mainIcon;
@@ -99,6 +100,17 @@ HICON getMainIcon() { return mainIcon; }
 
 int APIENTRY WinMain(HINSTANCE _In_ hInstance, HINSTANCE _In_opt_ hPrevInstance,
                      _In_ LPSTR cmdline, _In_ int nCmdShow) {
+  DiscordEventHandlers presence_events;
+  presence_events.disconnected = nullptr;
+  presence_events.errored = nullptr;
+  presence_events.joinGame = nullptr;
+  presence_events.joinRequest = nullptr;
+  presence_events.ready = nullptr;
+  presence_events.spectateGame = nullptr;
+
+  memset(&presence_events, 0, sizeof(presence_events));
+  Discord_Initialize(discordRPC, &presence_events, 1, nullptr);
+
   mainIcon = LoadIcon(hInstance, MAKEINTRESOURCE(MAINICON));
 
   folder = new ClientFolder();

@@ -28,10 +28,6 @@ ChWindow::ChWindow(ClientFolder &_folder, ChWindows &_windows, Vector2 _scale,
     : folder(_folder), windows(_windows), title(_title), og_title(_title),
       scale(_scale){};
 
-/*on_webview2_startup(_on_startup),
-      on_unknown_message(_on_unknown_message),
-      on_destroy_callback(_on_destroy_callback)*/
-
 ChScriptedWindow::ChScriptedWindow(ClientFolder &_folder,
                                    AccountManager &_accounts,
                                    ChWindows &_windows, Vector2 _scale,

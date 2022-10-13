@@ -8,7 +8,7 @@
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
 
-rapidjson::Value ChScriptedWindow::loadUserScripts(
+rapidjson::Value ChScriptedWindow::getUserScripts(
     rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator) {
   rapidjson::Value result(rapidjson::kArrayType);
 
@@ -34,7 +34,7 @@ rapidjson::Value ChScriptedWindow::loadUserScripts(
   return result;
 }
 
-rapidjson::Value ChScriptedWindow::loadCSS(
+rapidjson::Value ChScriptedWindow::getUserStyles(
     rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator) {
   rapidjson::Value result(rapidjson::kArrayType);
 
@@ -69,8 +69,8 @@ std::string ChScriptedWindow::runtimeData() {
 
   data.AddMember("config", rapidjson::Value(folder.config, allocator),
                  allocator);
-  data.AddMember("css", loadCSS(allocator), allocator);
-  data.AddMember("js", loadUserScripts(allocator), allocator);
+  data.AddMember("css", getUserStyles(allocator), allocator);
+  data.AddMember("js", getUserScripts(allocator), allocator);
 
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);

@@ -9,6 +9,58 @@
 #include <rapidjson/prettywriter.h>
 #include <shellapi.h>
 
+/// @brief Full JSON presence support.
+DiscordRichPresence loadPresenceData(const rapidjson::Value &value) {
+  assert(value.IsObject());
+
+  // This won't allocate any strings, instead it will use the pointers
+  // referenced from the JSON data.
+  DiscordRichPresence presence;
+  memset(&presence, 0, sizeof(presence));
+
+  presence.state =
+      value.HasMember("state") ? value["state"].GetString() : nullptr;
+  presence.details =
+      value.HasMember("details") ? value["details"].GetString() : nullptr;
+  presence.startTimestamp = value.HasMember("startTimestamp")
+                                ? value["startTimestamp"].GetInt64()
+                                : 0;
+  presence.endTimestamp =
+      value.HasMember("endTimestamp") ? value["endTimestamp"].GetInt64() : 0;
+  presence.largeImageKey = value.HasMember("largeImageKey")
+                               ? value["largeImageKey"].GetString()
+                               : nullptr;
+  presence.largeImageText = value.HasMember("largeImageText")
+                                ? value["largeImageText"].GetString()
+                                : nullptr;
+  presence.smallImageKey = value.HasMember("smallImageKey")
+                               ? value["smallImageKey"].GetString()
+                               : nullptr;
+  presence.smallImageText = value.HasMember("smallImageText")
+                                ? value["smallImageText"].GetString()
+                                : nullptr;
+  presence.partyId =
+      value.HasMember("partyId") ? value["partyId"].GetString() : nullptr;
+  presence.partySize =
+      value.HasMember("endTimestamp") ? value["endTimestamp"].GetInt64() : 0;
+  presence.partyMax =
+      value.HasMember("endTimestamp") ? value["endTimestamp"].GetInt64() : 0;
+  presence.partyPrivacy =
+      value.HasMember("endTimestamp") ? value["endTimestamp"].GetInt64() : 0;
+  presence.matchSecret = value.HasMember("matchSecret")
+                             ? value["matchSecret"].GetString()
+                             : nullptr;
+  presence.joinSecret =
+      value.HasMember("joinSecret") ? value["joinSecret"].GetString() : nullptr;
+  presence.spectateSecret = value.HasMember("spectateSecret")
+                                ? value["spectateSecret"].GetString()
+                                : nullptr;
+  presence.instance =
+      value.HasMember("instance") ? value["instance"].GetInt() : 0;
+
+  return presence;
+}
+
 void ChScriptedWindow::handleMessage(JSMessage msg) {
   if (postedMessages.contains(msg.event)) {
     const auto &[then, catchError] = postedMessages[msg.event];
@@ -239,8 +291,89 @@ void ChScriptedWindow::handleMessage(JSMessage msg) {
         msg);
 
     break;
+  case IM::account_password: {
+    JSMessage res(msg.args[0].GetInt());
+    std::string dec;
+    std::string account_name = JT::string(msg.args[1]);
+
+    if (!accounts.data.contains(account_name)) {
+      res.args.PushBack(rapidjson::Value(rapidjson::kNullType), res.allocator);
+      res.args.PushBack(
+          rapidjson::Value("Account doesn't exist", res.allocator),
+          res.allocator);
+    } else if (!accounts.decrypt(accounts.data[account_name].password, dec)) {
+      res.args.PushBack(rapidjson::Value(rapidjson::kNullType), res.allocator);
+      res.args.PushBack(rapidjson::Value("Unknown", res.allocator),
+                        res.allocator);
+    } else {
+      res.args.PushBack(rapidjson::Value(dec.data(), dec.size(), res.allocator),
+                        res.allocator);
+    }
+
+    if (!sendMessage(res))
+      clog::error << "Unable to send " << res.dump() << clog::endl;
+  } break;
+  case IM::account_remove: {
+
+    accounts.data.erase(JT::string(msg.args[0]));
+    accounts.save();
+
+    JSMessage res(IM::account_regen);
+    res.args.PushBack(accounts.dump(res.allocator), res.allocator);
+    if (!sendMessage(res))
+      clog::error << "Unable to send " << res.dump() << clog::endl;
+  } break;
+  case IM::account_set: {
+
+    std::string name = JT::string(msg.args[0]);
+    Account &account = accounts.data[name];
+    account.color = JT::string(msg.args[1]);
+    account.order = msg.args[2].GetInt();
+    accounts.save();
+
+    JSMessage res(IM::account_regen);
+    res.args.PushBack(accounts.dump(res.allocator), res.allocator);
+    if (!sendMessage(res))
+      clog::error << "Unable to send " << res.dump() << clog::endl;
+  } break;
+  // and creation
+  case IM::account_set_password: {
+
+    std::string enc;
+    if (accounts.encrypt(JT::string(msg.args[1]), enc)) {
+      Account account;
+      account.color = JT::string(msg.args[2]);
+      account.order = msg.args[3].GetInt();
+      account.username = JT::string(msg.args[0]);
+      account.password = enc;
+      accounts.data[account.username] = account;
+      accounts.save();
+
+      JSMessage res(IM::account_regen);
+      res.args.PushBack(accounts.dump(res.allocator), res.allocator);
+      if (!sendMessage(res))
+        clog::error << "Unable to send " << res.dump() << clog::endl;
+    } else
+      clog::error << "Failure encrypting password" << clog::endl;
+  } break;
+  case IM::account_list: {
+
+    JSMessage res(msg.args[0].GetInt());
+    res.args.PushBack(accounts.dump(res.allocator), res.allocator);
+    if (!sendMessage(res))
+      clog::error << "Unable to send " << res.dump() << clog::endl;
+  } break;
+  case IM::rpc_update:
+    if (msg.args[0].IsNull()) {
+      Discord_ClearPresence();
+    } else {
+      DiscordRichPresence data = loadPresenceData(msg.args[0]);
+      Discord_UpdatePresence(&data);
+    }
+
+    break;
   default:
-    // if (!on_unknown_message || !on_unknown_message(msg))
+
     clog::error << "Unknown message " << msg.dump() << clog::endl;
 
     break;

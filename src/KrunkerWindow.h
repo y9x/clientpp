@@ -10,6 +10,8 @@
 #include <atlbase.h>
 #include <atlenc.h>
 #include <atlwin.h>
+#include <discord_register.h>
+#include <discord_rpc.h>
 #include <functional>
 #include <map>
 #include <mutex>
@@ -82,13 +84,17 @@ public:
 
 class ChScriptedWindow : public ChWindow {
 private:
+  // RPC:
+
   // Window-Frontend messaging:
 
   AccountManager &accounts;
   std::map<short, std::pair<std::function<void(const rapidjson::Value &)>,
                             std::function<void(const rapidjson::Value &)>>>
       postedMessages;
+
   // Mouse hooking:
+
   static LRESULT CALLBACK mouseMessage(int code, WPARAM wParam, LPARAM lParam);
   LRESULT on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
   void hook_mouse();
@@ -113,30 +119,60 @@ private:
   std::wstring mainJS;
   std::string mainCSS;
   bool seeking = false;
+
+  // Messaging:
+
+  /// @brief Handle a message sent from the frontend
+  /// @param msg
+  void handleMessage(JSMessage msg);
+  /// @brief Produce runtime data
+  /// format.
+  /// @return UserScripts, UserStyles, and config in JSON format
+  std::string runtimeData();
+
+  /// @brief Used by runtimeData
+  rapidjson::Value getUserStyles(
+      rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
+  /// @brief Used by runtimeData
+  rapidjson::Value getUserScripts(
+      rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
+
+  // Window:
+
+  /// @brief Send a resource defined in Resource.rc in response to a
+  /// WebResourceRequestedEvent
+  /// @param args WebResourceRequestedEvent args
+  /// @param resource Resource ID
+  /// @param mime Mime type
+  /// @return If the operation was successful
   bool sendResource(ICoreWebView2WebResourceRequestedEventArgs *args,
                     int resource, std::wstring mime);
-  bool postMessage(const JSMessage &msg,
-                   std::function<void(const rapidjson::Value &)> then,
-                   std::function<void(const rapidjson::Value &)> catchError);
-  bool sendMessage(const JSMessage &message);
-  std::string runtimeData();
-  void handleMessage(JSMessage msg);
-  rapidjson::Value
-  loadCSS(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
-  rapidjson::Value loadUserScripts(
-      rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator);
-  void registerEvents() override;
   Status create(std::function<void()> callback = nullptr) override;
-  // no longer allowing client to intercept messages...
-  // std::function<bool(JSMessage)> on_unknown_message;
+  void registerEvents() override;
+
   BEGIN_MSG_MAP(ChScriptedWindow)
   CHAIN_MSG_MAP(ChWindow)
   MESSAGE_HANDLER(WM_INPUT, on_input)
   END_MSG_MAP()
+protected:
+  /// @brief Asynchronously sends a message and expects a result.
+  /// @param msg
+  /// @param then
+  /// @param catchError
+  /// @return
+  bool postMessage(const JSMessage &msg,
+                   std::function<void(const rapidjson::Value &)> then,
+                   std::function<void(const rapidjson::Value &)> catchError);
+  /// @brief Asynchronously sends a message.
+  /// @param message
+  /// @return
+  bool sendMessage(const JSMessage &message);
+
 public:
   ChScriptedWindow(ClientFolder &folder, AccountManager &accounts,
                    ChWindows &windows, Vector2 scale, std::wstring title);
   ~ChScriptedWindow();
+  /// @brief Execute any pending operations from the main thread
   void dispatch() override;
 };
 
@@ -149,6 +185,7 @@ private:
   ChWindow scripting;
 
 public:
+  /// @brief Execute any pending operations from the main thread
   void dispatch();
   ChWindows(ClientFolder &folder, AccountManager &accounts);
   /// @brief
