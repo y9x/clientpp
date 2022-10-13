@@ -102,14 +102,14 @@ export default function Menu() {
         <Switch
           title="Uncap FPS"
           defaultChecked={config.render.uncap_fps}
-          description="Restart Required"
+          description="Client Restart Required"
           attention
           onChange={(event) => {
             config.render.uncap_fps = event.currentTarget.checked;
             setConfig(config);
             if (
               global.confirm(
-                "The game will be restarted for this setting to take affect."
+                "The client will be restarted for this setting to take affect."
               )
             )
               ipc.send(IM.relaunch_webview);
@@ -118,14 +118,14 @@ export default function Menu() {
         <Select
           title="Angle backend"
           defaultValue={config.render.angle}
-          description="Restart Required"
+          description="Client Restart Required"
           attention
           onChange={(event) => {
             config.render.angle = event.currentTarget.value;
             setConfig(config);
             if (
               global.confirm(
-                "The game will be restarted for this setting to take affect."
+                "The client will be restarted for this setting to take affect."
               )
             )
               ipc.send(IM.relaunch_webview);
@@ -140,14 +140,14 @@ export default function Menu() {
         <Select
           title="Color profile"
           defaultValue={config.render.color}
-          description="Restart Required"
+          description="Client Restart Required"
           attention
           onChange={(event) => {
             config.render.color = event.currentTarget.value;
             setConfig(config);
             if (
               global.confirm(
-                "The game will be restarted for this setting to take affect."
+                "The client will be restarted for this setting to take affect."
               )
             )
               ipc.send(IM.relaunch_webview);
@@ -159,6 +159,22 @@ export default function Menu() {
         </Select>
       </Set>
       <Set title="Game">
+        <Switch
+          title="Account Manager"
+          attention
+          description="Restart Required"
+          defaultChecked={config.game.account_manager.enabled}
+          onChange={(event) => {
+            config.game.account_manager.enabled = event.currentTarget.checked;
+            setConfig(config);
+            if (
+              global.confirm(
+                "The game will be restarted for this setting to take affect."
+              )
+            )
+              global.location.reload();
+          }}
+        />
         <Switch
           title="Seek new Lobby [F4]"
           defaultChecked={config.game.seek.F4}

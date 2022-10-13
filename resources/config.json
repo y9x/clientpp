@@ -6,6 +6,9 @@
       "mode": "",
       "map": "",
       "customs": false
+    },
+    "account_manager": {
+      "enabled": true
     }
   },
   "client": {
