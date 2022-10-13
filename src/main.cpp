@@ -2,31 +2,33 @@
 #include "../utils/JsonUtil.h"
 #include "../utils/StringUtil.h"
 #include "./AccountManager.h"
-#include "./Client.h"
 #include "./ClientFolder.h"
+#include "./KrunkerWindow.h"
 #include "./Log.h"
 #include "./Updater.h"
 #include "./WebView2Installer.h"
 #include "./resource.h"
 #include <ShellScalingApi.h>
 #include <WinUser.h>
+#include <functional>
 #include <shellapi.h>
+#include <thread>
 
 constexpr const char *version = CLIENT_VERSION_STRING;
 constexpr const wchar_t *title = L"Chief Client";
 
 namespace {
 HICON mainIcon;
-Client *client;
 AccountManager *accounts;
 ClientFolder *folder;
+ChWindows *windows;
 
 int messages() {
   MSG msg;
   BOOL ret;
 
   while (ret = GetMessage(&msg, 0, 0, 0)) {
-    client->dispatch();
+    windows->dispatch();
     TranslateMessage(&msg);
     DispatchMessage(&msg);
   }
@@ -111,7 +113,7 @@ int APIENTRY WinMain(HINSTANCE _In_ hInstance, HINSTANCE _In_opt_ hPrevInstance,
   accounts = new AccountManager(*folder);
   accounts->load();
 
-  client = new Client(*folder, *accounts);
+  windows = new ChWindows(*folder, *accounts);
 
   if (!testRuntimes())
     return EXIT_FAILURE;
@@ -132,7 +134,7 @@ int APIENTRY WinMain(HINSTANCE _In_ hInstance, HINSTANCE _In_opt_ hPrevInstance,
   // checking updates causes delay
   new std::thread(update);
 
-  client->navigate(UriW(L"https://krunker.io/"));
+  windows->navigate(UriW(L"https://krunker.io/"));
 
   return messages();
 }

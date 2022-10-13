@@ -2,8 +2,8 @@
 // Microsoft Visual C++ generated include file.
 // Used by Resource.rc
 //
-#define JS_FRONTEND 6
-#define JS_FRONTEND_MAP 113
+#define JS_MAIN 6
+#define CSS_MAIN 7
 #define MAINICON 101
 #define JSON_CONFIG 110
 #define CSS_CLIENT 111

@@ -11,6 +11,7 @@ import Switch from "../menu/components/Switch";
 import Text from "../menu/components/Text";
 import currentSite from "../site";
 import { renderSettings } from "./chief";
+import { sourceMappingURL } from "./common";
 import MagicString from "magic-string";
 import type { ReactNode } from "react";
 
@@ -351,7 +352,6 @@ function executeUserscript(script: string, code: string): IUserscript {
   ) as UserscriptContext;
 
   const magic = new MagicString(code);
-  const identifier = "sourceMappingURL";
 
   magic.appendLeft(0, "()=>{");
   magic.append("}");
@@ -363,14 +363,10 @@ function executeUserscript(script: string, code: string): IUserscript {
   const ret = run(
     magic.toString() +
       "//# " +
-      identifier +
-      "=data:application/json," +
-      encodeURI(
-        JSON.stringify(
-          magic.generateMap({
-            source: new URL("file:" + script).toString(),
-          })
-        )
+      sourceMappingURL(
+        magic.generateMap({
+          source: new URL("file:" + script).toString(),
+        })
       ),
     console,
     clientUtils,

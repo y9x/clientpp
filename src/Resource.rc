@@ -53,9 +53,9 @@ LANGUAGE LANG_ENGLISH,
     // RCDATA
     //
 
-    JS_FRONTEND RCDATA "..\\frontend\\dist\\main.js"
+    JS_MAIN RCDATA "..\\frontend\\dist\\main.js"
 
-    JS_FRONTEND_MAP RCDATA "..\\frontend\\dist\\main.js.map"
+    CSS_MAIN RCDATA "..\\frontend\\dist\\main.css"
 
     JSON_CONFIG RCDATA "..\\resources\\config.json"
 

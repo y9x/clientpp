@@ -6,7 +6,7 @@
 #include <iostream>
 #endif
 
-bool load_resource(int resource, std::string &string) {
+bool loadResource(int resource, std::string &string) {
   bool ret = false;
   HRSRC src = FindResource(NULL, MAKEINTRESOURCE(resource), RT_RCDATA);
 

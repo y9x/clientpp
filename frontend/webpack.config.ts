@@ -1,15 +1,16 @@
-import TryCatchPlugin from "./TryCatchWebpackPlugin.js";
 import type { CSSLoaderOptions } from "./css-loader.js";
 import type swcrcSchema from "./swcrc.js";
 import type { JsMinifyOptions } from "@swc/core";
 import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
 import ESLintPlugin from "eslint-webpack-plugin";
 import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import { fileURLToPath } from "node:url";
 import { resolve } from "path";
 import ModuleNotFoundPlugin from "react-dev-utils/ModuleNotFoundPlugin.js";
 import getCSSModuleLocalIdent from "react-dev-utils/getCSSModuleLocalIdent.js";
 import TerserPlugin from "terser-webpack-plugin";
+import webpack from "webpack";
 import type { Configuration, RuleSetRule } from "webpack";
 
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -20,7 +21,7 @@ const getStyleLoaders = (
   preProcessor?: string
 ) => {
   const loaders: (RuleSetRule | string | false)[] = [
-    "style-loader",
+    isDevelopment ? "style-loader" : MiniCssExtractPlugin.loader,
     {
       loader: "css-loader",
       options: cssOptions,
@@ -86,9 +87,11 @@ const config: Configuration = {
   output: {
     path: fileURLToPath(new URL("./dist/", import.meta.url)),
   },
-  // inline work can be done from the client
-  // base64 strings are 3x larger
-  devtool: isDevelopment ? "eval" : "source-map",
+  // we can't get devtools to accept our custom request hook to load sourcemaps unless we do it inline
+  // execution will cost 1 MB!
+  // we can't use cheap sourcemaps because they are simply cheap to work with
+  // not producing a sourcemap and not minifying code is good, however bundle size is larger compared to minified + sourcemaps
+  devtool: isDevelopment ? "eval" : "inline-source-map",
   mode: isDevelopment ? "development" : "production",
   optimization: {
     minimize: !isDevelopment,
@@ -193,7 +196,14 @@ const config: Configuration = {
     new ModuleNotFoundPlugin(resolve(".")),
     new ForkTsCheckerPlugin(),
     new ESLintPlugin(),
-    new TryCatchPlugin(),
+    new MiniCssExtractPlugin(),
+    new webpack.BannerPlugin({
+      banner: "try{",
+    }),
+    new webpack.BannerPlugin({
+      banner: "}catch(err){console.error(err)}",
+      footer: true,
+    }),
   ],
 };
 

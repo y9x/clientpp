@@ -11,7 +11,7 @@ import Text from "./components/Text";
 import { useConfig } from "./useConfig";
 import type { MouseEvent } from "react";
 
-const seek_modes = [
+const seekModes = [
   "Free for All",
   "Team Deathmatch",
   "Hardpoint",
@@ -42,7 +42,7 @@ const seek_modes = [
   "Kranked FFA",
 ];
 
-function open_in_shell(event: MouseEvent<HTMLAnchorElement>) {
+function openShell(event: MouseEvent<HTMLAnchorElement>) {
   event.preventDefault();
   ipc.send(IM.shell_open, "url", event.currentTarget.href);
 }
@@ -58,12 +58,12 @@ export default function Menu() {
         <Link
           title="GitHub"
           href="https://github.com/6ct/clientpp"
-          onClick={open_in_shell}
+          onClick={openShell}
         />
         <Link
           title="Discord"
           href="https://discord.gg/4r47ZwdSQj"
-          onClick={open_in_shell}
+          onClick={openShell}
         />
         <Switch
           title="Devtools"
@@ -195,7 +195,7 @@ export default function Menu() {
           }}
         >
           <option value="">Any</option>
-          {seek_modes.map((mode, i) => (
+          {seekModes.map((mode, i) => (
             <option key={i}>{mode}</option>
           ))}
         </Select>

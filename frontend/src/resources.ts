@@ -4,24 +4,13 @@ import chiefRuntime from "./runtime/chief";
 import idkrRuntime from "./runtime/idkr";
 import tampermonkeyRuntime from "./runtime/tampermonkey";
 
-const add_css = () => {
-  for (const [, data] of css) {
-    const url = URL.createObjectURL(new Blob([data], { type: "text/css" }));
-
-    const link = document.head.appendChild(
-      Object.assign(document.createElement("link"), {
-        rel: "stylesheet",
-        href: url,
-      })
-    );
-
-    link.addEventListener("load", () => {
-      URL.revokeObjectURL(url);
-    });
-
-    document.head.appendChild(link);
+function addCSS() {
+  for (const [name, data] of css) {
+    const style = document.createElement("style");
+    style.textContent = data + `/*# sourceURL=${name} */`;
+    document.head.appendChild(style);
   }
-};
+}
 
 new MutationObserver((mutations, observer) => {
   for (const mutation of mutations) {
@@ -31,7 +20,7 @@ new MutationObserver((mutations, observer) => {
         new URL(node.href || "/", global.location.toString()).pathname ===
           "/css/main_custom.css"
       ) {
-        add_css();
+        addCSS();
         observer.disconnect();
       }
     }

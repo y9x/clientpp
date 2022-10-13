@@ -14,6 +14,7 @@ import Switch from "../menu/components/Switch";
 import Text from "../menu/components/Text";
 import currentSite from "../site";
 import useLocalStorage, { setLocalStorage } from "../useLocalStorage";
+import { sourceMappingURL } from "./common";
 import htm from "htm";
 import MagicString from "magic-string";
 import type { FunctionComponent } from "react";
@@ -83,19 +84,14 @@ export default function chiefRuntime(script: string, code: string) {
   ) as UserscriptContext;
 
   const magic = new MagicString(code);
-  const identifier = "sourceMappingURL";
 
   run(
     magic.toString() +
       "//# " +
-      identifier +
-      "=data:application/json," +
-      encodeURI(
-        JSON.stringify(
-          magic.generateMap({
-            source: new URL("file:" + script).toString(),
-          })
-        )
+      sourceMappingURL(
+        magic.generateMap({
+          source: new URL("file:" + script).toString(),
+        })
       ),
     console,
     () => currentSite,

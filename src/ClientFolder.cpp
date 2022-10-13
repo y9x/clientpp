@@ -22,7 +22,7 @@ bool OVR(int result) {
     return false;
 }
 
-bool write_resource(std::wstring path, int resource) {
+bool writeResource(std::wstring path, int resource) {
   HRSRC src = FindResource(NULL, MAKEINTRESOURCE(resource), RT_RCDATA);
   bool ret = false;
 
@@ -110,9 +110,9 @@ bool ClientFolder::create(std::wstring name) {
   directory += L"\\" + name;
 
   if (create_directory(directory)) {
-    if (write_resource(directory + p_chief, ICON_CHIEF))
+    if (writeResource(directory + p_chief, ICON_CHIEF))
       clog::info << "Created " << ST::string(directory + p_chief) << clog::endl;
-    if (write_resource(directory + p_krunker, ICON_KRUNKER))
+    if (writeResource(directory + p_krunker, ICON_KRUNKER))
       clog::info << "Created " << ST::string(directory + p_krunker)
                  << clog::endl;
 
@@ -129,7 +129,7 @@ bool ClientFolder::create(std::wstring name) {
 
   std::string config_buffer;
 
-  if (load_resource(JSON_CONFIG, config_buffer)) {
+  if (loadResource(JSON_CONFIG, config_buffer)) {
     rapidjson::ParseResult ok =
         default_config.Parse(config_buffer.data(), config_buffer.size());
 

@@ -14,55 +14,66 @@
 #include <regex>
 #include <sstream>
 
+constexpr const wchar_t *addScripts =
+    LR"(document.write('<link rel=\'stylesheet\' href=\'https://chief.krunker.io/main.css\'></script><script src=\'https://chief.krunker.io/main.js\'></script>');)";
+
 long long now() {
   return duration_cast<std::chrono::milliseconds>(
              std::chrono::system_clock::now().time_since_epoch())
       .count();
 }
 
-KrunkerWindow::KrunkerWindow(ClientFolder &_folder, Type _type, Vector2 s,
-                             std::wstring _title,
-                             std::function<void()> _on_startup,
-                             std::function<bool(JSMessage)> _on_unknown_message,
-                             std::function<void()> _on_destroy_callback)
-    : type(_type), title(_title), og_title(_title), scale(s), folder(_folder),
-      last_pointer_poll(now()), on_webview2_startup(_on_startup),
+ChWindow::ChWindow(ClientFolder &_folder, ChWindows &_windows, Vector2 _scale,
+                   std::wstring _title)
+    : folder(_folder), windows(_windows), title(_title), og_title(_title),
+      scale(_scale){};
+
+/*on_webview2_startup(_on_startup),
       on_unknown_message(_on_unknown_message),
-      on_destroy_callback(_on_destroy_callback) {
-  std::string str_js_frontend;
+      on_destroy_callback(_on_destroy_callback)*/
 
-  if (load_resource(JS_FRONTEND, str_js_frontend)) {
-    js_frontend = ST::wstring(str_js_frontend) +
-                  L"//# sourceMappingURL=https://chief/frontend.js.map";
-  } else {
-    clog::error << "Failure loading frontend" << clog::endl;
-  }
+ChScriptedWindow::ChScriptedWindow(ClientFolder &_folder,
+                                   AccountManager &_accounts,
+                                   ChWindows &_windows, Vector2 _scale,
+                                   std::wstring _title)
+    : ChWindow(_folder, _windows, _scale, _title), accounts(_accounts),
+      last_pointer_poll(now()) {
+  // convert to wstring immediately
+  std::string sMainJS;
 
-  if (!load_resource(CSS_CLIENT, css_builtin))
-    clog::error << "Unable to load built-in CSS" << clog::endl;
+  if (loadResource(JS_MAIN, sMainJS))
+    mainJS = ST::wstring(sMainJS);
+  else
+    clog::error << "Failure loading main.js" << clog::endl;
+
+  if (!loadResource(CSS_MAIN, mainCSS))
+    clog::error << "Failure loading main.css" << clog::endl;
 
   raw_input.usUsagePage = 0x01;
   raw_input.usUsage = 0x02;
 }
 
-KrunkerWindow::~KrunkerWindow() {
-  if (mouse_hooked)
-    unhook_mouse();
+ChWindow::~ChWindow() {
   if (::IsWindow(m_hWnd))
     DestroyWindow();
 }
 
-HINSTANCE KrunkerWindow::get_hinstance() {
+ChScriptedWindow::~ChScriptedWindow() {
+  if (mouse_hooked)
+    unhook_mouse();
+}
+
+HINSTANCE ChWindow::getHinstance() {
   return (HINSTANCE)GetWindowLong(GWL_HINSTANCE);
 }
 
-bool KrunkerWindow::createWindow() {
+bool ChWindow::createWindow() {
   Create(NULL, NULL, title.c_str(), WS_OVERLAPPEDWINDOW);
 
   Vector2 scr_pos;
   Vector2 scr_size;
 
-  if (monitor_data(scr_pos, scr_size)) {
+  if (monitorData(scr_pos, scr_size)) {
     Rect2D r;
 
     r.width = long(scr_size.x * scale.x);
@@ -81,18 +92,21 @@ bool KrunkerWindow::createWindow() {
   return true;
 }
 
-COREWEBVIEW2_COLOR KrunkerWindow::ColorRef(COLORREF color) {
+COREWEBVIEW2_COLOR ColorRef(COLORREF color) {
   return COREWEBVIEW2_COLOR{255, GetRValue(color), GetGValue(color),
                             GetBValue(color)};
 }
 
-bool KrunkerWindow::enter_fullscreen() {
+// generic background
+constexpr const COLORREF background = RGB(28, 28, 28);
+
+bool ChScriptedWindow::enterFullscreen() {
   if (fullscreen)
     return false;
 
   RECT screen;
 
-  if (!monitor_data(screen))
+  if (!monitorData(screen))
     return false;
 
   GetClientRect(&saved_size);
@@ -106,12 +120,14 @@ bool KrunkerWindow::enter_fullscreen() {
   SetWindowLong(GWL_STYLE, saved_style & ~(WS_CAPTION | WS_THICKFRAME));
   SetWindowPos(0, &screen, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 
-  resize_wv();
+  resizeWV();
 
-  return fullscreen = true;
+  fullscreen = true;
+
+  return true;
 }
 
-bool KrunkerWindow::exit_fullscreen() {
+bool ChScriptedWindow::exitFullscreen() {
   if (!fullscreen)
     return false;
 
@@ -119,13 +135,13 @@ bool KrunkerWindow::exit_fullscreen() {
   SetWindowLong(GWL_EXSTYLE, saved_ex_style);
   SetWindowPos(NULL, RECT_ARGS(saved_size),
                SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
-  resize_wv();
+  resizeWV();
 
   fullscreen = false;
   return true;
 }
 
-bool KrunkerWindow::resize_wv() {
+bool ChWindow::resizeWV() {
   if (control == nullptr)
     return false;
 
@@ -136,7 +152,7 @@ bool KrunkerWindow::resize_wv() {
   return true;
 }
 
-bool KrunkerWindow::monitor_data(RECT &rect) {
+bool ChWindow::monitorData(RECT &rect) {
   HMONITOR monitor = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
   MONITORINFO info;
   info.cbSize = sizeof(info);
@@ -151,10 +167,10 @@ bool KrunkerWindow::monitor_data(RECT &rect) {
   return true;
 }
 
-bool KrunkerWindow::monitor_data(Vector2 &pos, Vector2 &size) {
+bool ChWindow::monitorData(Vector2 &pos, Vector2 &size) {
   RECT r;
 
-  if (!monitor_data(r))
+  if (!monitorData(r))
     return false;
 
   pos.x = r.left;
@@ -166,9 +182,9 @@ bool KrunkerWindow::monitor_data(Vector2 &pos, Vector2 &size) {
   return true;
 }
 
-LRESULT KrunkerWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam,
-                                 BOOL &fHandled) {
-  return resize_wv();
+LRESULT ChWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam,
+                            BOOL &fHandled) {
+  return resizeWV();
 }
 
 Vector2 movebuffer;
@@ -180,8 +196,8 @@ JSMessage msgFct(unsigned short event, std::vector<double> nums) {
   return msg;
 }
 
-LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam,
-                                BOOL &fHandled) {
+LRESULT ChScriptedWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam,
+                                   BOOL &fHandled) {
   unsigned size = sizeof(RAWINPUT);
   static RAWINPUT raw[sizeof(RAWINPUT)];
   GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw, &size,
@@ -221,12 +237,12 @@ LRESULT KrunkerWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam,
   return S_OK;
 }
 
-LRESULT CALLBACK KrunkerWindow::mouse_message(int code, WPARAM wParam,
-                                              LPARAM lParam) {
+LRESULT CALLBACK ChScriptedWindow::mouseMessage(int code, WPARAM wParam,
+                                                LPARAM lParam) {
   return 1;
 }
 
-void KrunkerWindow::hook_mouse() {
+void ChScriptedWindow::hook_mouse() {
   clog::debug << "Hooking mouse" << clog::endl;
 
   INPUT input = {};
@@ -243,11 +259,11 @@ void KrunkerWindow::hook_mouse() {
   RegisterRawInputDevices(&raw_input, 1, sizeof(raw_input));
 
   mouse_hook =
-      SetWindowsHookEx(WH_MOUSE_LL, *mouse_message, get_hinstance(), NULL);
+      SetWindowsHookEx(WH_MOUSE_LL, *mouseMessage, getHinstance(), NULL);
   mouse_hooked = true;
 }
 
-void KrunkerWindow::unhook_mouse() {
+void ChScriptedWindow::unhook_mouse() {
   clog::debug << "Unhooked mouse" << clog::endl;
 
   raw_input.dwFlags = RIDEV_REMOVE;
@@ -259,7 +275,7 @@ void KrunkerWindow::unhook_mouse() {
 }
 
 // https://peter.sh/experiments/chromium-command-line-switches/
-std::wstring KrunkerWindow::cmdline() {
+std::wstring ChWindow::cmdLine() {
   std::vector<std::wstring> cmds = {
       L"--disable-background-timer-throttling",
       L"--disable-features=msSmartScreenProtection",
@@ -297,13 +313,13 @@ std::wstring KrunkerWindow::cmdline() {
   return cmdline;
 }
 
-bool KrunkerWindow::send_resource(
+bool ChScriptedWindow::sendResource(
     ICoreWebView2WebResourceRequestedEventArgs *args, int resource,
     std::wstring mime) {
   IStream *stream = nullptr;
   std::string data;
 
-  if (!load_resource(resource, data)) {
+  if (!loadResource(resource, data)) {
     clog::error << "Unable to load resource " << resource << clog::endl;
     return false;
   }
@@ -385,12 +401,12 @@ std::string status_name(COREWEBVIEW2_WEB_ERROR_STATUS status) {
   }
 }
 
-bool KrunkerWindow::sendMessage(const JSMessage &message) {
+bool ChScriptedWindow::sendMessage(const JSMessage &message) {
   return SUCCEEDED(
       webview->PostWebMessageAsJson(ST::wstring(message.dump()).c_str()));
 }
 
-bool KrunkerWindow::postMessage(
+bool ChScriptedWindow::postMessage(
     const JSMessage &message,
     std::function<void(const rapidjson::Value &)> then,
     std::function<void(const rapidjson::Value &)> catchError) {
@@ -430,7 +446,65 @@ std::wstring encodeURIComponent(std::wstring decoded) {
   return oss.str();
 }
 
-void KrunkerWindow::register_events() {
+void ChWindow::dispatch() {
+  if (!open)
+    return;
+
+  dispatchMtx.lock();
+
+  for (std::wstring url : pendingNavigations) {
+    webview->Stop();
+    webview->Navigate(url.c_str());
+  }
+
+  pendingNavigations.clear();
+
+  dispatchMtx.unlock();
+}
+
+void ChScriptedWindow::dispatch() {
+  ChWindow::dispatch();
+
+  if (!open)
+    return;
+
+  dispatchMtx.lock();
+
+  for (JSMessage msg : pendingMessages)
+    if (!sendMessage(msg))
+      clog::error << "Unable to send " << msg.dump() << clog::endl;
+
+  pendingMessages.clear();
+
+  dispatchMtx.unlock();
+
+  bool active = GetActiveWindow() == m_hWnd;
+
+  if (!active && mouse_hooked)
+    unhook_mouse();
+
+  time_t last_poll = now() - last_pointer_poll;
+
+  if (last_poll > 1500 && mouse_hooked) {
+    clog::error << "Pointer lock timeout: " << last_poll << "ms" << clog::endl;
+    unhook_mouse();
+  }
+
+  if (mouse_hooked) {
+    long long nw = now();
+    long long delta = nw - then;
+
+    if (delta > mouse_interval) {
+      then = nw - (delta % mouse_interval);
+      sendMessage(msgFct(IM::mousemove, {movebuffer.x, movebuffer.y}));
+      movebuffer.clear();
+    }
+  }
+}
+
+void ChScriptedWindow::registerEvents() {
+  ChWindow::registerEvents();
+
   EventRegistrationToken token;
 
   webview->add_WebMessageReceived(
@@ -443,7 +517,7 @@ void KrunkerWindow::register_events() {
             if (!mpt)
               return S_OK;
 
-            handle_message(ST::string(mpt.get()));
+            handleMessage(ST::string(mpt.get()));
 
             return S_OK;
           })
@@ -456,6 +530,129 @@ void KrunkerWindow::register_events() {
                  ICoreWebView2NavigationStartingEventArgs *args) -> HRESULT {
             if (mouse_hooked)
               unhook_mouse();
+            return S_OK;
+          })
+          .Get(),
+      &token);
+
+  if (wil::com_ptr<ICoreWebView2_2> webview_2 =
+          webview.query<ICoreWebView2_2>()) {
+    webview_2->add_ContentLoading(
+        Microsoft::WRL::Callback<ICoreWebView2ContentLoadingEventHandler>(
+            [this](ICoreWebView2 *sender,
+                   ICoreWebView2ContentLoadingEventArgs *args) -> HRESULT {
+              wil::unique_cotaskmem_string urir;
+              webview->get_Source(&urir);
+              UriW uri(urir.get());
+
+              if (uri.host() == L"krunker.io")
+                webview->ExecuteScript(
+                    (mainJS + L"\nfunction getRuntimeData() { return " +
+                     ST::wstring(runtimeData()) +
+                     L"; }; delete window.getRuntimeData;")
+                        .c_str(),
+                    nullptr);
+
+              return S_OK;
+            })
+            .Get(),
+        &token);
+  }
+
+  webview->add_WebResourceRequested(
+      Microsoft::WRL::Callback<ICoreWebView2WebResourceRequestedEventHandler>(
+          [this](ICoreWebView2 *sender,
+                 ICoreWebView2WebResourceRequestedEventArgs *args) -> HRESULT {
+            wil::com_ptr<ICoreWebView2WebResourceRequest> request;
+            args->get_Request(&request);
+            wil::unique_cotaskmem_string urir;
+            request->get_Uri(&urir);
+            UriW uri(urir.get());
+
+            if (uri.host() == L"chief.krunker.io") {
+              if (uri.path() == L"/main.js")
+                sendResource(args, JS_MAIN, L"application/javascript");
+              else if (uri.path() == L"/main.css")
+                sendResource(args, CSS_MAIN, L"text/css");
+              else if (uri.path() == L"/error.html")
+                sendResource(args, HTML_ERROR, L"text/html");
+            } else if (uri.host() == L"krunker.io" &&
+                       uri.path() == L"/css/fonts/FrVrKrunkerBold2.ttf")
+              sendResource(args, FONT_GAME, L"font/ttf");
+
+            return S_OK;
+          })
+          .Get(),
+      &token);
+}
+
+Status ChWindow::show(UriW uri, ICoreWebView2 *sender,
+                      std::function<void()> open, bool &shown) {
+  if (webview && webview == sender) {
+    if (&shown)
+      shown = false;
+    return Status::Ok;
+  }
+
+  if (&shown)
+    shown = true;
+
+  return get([this, uri, open](bool newly_created) {
+    webview->Navigate(uri.toString().c_str());
+    BringWindowToTop();
+    if (open)
+      open();
+  });
+}
+
+void ChWindow::registerEvents() {
+  EventRegistrationToken token;
+
+  webview->add_NewWindowRequested(
+      Microsoft::WRL::Callback<ICoreWebView2NewWindowRequestedEventHandler>(
+          [this](ICoreWebView2 *sender,
+                 ICoreWebView2NewWindowRequestedEventArgs *args) -> HRESULT {
+            wil::unique_cotaskmem_string uri;
+            args->get_Uri(&uri);
+
+            ICoreWebView2 *newWindow = nullptr;
+
+            wil::com_ptr<ICoreWebView2Deferral> defer;
+
+            args->AddRef();
+            if (SUCCEEDED(args->GetDeferral(&defer))) {
+              bool shown = false;
+
+              windows.navigate(
+                  UriW(uri.get()), sender,
+                  [defer, args](ChWindow *newWindow) -> void {
+                    if (newWindow)
+                      args->put_NewWindow(newWindow->webview.get());
+                    args->put_Handled(true);
+                    defer->Complete();
+                  },
+                  shown);
+
+              if (!shown)
+                defer->Complete();
+            }
+
+            return S_OK;
+          })
+          .Get(),
+      &token);
+
+  webview->add_NavigationStarting(
+      Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
+          [this](ICoreWebView2 *sender,
+                 ICoreWebView2NavigationStartingEventArgs *args) -> HRESULT {
+            wil::unique_cotaskmem_string uri;
+            args->get_Uri(&uri);
+            bool shown = false;
+            windows.navigate(UriW(uri.get()), sender, nullptr, shown);
+            if (shown)
+              args->put_Cancel(true);
+
             return S_OK;
           })
           .Get(),
@@ -482,31 +679,6 @@ void KrunkerWindow::register_events() {
           })
           .Get(),
       &token);
-
-  if (wil::com_ptr<ICoreWebView2_2> webview_2 =
-          webview.query<ICoreWebView2_2>()) {
-    webview_2->add_ContentLoading(
-        Microsoft::WRL::Callback<ICoreWebView2ContentLoadingEventHandler>(
-            [this](ICoreWebView2 *sender,
-                   ICoreWebView2ContentLoadingEventArgs *args) -> HRESULT {
-              wil::unique_cotaskmem_string urir;
-              webview->get_Source(&urir);
-              UriW uri(urir.get());
-
-              if (uri.host() == L"krunker.io") {
-                std::wstring setup = L"window._RUNTIME_DATA_ = " +
-                                     ST::wstring(runtime_data()) + L";";
-
-                webview->ExecuteScript(setup.c_str(), nullptr);
-
-                webview->ExecuteScript(js_frontend.c_str(), nullptr);
-              }
-
-              return S_OK;
-            })
-            .Get(),
-        &token);
-  }
 
   webview->add_NavigationCompleted(
       Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
@@ -535,7 +707,7 @@ void KrunkerWindow::register_events() {
               // renderer freezes when navigating from an error page that
               // occurs on startup
               control->Close();
-              call_create_webview([this, status, uri]() {
+              callCreateWebView([this, status, uri]() {
                 // = {status}
                 rapidjson::Document data(rapidjson::kArrayType);
                 rapidjson::Document::AllocatorType allocator =
@@ -552,10 +724,11 @@ void KrunkerWindow::register_events() {
                 rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
                 data.Accept(writer);
 
-                webview->Navigate((L"https://chief/error?data=" +
-                                   encodeURIComponent(ST::wstring(
-                                       {buffer.GetString(), buffer.GetSize()})))
-                                      .c_str());
+                webview->Navigate(
+                    (L"https://chief.krunker.io/error.html?data=" +
+                     encodeURIComponent(
+                         ST::wstring({buffer.GetString(), buffer.GetSize()})))
+                        .c_str());
               });
             }
 
@@ -582,13 +755,6 @@ void KrunkerWindow::register_events() {
               env->CreateWebResourceResponse(nullptr, 403, L"Unused", L"",
                                              &response);
               args->put_Response(response.get());
-            } else if (uri.host() == L"chief") {
-              if (uri.path() == L"/error")
-                send_resource(args, HTML_ERROR, L"text/html");
-              else if (uri.path() == L"/GameFont.ttf")
-                send_resource(args, FONT_GAME, L"font/ttf");
-              else if (uri.path() == L"/frontend.js.map")
-                send_resource(args, JS_FRONTEND_MAP, L"application/json");
             } else if (uri.host() == L"krunker.io") {
               std::wstring swap =
                   folder.directory + folder.p_swapper + uri.path();
@@ -624,7 +790,16 @@ void KrunkerWindow::register_events() {
       &token);
 }
 
-KrunkerWindow::Status KrunkerWindow::create(std::function<void()> callback) {
+Status ChScriptedWindow::create(std::function<void()> callback) {
+  Status status = ChWindow::create(callback);
+
+  if (status == Status::Ok && folder.config["render"]["fullscreen"].GetBool())
+    enterFullscreen();
+
+  return status;
+}
+
+Status ChWindow::create(std::function<void()> callback) {
   bool was_open = open;
 
   if (folder.config["window"]["meta"]["replace"].GetBool())
@@ -634,9 +809,6 @@ KrunkerWindow::Status KrunkerWindow::create(std::function<void()> callback) {
 
   SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND,
                   (LONG_PTR)CreateSolidBrush(background));
-
-  if (can_fullscreen && folder.config["render"]["fullscreen"].GetBool())
-    enter_fullscreen();
 
   // hInstance is optional !
   if (folder.config["window"]["meta"]["replace"].GetBool())
@@ -651,18 +823,17 @@ KrunkerWindow::Status KrunkerWindow::create(std::function<void()> callback) {
 
   open = true;
 
-  return call_create_webview(callback);
+  return callCreateWebView(callback);
   /*else {
           callback();
           return Status::Ok;
   }*/
 }
 
-KrunkerWindow::Status
-KrunkerWindow::call_create_webview(std::function<void()> callback) {
+Status ChWindow::callCreateWebView(std::function<void()> callback) {
   auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
 
-  options->put_AdditionalBrowserArguments(cmdline().c_str());
+  options->put_AdditionalBrowserArguments(cmdLine().c_str());
 
   HRESULT create = CreateCoreWebView2EnvironmentWithOptions(
       nullptr, (folder.directory + folder.p_profile).c_str(), options.Get(),
@@ -687,7 +858,7 @@ KrunkerWindow::call_create_webview(std::function<void()> callback) {
                       if (controller == nullptr) {
                         clog::error << "Controller was nullptr. Error code: 0x"
                                     << std::hex << result << clog::endl;
-                        // call_create_webview(callback);
+                        // callCreateWebView(callback);
                         return S_FALSE;
                       }
 
@@ -755,13 +926,13 @@ KrunkerWindow::call_create_webview(std::function<void()> callback) {
                         }
                       }
 
-                      resize_wv();
-                      register_events();
+                      resizeWV();
+                      registerEvents();
 
                       clog::debug << "KrunkerWindow created" << clog::endl;
 
-                      if (on_webview2_startup)
-                        on_webview2_startup();
+                      /*if (on_webview2_startup) on_webview2_startup();*/
+
                       if (callback)
                         callback();
 
@@ -797,12 +968,10 @@ KrunkerWindow::call_create_webview(std::function<void()> callback) {
     return Status::Ok;
 }
 
-KrunkerWindow::Status KrunkerWindow::get(std::function<void(bool)> callback) {
+Status ChWindow::get(std::function<void(bool)> callback) {
   if (open) {
-    // documentation for editor opens twice
-    if (!webview) {
+    if (!webview)
       return Status::RuntimeFatal;
-    }
 
     callback(false);
     return Status::AlreadyOpen;
@@ -811,59 +980,9 @@ KrunkerWindow::Status KrunkerWindow::get(std::function<void(bool)> callback) {
   }
 }
 
-long long mouse_hz = 244;
-long long mouse_interval = 1000 / mouse_hz;
-long long then = now();
-
-void KrunkerWindow::dispatch() {
-  if (!open)
-    return;
-
-  mtx.lock();
-
-  for (JSMessage msg : pending_messages)
-    if (!sendMessage(msg))
-      clog::error << "Unable to send " << msg.dump() << clog::endl;
-
-  pending_messages.clear();
-
-  for (std::wstring url : pending_navigations) {
-    webview->Stop();
-    webview->Navigate(url.c_str());
-  }
-
-  pending_navigations.clear();
-
-  mtx.unlock();
-
-  bool active = GetActiveWindow() == m_hWnd;
-
-  if (!active && mouse_hooked)
-    unhook_mouse();
-
-  time_t last_poll = now() - last_pointer_poll;
-
-  if (last_poll > 1500 && mouse_hooked) {
-    clog::error << "Pointer lock timeout: " << last_poll << "ms" << clog::endl;
-    unhook_mouse();
-  }
-
-  if (mouse_hooked) {
-    long long nw = now();
-    long long delta = nw - then;
-
-    if (delta > mouse_interval) {
-      then = nw - (delta % mouse_interval);
-      sendMessage(msgFct(IM::mousemove, {movebuffer.x, movebuffer.y}));
-      movebuffer.clear();
-    }
-  }
-}
-
-LRESULT KrunkerWindow::on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam,
-                                  BOOL &fHandled) {
+LRESULT ChWindow::on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam,
+                             BOOL &fHandled) {
   open = false;
-  if (on_destroy_callback)
-    on_destroy_callback();
+  // if (on_destroy_callback) on_destroy_callback();
   return true;
 }

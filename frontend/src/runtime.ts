@@ -1,5 +1,3 @@
-const { css, js, config } = _RUNTIME_DATA_!;
-
-delete window._RUNTIME_DATA_;
+const { css, js, config } = getRuntimeData();
 
 export { css, js, config };

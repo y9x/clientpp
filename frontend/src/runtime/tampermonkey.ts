@@ -2,6 +2,7 @@
  * Tampermonky Userscript support
  */
 import console from "../console";
+import { sourceMappingURL } from "./common";
 import MagicString from "magic-string";
 import { parse } from "match-pattern";
 
@@ -128,7 +129,6 @@ export default function tampermonkeyRuntime(script: string, code: string) {
       xml.send();
 
       const magic = new MagicString(xml.responseText);
-      const identifier = "sourceMappingURL";
 
       // eslint-disable-next-line no-new-func
       const run = new Function("code", "eval(code)") as (code: string) => void;
@@ -136,14 +136,10 @@ export default function tampermonkeyRuntime(script: string, code: string) {
       run(
         magic.toString() +
           "//# " +
-          identifier +
-          "=data:application/json," +
-          encodeURI(
-            JSON.stringify(
-              magic.generateMap({
-                source: require,
-              })
-            )
+          sourceMappingURL(
+            magic.generateMap({
+              source: require,
+            })
           )
       );
     }
@@ -160,19 +156,14 @@ export default function tampermonkeyRuntime(script: string, code: string) {
   ) as UserscriptContext;
 
   const magic = new MagicString(code);
-  const identifier = "sourceMappingURL";
 
   run(
     magic.toString() +
       "//# " +
-      identifier +
-      "=data:application/json," +
-      encodeURI(
-        JSON.stringify(
-          magic.generateMap({
-            source: new URL("file:" + script).toString(),
-          })
-        )
+      sourceMappingURL(
+        magic.generateMap({
+          source: new URL("file:" + script).toString(),
+        })
       ),
     console,
     window,

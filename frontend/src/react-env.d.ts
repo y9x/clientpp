@@ -6,13 +6,11 @@ declare module "*IPCMessages.h" {
   export const LogType: Record<string, number>;
 }
 
-declare var _RUNTIME_DATA_:
-  | {
-      css: [name: string, data: string][];
-      js: [name: string, data: string][];
-      config: typeof import("../../resources/config.json");
-    }
-  | undefined;
+declare function getRuntimeData(): {
+  css: [name: string, data: string][];
+  js: [name: string, data: string][];
+  config: typeof import("../../resources/config.json");
+};
 
 declare const chrome: {
   webview: EventTarget & {

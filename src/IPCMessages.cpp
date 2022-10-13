@@ -9,7 +9,7 @@
 #include <rapidjson/prettywriter.h>
 #include <shellapi.h>
 
-void KrunkerWindow::handle_message(JSMessage msg) {
+void ChScriptedWindow::handleMessage(JSMessage msg) {
   if (postedMessages.contains(msg.event)) {
     const auto &[then, catchError] = postedMessages[msg.event];
 
@@ -83,7 +83,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 
     control->Close();
 
-    call_create_webview(
+    callCreateWebView(
         [this, uricopy]() { webview->Navigate(uricopy.c_str()); });
   } break;
   case IM::close_window:
@@ -97,8 +97,7 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 
     break;
   case IM::seek_game:
-    if (type == Type::Game && !seeking &&
-        folder.config["game"]["seek"]["F4"].GetBool())
+    if (folder.config["game"]["seek"]["F4"].GetBool())
       if (folder.config["game"]["seek"]["custom_logic"].GetBool())
         new std::thread(
             [this](std::string sregion) {
@@ -127,23 +126,21 @@ void KrunkerWindow::handle_message(JSMessage msg) {
 
               std::string url = seeker.seek();
 
-              mtx.lock();
-              pending_navigations.push_back(ST::wstring(url));
-              mtx.unlock();
+              dispatchMtx.lock();
+              pendingNavigations.push_back(ST::wstring(url));
+              dispatchMtx.unlock();
 
               seeking = false;
             },
             JT::string(msg.args[0]));
       else {
-        mtx.lock();
-        pending_navigations.push_back(L"https://krunker.io/");
-        mtx.unlock();
+        dispatchMtx.lock();
+        pendingNavigations.push_back(L"https://krunker.io/");
+        dispatchMtx.unlock();
       }
 
     break;
   case IM::toggle_fullscreen:
-    if (type != Type::Game)
-      break;
     folder.config["render"]["fullscreen"] =
         rapidjson::Value(!folder.config["render"]["fullscreen"].GetBool());
     folder.save_config();
@@ -159,9 +156,9 @@ void KrunkerWindow::handle_message(JSMessage msg) {
     }
   case IM::fullscreen:
     if (folder.config["render"]["fullscreen"].GetBool())
-      enter_fullscreen();
+      enterFullscreen();
     else
-      exit_fullscreen();
+      exitFullscreen();
     break;
   case IM::update_meta:
     title = JT::wstring(folder.config["window"]["meta"]["title"]);
@@ -235,16 +232,16 @@ void KrunkerWindow::handle_message(JSMessage msg) {
           } else
             res.args.PushBack(rapidjson::Value(true), res.allocator);
 
-          mtx.lock();
-          pending_messages.push_back(res);
-          mtx.unlock();
+          dispatchMtx.lock();
+          pendingMessages.push_back(res);
+          dispatchMtx.unlock();
         },
         msg);
 
     break;
   default:
-    if (!on_unknown_message || !on_unknown_message(msg))
-      clog::error << "Unknown message " << msg.dump() << clog::endl;
+    // if (!on_unknown_message || !on_unknown_message(msg))
+    clog::error << "Unknown message " << msg.dump() << clog::endl;
 
     break;
   }

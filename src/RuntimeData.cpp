@@ -8,7 +8,7 @@
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
 
-rapidjson::Value KrunkerWindow::load_userscripts(
+rapidjson::Value ChScriptedWindow::loadUserScripts(
     rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator) {
   rapidjson::Value result(rapidjson::kArrayType);
 
@@ -34,7 +34,7 @@ rapidjson::Value KrunkerWindow::load_userscripts(
   return result;
 }
 
-rapidjson::Value KrunkerWindow::load_css(
+rapidjson::Value ChScriptedWindow::loadCSS(
     rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator) {
   rapidjson::Value result(rapidjson::kArrayType);
 
@@ -45,7 +45,7 @@ rapidjson::Value KrunkerWindow::load_css(
 
     if (IOUtil::read_file(it.path().c_str(), buffer)) {
       rapidjson::Value row(rapidjson::kArrayType);
-      std::string name = ST::string(it.file());
+      std::string name = ST::string(it.path());
       row.PushBack(rapidjson::Value(name.data(), name.size(), allocator),
                    allocator);
       row.PushBack(rapidjson::Value(buffer.data(), buffer.size(), allocator),
@@ -55,23 +55,22 @@ rapidjson::Value KrunkerWindow::load_css(
   }
 
   rapidjson::Value row(rapidjson::kArrayType);
-  row.PushBack("client.css", allocator);
-  row.PushBack(
-      rapidjson::Value(css_builtin.data(), css_builtin.size(), allocator),
-      allocator);
+  row.PushBack("main.css", allocator);
+  row.PushBack(rapidjson::Value(mainCSS.data(), mainCSS.size(), allocator),
+               allocator);
   result.PushBack(row, allocator);
 
   return result;
 }
 
-std::string KrunkerWindow::runtime_data() {
+std::string ChScriptedWindow::runtimeData() {
   rapidjson::Document data(rapidjson::kObjectType);
   rapidjson::Document::AllocatorType allocator = data.GetAllocator();
 
   data.AddMember("config", rapidjson::Value(folder.config, allocator),
                  allocator);
-  data.AddMember("css", load_css(allocator), allocator);
-  data.AddMember("js", load_userscripts(allocator), allocator);
+  data.AddMember("css", loadCSS(allocator), allocator);
+  data.AddMember("js", loadUserScripts(allocator), allocator);
 
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
