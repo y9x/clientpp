@@ -3,10 +3,8 @@
 // Used by Resource.rc
 //
 #define JS_MAIN 6
-#define CSS_MAIN 7
 #define MAINICON 101
 #define JSON_CONFIG 110
-#define CSS_CLIENT 111
 #define ICON_CHIEF 117
 #define ICON_KRUNKER 121
 #define HTML_ERROR 125

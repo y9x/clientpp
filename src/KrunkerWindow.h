@@ -117,7 +117,6 @@ private:
   bool exitFullscreen();
   std::vector<JSMessage> pendingMessages;
   std::wstring mainJS;
-  std::string mainCSS;
   bool seeking = false;
 
   // Messaging:

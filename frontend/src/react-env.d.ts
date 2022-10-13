@@ -6,6 +6,13 @@ declare module "*IPCMessages.h" {
   export const LogType: Record<string, number>;
 }
 
+declare module "*.css" {}
+
+declare module "*.module.css" {
+  const styles: Record<string, string>;
+  export default styles;
+}
+
 declare function getRuntimeData(): {
   css: [name: string, data: string][];
   js: [name: string, data: string][];

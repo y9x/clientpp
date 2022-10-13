@@ -54,12 +54,6 @@ rapidjson::Value ChScriptedWindow::getUserStyles(
     }
   }
 
-  rapidjson::Value row(rapidjson::kArrayType);
-  row.PushBack("main.css", allocator);
-  row.PushBack(rapidjson::Value(mainCSS.data(), mainCSS.size(), allocator),
-               allocator);
-  result.PushBack(row, allocator);
-
   return result;
 }
 

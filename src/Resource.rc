@@ -67,8 +67,6 @@ LANGUAGE LANG_ENGLISH,
 
     FONT_GAME RCDATA "..\\resources\\GameFont.ttf"
 
-    CSS_CLIENT RCDATA "..\\resources\\client.css"
-
     /////////////////////////////////////////////////////////////////////////////
     //
     // Version

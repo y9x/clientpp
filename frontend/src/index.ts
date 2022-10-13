@@ -1,3 +1,4 @@
+import "./index.css";
 import "./menu/createUI";
 import "./fixes";
 import "./resources";

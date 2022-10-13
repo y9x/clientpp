@@ -42,9 +42,6 @@ ChScriptedWindow::ChScriptedWindow(ClientFolder &_folder,
   else
     clog::error << "Failure loading main.js" << clog::endl;
 
-  if (!loadResource(CSS_MAIN, mainCSS))
-    clog::error << "Failure loading main.css" << clog::endl;
-
   raw_input.usUsagePage = 0x01;
   raw_input.usUsage = 0x02;
 }
@@ -566,15 +563,11 @@ void ChScriptedWindow::registerEvents() {
             UriW uri(urir.get());
 
             if (uri.host() == L"chief.krunker.io") {
-              if (uri.path() == L"/main.js")
-                sendResource(args, JS_MAIN, L"application/javascript");
-              else if (uri.path() == L"/main.css")
-                sendResource(args, CSS_MAIN, L"text/css");
-              else if (uri.path() == L"/error.html")
+              if (uri.path() == L"/error.html")
                 sendResource(args, HTML_ERROR, L"text/html");
-            } else if (uri.host() == L"krunker.io" &&
-                       uri.path() == L"/css/fonts/FrVrKrunkerBold2.ttf")
-              sendResource(args, FONT_GAME, L"font/ttf");
+              else if (uri.path() == L"/GameFont.ttf")
+                sendResource(args, FONT_GAME, L"font/ttf");
+            }
 
             return S_OK;
           })
