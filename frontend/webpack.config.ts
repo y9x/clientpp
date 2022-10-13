@@ -199,10 +199,12 @@ const config: Configuration = {
     new MiniCssExtractPlugin(),
     new webpack.BannerPlugin({
       banner: "try{",
+      raw: true,
     }),
     new webpack.BannerPlugin({
-      banner: "}catch(err){console.error(err)}",
+      banner: "}catch(err){setTimeout(() => console.error(err));}",
       footer: true,
+      raw: true,
     }),
   ],
 };
