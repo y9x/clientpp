@@ -47,7 +47,7 @@ std::vector<std::pair<std::string, std::string>> LobbySeeker::regions = {
     {"af-ct", "South Africa"},   {"as-seoul", "South Korea"},
 };
 
-int Game::region_id(std::string region) {
+int regionID(std::string region) {
   for (size_t mir = 0; mir < LobbySeeker::regions.size(); mir++)
     if (LobbySeeker::regions[mir].first == region)
       return (int)mir;
@@ -55,22 +55,23 @@ int Game::region_id(std::string region) {
   return -1;
 }
 
-Game::Game(const rapidjson::Value &data)
-    : id(data[0].GetString(), data[0].GetStringLength()),
-      region(region_id(
-          std::string(data[1].GetString(), data[1].GetStringLength()))),
-      map(std::string(data[4]["i"].GetString(),
-                      data[4]["i"].GetStringLength())),
-      mode(data[4]["g"].GetInt()), players(data[2].GetInt()),
-      max_players(data[3].GetInt()), custom(data[4]["c"].GetInt()) {}
+GameConfig::GameConfig(const rapidjson::Value &data)
+    : map(data["i"].GetString()), mode(data["g"].GetInt()),
+      custom(data["c"].GetInt()) {}
 
-bool Game::operator<(Game c) {
-  return players > c.players; // && (max_players - 1 < players);
+Game::Game(const rapidjson::Value &data)
+    : id(data[0].GetString()), region(data[1].GetString()),
+      players(data[2].GetInt()), max_players(data[3].GetInt()), config(data[4]),
+      time(data[5].GetInt()) {}
+
+bool Game::isFull() { return players == max_players; }
+
+std::string Game::getLink() {
+  return "https://krunker.io/?game=" + std::string(id);
 }
 
-bool Game::full() { return players == max_players; }
-
-std::string Game::link() { return "https://krunker.io/?game=" + id; }
+// increase weight of game players if it is within the target range (4, 6)
+size_t strongPlayers(size_t x) { return (x >= 4 || x <= 6) ? 8 : x; }
 
 std::string LobbySeeker::seek() {
   if (!use_map && mode == -1)
@@ -86,25 +87,35 @@ std::string LobbySeeker::seek() {
     std::vector<Game> games;
 
     for (const rapidjson::Value &data : data["games"].GetArray()) {
-      Game game = data;
+      Game game(data);
 
-      if (game.full())
+      if (game.isFull())
         continue;
-      if (region != -1 && game.region != region)
+      if (mode != -1 && game.config.mode != mode)
         continue;
-      if (mode != -1 && game.mode != mode)
+      if (!customs && game.config.custom)
         continue;
-      if (!customs && game.custom)
+      if (region != -1 && regionID(game.region) != region)
         continue;
-      if (use_map && ST::lowercase(game.map) != map)
+      if (use_map && ST::lowercase(game.config.map) != map)
         continue;
 
       games.push_back(game);
     }
 
     if (games.size()) {
-      std::sort(games.begin(), games.end());
-      return games[0].link();
+      // game with the most time left
+      std::stable_sort(
+          games.begin(), games.end(),
+          [](const Game &a, const Game &b) -> bool { return a.time < b.time; });
+
+      // game with the most players
+      std::stable_sort(
+          games.begin(), games.end(), [](const Game &a, const Game &b) -> bool {
+            return strongPlayers(a.players) < strongPlayers(b.players);
+          });
+
+      return games[0].getLink();
     }
   } catch (net::error &err) {
     clog::error << "Failure requesting matchmaker: " << err.what()

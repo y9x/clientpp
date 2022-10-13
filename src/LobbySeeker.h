@@ -2,16 +2,23 @@
 #include <functional>
 #include <rapidjson/document.h>
 
-struct Game {
-  int region_id(std::string region);
-  int mode, region;
-  size_t players, max_players;
-  std::string id, map;
-  std::string link();
+struct GameConfig {
   bool custom;
-  bool full();
-  bool operator<(Game c);
+  const char *map;
+  int mode;
+  GameConfig(const rapidjson::Value &data);
+};
+
+struct Game {
+  const char *id;
+  const char *region;
+  size_t players;
+  size_t max_players;
+  GameConfig config;
+  int time;
   Game(const rapidjson::Value &data);
+  bool isFull();
+  std::string getLink();
 };
 
 class LobbySeeker {
