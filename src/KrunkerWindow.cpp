@@ -12,7 +12,6 @@
 #include <chrono>
 #include <rapidjson/writer.h>
 #include <regex>
-#include <sstream>
 
 constexpr const wchar_t *addScripts =
     LR"(document.write('<link rel=\'stylesheet\' href=\'https://chief.krunker.io/main.css\'></script><script src=\'https://chief.krunker.io/main.js\'></script>');)";
@@ -22,6 +21,10 @@ long long now() {
              std::chrono::system_clock::now().time_since_epoch())
       .count();
 }
+
+HRESULT ChWindow::lastHError = S_OK;
+void ChWindow::setLastHError(HRESULT result) { lastHError = result; }
+HRESULT ChWindow::getLastHError() { return lastHError; }
 
 ChWindow::ChWindow(ClientFolder &_folder, ChWindows &_windows, Vector2 _scale,
                    std::wstring _title)
@@ -575,8 +578,8 @@ void ChScriptedWindow::registerEvents() {
       &token);
 }
 
-Status ChWindow::show(UriW uri, ICoreWebView2 *sender,
-                      std::function<void()> open, bool &shown) {
+ChWindow::Status ChWindow::show(UriW uri, ICoreWebView2 *sender,
+                                std::function<void()> open, bool &shown) {
   if (webview && webview == sender) {
     if (&shown)
       shown = false;
@@ -779,7 +782,7 @@ void ChWindow::registerEvents() {
       &token);
 }
 
-Status ChScriptedWindow::create(std::function<void()> callback) {
+ChWindow::Status ChScriptedWindow::create(std::function<void()> callback) {
   Status status = ChWindow::create(callback);
 
   if (status == Status::Ok && folder.config["render"]["fullscreen"].GetBool())
@@ -788,7 +791,7 @@ Status ChScriptedWindow::create(std::function<void()> callback) {
   return status;
 }
 
-Status ChWindow::create(std::function<void()> callback) {
+ChWindow::Status ChWindow::create(std::function<void()> callback) {
   bool was_open = open;
 
   if (folder.config["window"]["meta"]["replace"].GetBool())
@@ -819,7 +822,7 @@ Status ChWindow::create(std::function<void()> callback) {
   }*/
 }
 
-Status ChWindow::callCreateWebView(std::function<void()> callback) {
+ChWindow::Status ChWindow::callCreateWebView(std::function<void()> callback) {
   auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
 
   options->put_AdditionalBrowserArguments(cmdLine().c_str());
@@ -934,7 +937,7 @@ Status ChWindow::callCreateWebView(std::function<void()> callback) {
           .Get());
 
   if (!SUCCEEDED(create)) {
-    last_herror = create;
+    setLastHError(create);
 
     switch (create) {
     case HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND):
@@ -957,7 +960,7 @@ Status ChWindow::callCreateWebView(std::function<void()> callback) {
     return Status::Ok;
 }
 
-Status ChWindow::get(std::function<void(bool)> callback) {
+ChWindow::Status ChWindow::get(std::function<void(bool)> callback) {
   if (open) {
     if (!webview)
       return Status::RuntimeFatal;

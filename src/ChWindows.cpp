@@ -31,14 +31,15 @@ ChWindows::ChWindows(ClientFolder &folder, AccountManager &accounts)
       viewer(folder, *this, {0.8, 0.8}, titleViewer),
       scripting(folder, *this, {0.8, 0.8}, titleScripting) {}
 
-Status ChWindows::navigate(UriW uri, ICoreWebView2 *sender,
-                           std::function<void(ChWindow *newWindow)> open,
-                           bool &shown) {
+ChWindow::Status
+ChWindows::navigate(UriW uri, ICoreWebView2 *sender,
+                    std::function<void(ChWindow *newWindow)> open,
+                    bool &shown) {
   if (uri.host() == L"chief.krunker.io") {
     if (&shown)
       shown = false;
 
-    return Status::Ok;
+    return ChWindow::Status::Ok;
   }
 
   ChWindow *window = getWindow(krunker::identifyType(uri));
@@ -47,7 +48,7 @@ Status ChWindows::navigate(UriW uri, ICoreWebView2 *sender,
     ShellExecute(NULL, L"open", uri.toString().c_str(), L"", L"", SW_SHOW);
     if (open)
       open(nullptr);
-    return Status::Ok;
+    return ChWindow::Status::Ok;
   }
 
   return window->show(

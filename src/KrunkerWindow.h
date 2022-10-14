@@ -23,26 +23,32 @@
 
 long long now();
 
-enum class Status {
-  Ok,
-  UserDataExists,
-  FailCreateUserData,
-  RuntimeFatal,
-  MissingRuntime,
-  UnknownError,
-  AlreadyOpen,
-  NotImplemented,
-};
-
 class ChWindows;
 
 class ChWindow : public CWindowImpl<ChWindow> {
+public:
+  static HRESULT getLastHError();
+
+  enum class Status {
+    Ok,
+    UserDataExists,
+    FailCreateUserData,
+    RuntimeFatal,
+    MissingRuntime,
+    UnknownError,
+    AlreadyOpen,
+    NotImplemented,
+  };
+
 private:
   std::wstring cmdLine();
   LRESULT on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
   LRESULT on_destroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
 
 protected:
+  static HRESULT lastHError;
+  static void setLastHError(HRESULT result);
+
   // Every window should be able to access other windows
   ChWindows &windows;
   ClientFolder &folder;
@@ -57,7 +63,6 @@ protected:
   wil::com_ptr<ICoreWebView2> webview;
   wil::com_ptr<ICoreWebView2Environment> env;
   bool open = false;
-  HRESULT last_herror = 0;
   Vector2 scale;
   HINSTANCE getHinstance();
   bool createWindow();
@@ -200,7 +205,8 @@ public:
   /// @param open
   /// @return if the navigation will take place in a new window (if open() will
   /// be called)
-  Status navigate(UriW uri, ICoreWebView2 *sender = nullptr,
-                  std::function<void(ChWindow *newWindow)> open = nullptr,
-                  bool &shown = *(bool *)nullptr);
+  ChWindow::Status
+  navigate(UriW uri, ICoreWebView2 *sender = nullptr,
+           std::function<void(ChWindow *newWindow)> open = nullptr,
+           bool &shown = *(bool *)nullptr);
 };
