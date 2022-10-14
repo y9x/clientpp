@@ -150,7 +150,8 @@ int APIENTRY WinMain(HINSTANCE _In_ hInstance, HINSTANCE _In_opt_ hPrevInstance,
   }
 
   // checking updates causes delay
-  new std::thread(update);
+  if (folder->config["client"]["auto_update"].GetBool())
+    new std::thread(update);
 
   switch (windows->navigate(UriW(L"https://krunker.io/"))) {
 

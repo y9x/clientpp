@@ -71,6 +71,14 @@ export default function Menu() {
             setConfig(config);
           }}
         />
+        <Switch
+          title="Check for updates at startup"
+          defaultChecked={config.client.auto_update}
+          onChange={(event) => {
+            config.client.auto_update = event.currentTarget.checked;
+            setConfig(config);
+          }}
+        />
       </HeadlessSet>
       <Set title="Folders">
         <Button

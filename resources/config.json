@@ -12,7 +12,8 @@
     }
   },
   "client": {
-    "devtools": false
+    "devtools": false,
+    "auto_update": true
   },
   "render": {
     "uncap_fps": false,
