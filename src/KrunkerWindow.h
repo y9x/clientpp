@@ -89,8 +89,6 @@ public:
 
 class ChScriptedWindow : public ChWindow {
 private:
-  // RPC:
-
   // Window-Frontend messaging:
 
   AccountManager &accounts;
@@ -102,9 +100,9 @@ private:
 
   static LRESULT CALLBACK mouseMessage(int code, WPARAM wParam, LPARAM lParam);
   LRESULT on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
-  void hook_mouse();
-  void unhook_mouse();
-  RAWINPUTDEVICE raw_input;
+  void hookMouse();
+  void unhookMouse();
+  RAWINPUTDEVICE rawInput;
   HHOOK mouse_hook = 0;
   bool mouse_hooked = false;
   std::time_t last_pointer_poll;
@@ -153,6 +151,9 @@ private:
                     int resource, std::wstring mime);
   Status create(std::function<void()> callback = nullptr) override;
   void registerEvents() override;
+
+  std::string getPingRegion();
+  void seekGame();
 
   BEGIN_MSG_MAP(ChScriptedWindow)
   CHAIN_MSG_MAP(ChWindow)

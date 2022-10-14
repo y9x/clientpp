@@ -26,13 +26,13 @@ if (currentSite === "game") {
     else ipc.send(IM.seek_game, localStorage.pingRegion7);
   });
 
-  createKeybind("F11", () => {
-    ipc.send(IM.toggle_fullscreen);
-  });
+  createKeybind("F11", () => ipc.send(IM.toggle_fullscreen));
 }
 
-createKeybind("F10", () => {
-  ipc.send(IM.open_devtools);
-});
+createKeybind("F10", () => ipc.send(IM.open_devtools));
 
 createKeybind("F5", () => ipc.send(IM.reload_window));
+
+ipc.on(IM.get_ping_region, (id) => {
+  ipc.send(id, localStorage.pingRegion7);
+});

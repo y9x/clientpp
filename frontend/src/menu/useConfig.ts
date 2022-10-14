@@ -12,6 +12,17 @@ export default function getConfig() {
   return currentConfig;
 }
 
+ipc.on(IM.update_menu, (config) => setConfig(config));
+
+/**
+ * Sets the config and triggers hooks.
+ */
+export function setConfig(newConfig: typeof config) {
+  ipc.send(IM.save_config, currentConfig);
+  currentConfig = newConfig;
+  for (const listener of listeners) listener();
+}
+
 export function useConfig(): [
   config: typeof config,
   setConfig: (newConfig: typeof config) => void
@@ -30,12 +41,5 @@ export function useConfig(): [
     };
   });
 
-  return [
-    state,
-    (newConfig) => {
-      ipc.send(IM.save_config, currentConfig);
-      currentConfig = newConfig;
-      for (const listener of listeners) listener();
-    },
-  ];
+  return [state, setConfig];
 }

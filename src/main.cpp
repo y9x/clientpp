@@ -22,6 +22,7 @@ constexpr const char *discordRPC = "899137303182716968";
 
 namespace {
 HICON mainIcon;
+HACCEL hAccTable;
 AccountManager *accounts;
 ClientFolder *folder;
 ChWindows *windows;
@@ -114,6 +115,8 @@ int APIENTRY WinMain(HINSTANCE _In_ hInstance, HINSTANCE _In_opt_ hPrevInstance,
   Discord_Initialize(discordRPC, &presence_events, 1, nullptr);
 
   mainIcon = LoadIcon(hInstance, MAKEINTRESOURCE(MAINICON));
+
+  hAccTable = LoadAccelerators(hInstance, L"WebView2Accel");
 
   folder = new ClientFolder();
 

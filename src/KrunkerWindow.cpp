@@ -1,9 +1,11 @@
+
 #include "./KrunkerWindow.h"
 #include "../utils/Base64.h"
 #include "../utils/JsonUtil.h"
 #include "../utils/StringUtil.h"
 #include "../utils/Uri.h"
 #include "./LoadRes.h"
+#include "./LobbySeeker.h"
 #include "./Log.h"
 #include "./Site.h"
 #include "./main.h"
@@ -45,8 +47,8 @@ ChScriptedWindow::ChScriptedWindow(ClientFolder &_folder,
   else
     clog::error << "Failure loading main.js" << clog::endl;
 
-  raw_input.usUsagePage = 0x01;
-  raw_input.usUsage = 0x02;
+  rawInput.usUsagePage = 0x01;
+  rawInput.usUsage = 0x02;
 }
 
 ChWindow::~ChWindow() {
@@ -56,7 +58,7 @@ ChWindow::~ChWindow() {
 
 ChScriptedWindow::~ChScriptedWindow() {
   if (mouse_hooked)
-    unhook_mouse();
+    unhookMouse();
 }
 
 HINSTANCE ChWindow::getHinstance() {
@@ -233,12 +235,61 @@ LRESULT ChScriptedWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam,
   return S_OK;
 }
 
+void ChScriptedWindow::seekGame() {
+  if (folder.config["game"]["seek"]["F4"].GetBool())
+    if (folder.config["game"]["seek"]["custom_logic"].GetBool())
+      new std::thread([this]() {
+        postMessage(
+            JSMessage(IM::get_ping_region),
+            [this](const rapidjson::Value &value) -> void {
+              std::string region(value.GetString(), value.GetStringLength());
+
+              seeking = true;
+
+              LobbySeeker seeker;
+
+              for (size_t mi = 0; mi < LobbySeeker::modes.size(); mi++)
+                if (LobbySeeker::modes[mi] ==
+                    JT::string(folder.config["game"]["seek"]["mode"])) {
+                  seeker.mode = mi;
+                }
+
+              for (size_t ri = 0; ri < LobbySeeker::regions.size(); ri++)
+                if (LobbySeeker::regions[ri].first == region) {
+                  seeker.region = ri;
+                }
+
+              seeker.customs =
+                  folder.config["game"]["seek"]["customs"].GetBool();
+              seeker.map = ST::lowercase(
+                  JT::string(folder.config["game"]["seek"]["map"]));
+
+              if (seeker.map.length())
+                seeker.use_map = true;
+
+              std::string url = seeker.seek();
+
+              dispatchMtx.lock();
+              pendingNavigations.push_back(ST::wstring(url));
+              dispatchMtx.unlock();
+
+              seeking = false;
+            },
+            nullptr);
+      });
+    else {
+      dispatchMtx.lock();
+      pendingNavigations.push_back(L"https://krunker.io/");
+      dispatchMtx.unlock();
+    }
+}
+
 LRESULT CALLBACK ChScriptedWindow::mouseMessage(int code, WPARAM wParam,
                                                 LPARAM lParam) {
   return 1;
 }
 
-void ChScriptedWindow::hook_mouse() {
+void ChScriptedWindow::hookMouse() {
   clog::debug << "Hooking mouse" << clog::endl;
 
   INPUT input = {};
@@ -250,21 +301,21 @@ void ChScriptedWindow::hook_mouse() {
                       MOUSEEVENTF_RIGHTUP | MOUSEEVENTF_MIDDLEUP);
   SendInput(1, &input, sizeof(INPUT));
 
-  raw_input.dwFlags = RIDEV_INPUTSINK;
-  raw_input.hwndTarget = m_hWnd;
-  RegisterRawInputDevices(&raw_input, 1, sizeof(raw_input));
+  rawInput.dwFlags = RIDEV_INPUTSINK;
+  rawInput.hwndTarget = m_hWnd;
+  RegisterRawInputDevices(&rawInput, 1, sizeof(rawInput));
 
   mouse_hook =
       SetWindowsHookEx(WH_MOUSE_LL, *mouseMessage, getHinstance(), NULL);
   mouse_hooked = true;
 }
 
-void ChScriptedWindow::unhook_mouse() {
+void ChScriptedWindow::unhookMouse() {
   clog::debug << "Unhooked mouse" << clog::endl;
 
-  raw_input.dwFlags = RIDEV_REMOVE;
-  raw_input.hwndTarget = NULL;
-  RegisterRawInputDevices(&raw_input, 1, sizeof(raw_input));
+  rawInput.dwFlags = RIDEV_REMOVE;
+  rawInput.hwndTarget = NULL;
+  RegisterRawInputDevices(&rawInput, 1, sizeof(rawInput));
 
   UnhookWindowsHookEx(mouse_hook);
   mouse_hooked = false;
@@ -477,13 +528,13 @@ void ChScriptedWindow::dispatch() {
   bool active = GetActiveWindow() == m_hWnd;
 
   if (!active && mouse_hooked)
-    unhook_mouse();
+    unhookMouse();
 
   time_t last_poll = now() - last_pointer_poll;
 
   if (last_poll > 1500 && mouse_hooked) {
     clog::error << "Pointer lock timeout: " << last_poll << "ms" << clog::endl;
-    unhook_mouse();
+    unhookMouse();
   }
 
   if (mouse_hooked) {
@@ -525,7 +576,7 @@ void ChScriptedWindow::registerEvents() {
           [this](ICoreWebView2 *sender,
                  ICoreWebView2NavigationStartingEventArgs *args) -> HRESULT {
             if (mouse_hooked)
-              unhook_mouse();
+              unhookMouse();
             return S_OK;
           })
           .Get(),

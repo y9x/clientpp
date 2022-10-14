@@ -13,8 +13,11 @@ constexpr unsigned char rpc_update = 0, rpc_clear = 1, save_config = 3,
                         mousewheel = 13, pointer = 14, open_devtools = 15,
                         log = 16, relaunch_webview = 17, close_window = 18,
                         reload_window = 19, seek_game = 20,
-                        toggle_fullscreen = 21, update_menu = 22,
-                        account_list = 23, account_password = 24,
-                        account_set = 25, account_remove = 26,
-                        account_set_password = 27, account_regen = 28;
+                        toggle_fullscreen = 21, account_list = 23,
+                        account_password = 24, account_set = 25,
+                        account_remove = 26, account_set_password = 27,
+                        account_regen = 28;
+
+// outgoing
+constexpr unsigned char update_menu = 22, get_ping_region = 29;
 }; // namespace IM

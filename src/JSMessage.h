@@ -1,5 +1,4 @@
 #pragma once
-#include "./IPCMessages.h"
 #include <rapidjson/allocators.h>
 #include <rapidjson/fwd.h>
 #include <rapidjson/pointer.h>

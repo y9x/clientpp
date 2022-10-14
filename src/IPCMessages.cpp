@@ -1,7 +1,6 @@
 #include "../utils/JsonUtil.h"
 #include "../utils/StringUtil.h"
 #include "./KrunkerWindow.h"
-#include "./LobbySeeker.h"
 #include "./Log.h"
 #include "./main.h"
 #include "./resource.h"
@@ -80,10 +79,6 @@ void ChScriptedWindow::handleMessage(JSMessage msg) {
     folder.config.CopyFrom(msg.args[0], folder.config.GetAllocator());
     folder.save_config();
   } break;
-  case IM::open_devtools:
-    if (folder.config["client"]["devtools"].GetBool())
-      webview->OpenDevToolsWindow();
-    break;
   case IM::shell_open: {
     std::wstring open;
 
@@ -105,9 +100,9 @@ void ChScriptedWindow::handleMessage(JSMessage msg) {
   case IM::pointer:
     last_pointer_poll = now();
     if (msg.args[0].GetBool() && !mouse_hooked)
-      hook_mouse();
+      hookMouse();
     else if (!msg.args[0].GetBool() && mouse_hooked)
-      unhook_mouse();
+      unhookMouse();
 
     break;
   case IM::log: {
@@ -149,47 +144,12 @@ void ChScriptedWindow::handleMessage(JSMessage msg) {
 
     break;
   case IM::seek_game:
-    if (folder.config["game"]["seek"]["F4"].GetBool())
-      if (folder.config["game"]["seek"]["custom_logic"].GetBool())
-        new std::thread(
-            [this](std::string sregion) {
-              seeking = true;
+    seekGame();
 
-              LobbySeeker seeker;
-
-              for (size_t mi = 0; mi < LobbySeeker::modes.size(); mi++)
-                if (LobbySeeker::modes[mi] ==
-                    JT::string(folder.config["game"]["seek"]["mode"])) {
-                  seeker.mode = mi;
-                }
-
-              for (size_t ri = 0; ri < LobbySeeker::regions.size(); ri++)
-                if (LobbySeeker::regions[ri].first == sregion) {
-                  seeker.region = ri;
-                }
-
-              seeker.customs =
-                  folder.config["game"]["seek"]["customs"].GetBool();
-              seeker.map = ST::lowercase(
-                  JT::string(folder.config["game"]["seek"]["map"]));
-
-              if (seeker.map.length())
-                seeker.use_map = true;
-
-              std::string url = seeker.seek();
-
-              dispatchMtx.lock();
-              pendingNavigations.push_back(ST::wstring(url));
-              dispatchMtx.unlock();
-
-              seeking = false;
-            },
-            JT::string(msg.args[0]));
-      else {
-        dispatchMtx.lock();
-        pendingNavigations.push_back(L"https://krunker.io/");
-        dispatchMtx.unlock();
-      }
+    break;
+  case IM::open_devtools:
+    if (folder.config["client"]["devtools"].GetBool())
+      webview->OpenDevToolsWindow();
 
     break;
   case IM::toggle_fullscreen:
