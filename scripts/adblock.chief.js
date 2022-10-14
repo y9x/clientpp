@@ -40,8 +40,9 @@ if (enabled) {
       // krunker sets FRVR = window.FRVR || {}
       // we can detect this expression by checking if the value is equal to window.FRVR
       if (value === shimFRVR) {
-        console.error("Caught ADs.");
-        throw new Error("Adblock");
+        throw new Error(
+          "This error is safe to ignore! FRVR was blocked from loading."
+        );
       }
     },
   });
