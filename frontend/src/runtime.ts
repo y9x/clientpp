@@ -1,3 +1,3 @@
-const { css, js, config } = getRuntimeData();
+const { css, js, config, version } = getRuntimeData();
 
-export { css, js, config };
+export { css, js, config, version as clientVersion };

@@ -17,6 +17,7 @@ declare function getRuntimeData(): {
   css: [name: string, data: string][];
   js: [name: string, data: string][];
   config: typeof import("../../resources/config.json");
+  version: string;
 };
 
 declare type GameActivityData =

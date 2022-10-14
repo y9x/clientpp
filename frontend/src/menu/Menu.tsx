@@ -1,7 +1,9 @@
 import { updateRPC } from "../RPC";
 import ipc, { IM } from "../ipc";
+import { clientVersion } from "../runtime";
 import { renderSettings } from "../runtime/chief";
 import Button from "./components/Button";
+import { ControlContainer } from "./components/Control";
 import FilePath from "./components/FilePath";
 import Link from "./components/Link";
 import Select from "./components/Select";
@@ -62,22 +64,6 @@ export default function Menu() {
           title="Discord"
           href="https://discord.gg/4r47ZwdSQj"
           onClick={openShell}
-        />
-        <Switch
-          title="Devtools"
-          defaultChecked={config.client.devtools}
-          onChange={(event) => {
-            config.client.devtools = event.currentTarget.checked;
-            setConfig(config);
-          }}
-        />
-        <Switch
-          title="Check for updates at startup"
-          defaultChecked={config.client.auto_update}
-          onChange={(event) => {
-            config.client.auto_update = event.currentTarget.checked;
-            setConfig(config);
-          }}
         />
       </HeadlessSet>
       <Set title="Folders">
@@ -282,6 +268,25 @@ export default function Menu() {
           <option value="*.ico">Icon</option>
           <option value="*.*">All types</option>
         </FilePath>
+      </Set>
+      <Set title="Client">
+        <Switch
+          title="Devtools"
+          defaultChecked={config.client.devtools}
+          onChange={(event) => {
+            config.client.devtools = event.currentTarget.checked;
+            setConfig(config);
+          }}
+        />
+        <Switch
+          title="Check for updates at startup"
+          defaultChecked={config.client.auto_update}
+          onChange={(event) => {
+            config.client.auto_update = event.currentTarget.checked;
+            setConfig(config);
+          }}
+        />
+        <ControlContainer>Chief Client v{clientVersion}</ControlContainer>
       </Set>
       {renderSettings.map((Settings, i) => (
         <Settings key={i} />

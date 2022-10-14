@@ -65,6 +65,9 @@ std::string ChScriptedWindow::runtimeData() {
                  allocator);
   data.AddMember("css", getUserStyles(allocator), allocator);
   data.AddMember("js", getUserScripts(allocator), allocator);
+  data.AddMember("version",
+                 rapidjson::Value(CLIENT_VERSION_STRING, data.GetAllocator()),
+                 allocator);
 
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);

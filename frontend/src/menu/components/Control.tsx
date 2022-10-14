@@ -6,7 +6,7 @@ export interface BaseControlProps {
   /**
    * This control's title.
    */
-  title: string;
+  title: ReactNode;
   /**
    * Description of the control.
    */
@@ -25,7 +25,7 @@ export function ControlTitle({
   children,
 }: {
   attention?: boolean;
-  children: string;
+  children: ReactNode;
 }) {
   return (
     <>
@@ -52,7 +52,7 @@ export function ControlContainer({
 }
 
 /**
- * A control. If title isn't specified, this control will simply become a container.
+ * A control.
  */
 export default function Control({
   title,
@@ -60,11 +60,11 @@ export default function Control({
   attention,
   children,
 }: BaseControlProps & {
-  children: ReactNode;
+  children?: ReactNode;
 }) {
   return (
     <div className="settName" title={description}>
-      {typeof title === "string" ? (
+      {title ? (
         <>
           <ControlTitle attention={attention}>{title}</ControlTitle> {children}
         </>
