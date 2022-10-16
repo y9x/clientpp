@@ -157,7 +157,7 @@ bool auto_detect_policy::check_policy(
 
 WINHTTP_PROXY_INFO auto_detect_policy::make_proxy_info(
     session &http_session, const url &dest_url,
-    const WINHTTP_CURRENT_USER_IE_PROXY_CONFIG &config) {
+    const WINHTTP_CURRENT_USER_IE_PROXY_CONFIG &config, bool &error) {
   WINHTTP_PROXY_INFO proxy_info = {};
   WINHTTP_PROXY_INFO proxy_info_tmp = {};
   WINHTTP_AUTOPROXY_OPTIONS opt_pac = {};
@@ -178,7 +178,9 @@ WINHTTP_PROXY_INFO auto_detect_policy::make_proxy_info(
     proxy_info.lpszProxy = const_cast<LPWSTR>(proxy_list[0].c_str());
     LOG(std::wstring(L"Proxy is: ") + proxy_info.lpszProxy);
   } else {
-    throw error(L"Error (WinHttpGetProxyForUrl)", GetLastError());
+    error = true;
+    LOG(L"Error (WinHttpGetProxyForUrl)");
+    LOG(GetLastError());
   }
 
   return proxy_info;
@@ -205,13 +207,18 @@ void detect_proxy(session &http_session, const url &dest_url) {
     }
     if (auto_detect_policy::check_policy(config)) {
       LOG(L"auto_detect_policy");
+      bool err = false;
       try {
-        proxy_info =
-            auto_detect_policy::make_proxy_info(http_session, dest_url, config);
+        proxy_info = auto_detect_policy::make_proxy_info(http_session, dest_url,
+                                                         config, err);
       } catch (error &e) {
         if (e.get_error_code() != ERROR_WINHTTP_AUTODETECTION_FAILED) {
           throw;
         }
+        LOG(L"ERROR_WINHTTP_AUTODETECTION_FAILED");
+      }
+
+      if (err) {
         LOG(L"ERROR_WINHTTP_AUTODETECTION_FAILED");
       }
     }
@@ -357,7 +364,11 @@ buffer_t fetch_request(const url &dest_url, const std::wstring &username,
                        const std::wstring &user_agent) {
   LOG(L"fetch_request " + dest_url.get_text());
   auto http_session = make_session(user_agent);
-  detect_proxy(http_session, dest_url);
+  try {
+    detect_proxy(http_session, dest_url);
+  } catch (error) {
+  }
+
   auto http_connection = make_connection(http_session, dest_url);
 
   auto http_request = make_request(http_connection, L"GET", dest_url);
