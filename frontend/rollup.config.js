@@ -45,7 +45,7 @@ const configs = [
         inlineSources: true,
       }),
       tryCatch(),
-      isDevelopment && terser(),
+      !isDevelopment && terser(),
     ],
   },
   {
@@ -68,7 +68,7 @@ const configs = [
         inlineSources: true,
       }),
       tryCatch(),
-      isDevelopment && terser(),
+      !isDevelopment && terser(),
     ],
   },
 ];
