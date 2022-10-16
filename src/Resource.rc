@@ -22,9 +22,13 @@ LANGUAGE LANG_ENGLISH,
     // RCDATA
     //
 
-    JS_MAIN RCDATA "..\\frontend\\dist\\main.js"
+    JS_GAME RCDATA "..\\frontend\\dist\\game.js"
 
-    CSS_MAIN RCDATA "..\\frontend\\dist\\main.css"
+    JS_GENERIC RCDATA "..\\frontend\\dist\\generic.js"
+
+    CSS_GAME_1 RCDATA "..\\resources\\game.css"
+
+    CSS_GAME_2 RCDATA "..\\resources\\AccountManager.css"
 
     JSON_CONFIG RCDATA "..\\resources\\config.json"
 

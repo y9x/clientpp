@@ -1,6 +1,4 @@
-import "./index.css";
 import "./menu/createUI";
-import "./fixes";
 import "./resources";
 import { createKeybind } from "./Keybind";
 import ipc, { IM } from "./ipc";
@@ -23,7 +21,7 @@ try {
 if (currentSite === "game") {
   createKeybind("F4", (event) => {
     if (event.altKey) ipc.send(IM.close_window);
-    else ipc.send(IM.seek_game, localStorage.pingRegion7);
+    else ipc.send(IM.seek_game);
   });
 
   createKeybind("F11", () => ipc.send(IM.toggle_fullscreen));

@@ -1,5 +1,5 @@
 /*
- * Tampermonky Userscript support
+ * Tampermonky UserScript support
  */
 import console from "../console";
 import { sourceMappingURL } from "./common";
@@ -77,7 +77,7 @@ function parseIncludeExclude(value: string) {
 }
 
 /**
- * Run a Tampermonkey userscript
+ * Run a Tampermonkey UserScript
  */
 export default function tampermonkeyRuntime(script: string, code: string) {
   /*

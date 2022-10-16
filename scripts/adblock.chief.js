@@ -66,7 +66,7 @@ if (enabled) {
   window.isFrvrDotCom = false;
 }
 
-function Settings() {
+function Settings({ html, UI, useLocalStorage }) {
   const [localEnabled, setLocalEnabled] = useLocalStorage("adblock enabled");
 
   return html`

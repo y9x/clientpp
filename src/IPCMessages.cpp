@@ -97,14 +97,6 @@ void ChScriptedWindow::handleMessage(JSMessage msg) {
 
     ShellExecute(m_hWnd, L"open", open.c_str(), L"", L"", SW_SHOW);
   } break;
-  case IM::pointer:
-    last_pointer_poll = now();
-    if (msg.args[0].GetBool() && !mouse_hooked)
-      hookMouse();
-    else if (!msg.args[0].GetBool() && mouse_hooked)
-      unhookMouse();
-
-    break;
   case IM::log: {
     std::string log = JT::string(msg.args[1]);
 
@@ -251,78 +243,6 @@ void ChScriptedWindow::handleMessage(JSMessage msg) {
         msg);
 
     break;
-  case IM::account_password: {
-    JSMessage res(msg.args[0].GetInt());
-    std::string dec;
-    std::string account_name = JT::string(msg.args[1]);
-
-    if (!accounts.data.contains(account_name)) {
-      res.args.PushBack(rapidjson::Value(rapidjson::kNullType), res.allocator);
-      res.args.PushBack(
-          rapidjson::Value("Account doesn't exist", res.allocator),
-          res.allocator);
-    } else if (!accounts.decrypt(accounts.data[account_name].password, dec)) {
-      res.args.PushBack(rapidjson::Value(rapidjson::kNullType), res.allocator);
-      res.args.PushBack(rapidjson::Value("Unknown", res.allocator),
-                        res.allocator);
-    } else {
-      res.args.PushBack(rapidjson::Value(dec.data(), dec.size(), res.allocator),
-                        res.allocator);
-    }
-
-    if (!sendMessage(res))
-      clog::error << "Unable to send " << res.dump() << clog::endl;
-  } break;
-  case IM::account_remove: {
-
-    accounts.data.erase(JT::string(msg.args[0]));
-    accounts.save();
-
-    JSMessage res(IM::account_regen);
-    res.args.PushBack(accounts.dump(res.allocator), res.allocator);
-    if (!sendMessage(res))
-      clog::error << "Unable to send " << res.dump() << clog::endl;
-  } break;
-  case IM::account_set: {
-
-    std::string name = JT::string(msg.args[0]);
-    Account &account = accounts.data[name];
-    account.color = JT::string(msg.args[1]);
-    account.order = msg.args[2].GetInt();
-    accounts.save();
-
-    JSMessage res(IM::account_regen);
-    res.args.PushBack(accounts.dump(res.allocator), res.allocator);
-    if (!sendMessage(res))
-      clog::error << "Unable to send " << res.dump() << clog::endl;
-  } break;
-  // and creation
-  case IM::account_set_password: {
-
-    std::string enc;
-    if (accounts.encrypt(JT::string(msg.args[1]), enc)) {
-      Account account;
-      account.color = JT::string(msg.args[2]);
-      account.order = msg.args[3].GetInt();
-      account.username = JT::string(msg.args[0]);
-      account.password = enc;
-      accounts.data[account.username] = account;
-      accounts.save();
-
-      JSMessage res(IM::account_regen);
-      res.args.PushBack(accounts.dump(res.allocator), res.allocator);
-      if (!sendMessage(res))
-        clog::error << "Unable to send " << res.dump() << clog::endl;
-    } else
-      clog::error << "Failure encrypting password" << clog::endl;
-  } break;
-  case IM::account_list: {
-
-    JSMessage res(msg.args[0].GetInt());
-    res.args.PushBack(accounts.dump(res.allocator), res.allocator);
-    if (!sendMessage(res))
-      clog::error << "Unable to send " << res.dump() << clog::endl;
-  } break;
   case IM::rpc_update:
     if (msg.args[0].IsNull()) {
       Discord_ClearPresence();

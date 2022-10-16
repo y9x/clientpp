@@ -1,7 +1,7 @@
 import { updateRPC } from "../RPC";
 import ipc, { IM } from "../ipc";
 import { clientVersion } from "../runtime";
-import { renderSettings } from "../runtime/chief";
+import { renderSettings } from "../runtime/game/chief";
 import Button from "./components/Button";
 import { ControlContainer } from "./components/Control";
 import FilePath from "./components/FilePath";

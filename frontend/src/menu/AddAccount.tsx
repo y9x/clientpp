@@ -1,4 +1,3 @@
-import "../styles/AccountManager.css";
 import ipc, { IM } from "../ipc";
 import { useRef } from "react";
 

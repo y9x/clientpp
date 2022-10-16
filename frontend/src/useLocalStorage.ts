@@ -1,6 +1,5 @@
+import { target } from "./setLocalStorage";
 import { useEffect, useState } from "react";
-
-const target = new EventTarget();
 
 /**
  * localStorage hook.

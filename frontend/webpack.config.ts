@@ -1,89 +1,21 @@
-import type { CSSLoaderOptions } from "./css-loader.js";
 import type swcrcSchema from "./swcrc.js";
 import type { JsMinifyOptions } from "@swc/core";
-import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
 import ESLintPlugin from "eslint-webpack-plugin";
 import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
-import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import { fileURLToPath } from "node:url";
 import { resolve } from "path";
 import ModuleNotFoundPlugin from "react-dev-utils/ModuleNotFoundPlugin.js";
-import getCSSModuleLocalIdent from "react-dev-utils/getCSSModuleLocalIdent.js";
 import TerserPlugin from "terser-webpack-plugin";
 import webpack from "webpack";
-import type { Configuration, RuleSetRule } from "webpack";
+import type { Configuration } from "webpack";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
-// common function to get style loaders
-const getStyleLoaders = (
-  cssOptions: CSSLoaderOptions,
-  preProcessor?: string
-) => {
-  const loaders: (RuleSetRule | string | false)[] = [
-    isDevelopment ? "style-loader" : MiniCssExtractPlugin.loader,
-    {
-      loader: "css-loader",
-      options: cssOptions,
-    },
-    {
-      // Options for PostCSS as we reference these options twice
-      // Adds vendor prefixing based on your specified browser support in
-      // package.json
-      loader: "postcss-loader",
-      options: {
-        postcssOptions: {
-          // Necessary for external CSS imports to work
-          // https://github.com/facebook/create-react-app/issues/2677
-          ident: "postcss",
-          config: false,
-          plugins: [
-            "postcss-flexbugs-fixes",
-            [
-              "postcss-preset-env",
-              {
-                autoprefixer: {
-                  flexbox: "no-2009",
-                },
-                stage: 3,
-              },
-            ],
-            // Adds PostCSS Normalize as the reset css with default options,
-            // so that it honors browserslist config in package.json
-            // which in turn let's users customize the target behavior as per their needs.
-            "postcss-normalize",
-          ],
-        },
-        sourceMap: true,
-      },
-    },
-  ].filter(Boolean);
-
-  if (preProcessor) {
-    loaders.push(
-      {
-        loader: "resolve-url-loader",
-        options: {
-          sourceMap: true,
-          root: resolve("src"),
-        },
-      },
-      {
-        loader: preProcessor,
-        options: {
-          sourceMap: true,
-        },
-      }
-    );
-  }
-  return loaders as (RuleSetRule | string)[];
-};
-
-const cssRegex = /\.css$/;
-const cssModuleRegex = /\.module\.css$/;
-
 const config: Configuration = {
-  entry: fileURLToPath(new URL("./src/index.ts", import.meta.url)),
+  entry: {
+    game: fileURLToPath(new URL("./src/game.ts", import.meta.url)),
+    generic: fileURLToPath(new URL("./src/generic.ts", import.meta.url)),
+  },
   output: {
     path: fileURLToPath(new URL("./dist/", import.meta.url)),
   },
@@ -99,7 +31,6 @@ const config: Configuration = {
       new TerserPlugin<JsMinifyOptions>({
         minify: TerserPlugin.swcMinify,
       }),
-      new CssMinimizerPlugin(),
     ],
   },
   resolve: {
@@ -109,7 +40,7 @@ const config: Configuration = {
     rules: [
       {
         enforce: "pre",
-        test: /\.(js|mjs|jsx|ts|tsx|css)$/,
+        test: /\.(js|mjs|jsx|ts|tsx)$/,
         exclude: /@swc(?:\/|\\{1,2})helpers/,
         loader: "source-map-loader",
       },
@@ -156,33 +87,6 @@ const config: Configuration = {
             } as swcrcSchema,
           },
           {
-            test: cssRegex,
-            exclude: cssModuleRegex,
-            use: getStyleLoaders({
-              importLoaders: 1,
-              sourceMap: true,
-              modules: {
-                mode: "icss",
-              },
-            }),
-            // Don't consider CSS imports dead code even if the
-            // containing package claims to have no side effects.
-            // Remove this when webpack adds a warning or an error for this.
-            // See https://github.com/webpack/webpack/issues/6571
-            sideEffects: true,
-          },
-          {
-            test: cssModuleRegex,
-            use: getStyleLoaders({
-              importLoaders: 1,
-              sourceMap: true,
-              modules: {
-                mode: "local",
-                getLocalIdent: getCSSModuleLocalIdent,
-              },
-            }),
-          },
-          {
             test: /IPCMessages\.h$/,
             use: fileURLToPath(
               new URL("./IPCMessagesLoader.cjs", import.meta.url)
@@ -196,7 +100,6 @@ const config: Configuration = {
     new ModuleNotFoundPlugin(resolve(".")),
     new ForkTsCheckerPlugin(),
     new ESLintPlugin(),
-    new MiniCssExtractPlugin(),
     new webpack.BannerPlugin({
       banner: "try{",
       raw: true,

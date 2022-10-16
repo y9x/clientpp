@@ -33,32 +33,21 @@ ChWindow::ChWindow(ClientFolder &_folder, ChWindows &_windows, Vector2 _scale,
     : folder(_folder), windows(_windows), title(_title), og_title(_title),
       scale(_scale){};
 
-ChScriptedWindow::ChScriptedWindow(ClientFolder &_folder,
-                                   AccountManager &_accounts,
-                                   ChWindows &_windows, Vector2 _scale,
-                                   std::wstring _title)
-    : ChWindow(_folder, _windows, _scale, _title), accounts(_accounts),
-      last_pointer_poll(now()) {
+ChScriptedWindow::ChScriptedWindow(ClientFolder &_folder, ChWindows &_windows,
+                                   Vector2 _scale, std::wstring _title)
+    : ChWindow(_folder, _windows, _scale, _title) {
   // convert to wstring immediately
-  std::string sMainJS;
+  std::string mGenericJS;
 
-  if (loadResource(JS_MAIN, sMainJS))
-    mainJS = ST::wstring(sMainJS);
+  if (loadResource(JS_GENERIC, mGenericJS))
+    genericJS = ST::wstring(mGenericJS);
   else
-    clog::error << "Failure loading main.js" << clog::endl;
-
-  rawInput.usUsagePage = 0x01;
-  rawInput.usUsage = 0x02;
+    clog::error << "Failure loading generic.js" << clog::endl;
 }
 
 ChWindow::~ChWindow() {
   if (::IsWindow(m_hWnd))
     DestroyWindow();
-}
-
-ChScriptedWindow::~ChScriptedWindow() {
-  if (mouse_hooked)
-    unhookMouse();
 }
 
 HINSTANCE ChWindow::getHinstance() {
@@ -185,56 +174,6 @@ LRESULT ChWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam,
   return resizeWV();
 }
 
-Vector2 movebuffer;
-
-JSMessage msgFct(unsigned short event, std::vector<double> nums) {
-  JSMessage msg(event);
-  for (double num : nums)
-    msg.args.PushBack(rapidjson::Value(num), msg.allocator);
-  return msg;
-}
-
-LRESULT ChScriptedWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam,
-                                   BOOL &fHandled) {
-  unsigned size = sizeof(RAWINPUT);
-  static RAWINPUT raw[sizeof(RAWINPUT)];
-  GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw, &size,
-                  sizeof(RAWINPUTHEADER));
-
-  if (raw->header.dwType == RIM_TYPEMOUSE) {
-    RAWMOUSE mouse = raw->data.mouse;
-    USHORT flags = mouse.usButtonFlags;
-
-    if (flags & RI_MOUSE_WHEEL)
-      msgFct(IM::mousewheel,
-             {double((*(short *)&mouse.usButtonData) / WHEEL_DELTA) * -100});
-    if (flags & RI_MOUSE_BUTTON_1_DOWN)
-      sendMessage(msgFct(IM::mousedown, {0}));
-    if (flags & RI_MOUSE_BUTTON_1_UP)
-      sendMessage(msgFct(IM::mouseup, {0}));
-    if (flags & RI_MOUSE_BUTTON_2_DOWN)
-      sendMessage(msgFct(IM::mousedown, {2}));
-    if (flags & RI_MOUSE_BUTTON_2_UP)
-      sendMessage(msgFct(IM::mouseup, {2}));
-    if (flags & RI_MOUSE_BUTTON_3_DOWN)
-      sendMessage(msgFct(IM::mousedown, {1}));
-    if (flags & RI_MOUSE_BUTTON_3_UP)
-      sendMessage(msgFct(IM::mouseup, {1}));
-    if (flags & RI_MOUSE_BUTTON_4_DOWN)
-      sendMessage(msgFct(IM::mousedown, {3}));
-    if (flags & RI_MOUSE_BUTTON_4_UP)
-      sendMessage(msgFct(IM::mouseup, {3}));
-    if (flags & RI_MOUSE_BUTTON_5_DOWN)
-      sendMessage(msgFct(IM::mousedown, {4}));
-    if (flags & RI_MOUSE_BUTTON_5_UP)
-      sendMessage(msgFct(IM::mouseup, {4}));
-    if (mouse.lLastX || mouse.lLastY)
-      movebuffer += Vector2(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
-  }
-
-  return S_OK;
-}
-
 void ChScriptedWindow::seekGame() {
   if (folder.config["game"]["seek"]["F4"].GetBool())
     if (folder.config["game"]["seek"]["custom_logic"].GetBool())
@@ -282,43 +221,6 @@ void ChScriptedWindow::seekGame() {
       pendingNavigations.push_back(L"https://krunker.io/");
       dispatchMtx.unlock();
     }
-}
-
-LRESULT CALLBACK ChScriptedWindow::mouseMessage(int code, WPARAM wParam,
-                                                LPARAM lParam) {
-  return 1;
-}
-
-void ChScriptedWindow::hookMouse() {
-  clog::debug << "Hooking mouse" << clog::endl;
-
-  INPUT input = {};
-  input.type = INPUT_MOUSE;
-  input.mi.dx = 0;
-  input.mi.time = 0;
-  input.mi.dwExtraInfo = NULL;
-  input.mi.dwFlags = (MOUSEEVENTF_MOVE | MOUSEEVENTF_LEFTUP |
-                      MOUSEEVENTF_RIGHTUP | MOUSEEVENTF_MIDDLEUP);
-  SendInput(1, &input, sizeof(INPUT));
-
-  rawInput.dwFlags = RIDEV_INPUTSINK;
-  rawInput.hwndTarget = m_hWnd;
-  RegisterRawInputDevices(&rawInput, 1, sizeof(rawInput));
-
-  mouse_hook =
-      SetWindowsHookEx(WH_MOUSE_LL, *mouseMessage, getHinstance(), NULL);
-  mouse_hooked = true;
-}
-
-void ChScriptedWindow::unhookMouse() {
-  clog::debug << "Unhooked mouse" << clog::endl;
-
-  rawInput.dwFlags = RIDEV_REMOVE;
-  rawInput.hwndTarget = NULL;
-  RegisterRawInputDevices(&rawInput, 1, sizeof(rawInput));
-
-  UnhookWindowsHookEx(mouse_hook);
-  mouse_hooked = false;
 }
 
 // https://peter.sh/experiments/chromium-command-line-switches/
@@ -524,29 +426,14 @@ void ChScriptedWindow::dispatch() {
   pendingMessages.clear();
 
   dispatchMtx.unlock();
+}
 
-  bool active = GetActiveWindow() == m_hWnd;
-
-  if (!active && mouse_hooked)
-    unhookMouse();
-
-  time_t last_poll = now() - last_pointer_poll;
-
-  if (last_poll > 1500 && mouse_hooked) {
-    clog::error << "Pointer lock timeout: " << last_poll << "ms" << clog::endl;
-    unhookMouse();
-  }
-
-  if (mouse_hooked) {
-    long long nw = now();
-    long long delta = nw - then;
-
-    if (delta > mouse_interval) {
-      then = nw - (delta % mouse_interval);
-      sendMessage(msgFct(IM::mousemove, {movebuffer.x, movebuffer.y}));
-      movebuffer.clear();
-    }
-  }
+void ChScriptedWindow::injectJS() {
+  webview->ExecuteScript((genericJS + L"\nfunction getRuntimeData() { return " +
+                          ST::wstring(runtimeData()) +
+                          L"; }; delete window.getRuntimeData;")
+                             .c_str(),
+                         nullptr);
 }
 
 void ChScriptedWindow::registerEvents() {
@@ -571,17 +458,6 @@ void ChScriptedWindow::registerEvents() {
           .Get(),
       &token);
 
-  webview->add_NavigationStarting(
-      Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
-          [this](ICoreWebView2 *sender,
-                 ICoreWebView2NavigationStartingEventArgs *args) -> HRESULT {
-            if (mouse_hooked)
-              unhookMouse();
-            return S_OK;
-          })
-          .Get(),
-      &token);
-
   if (wil::com_ptr<ICoreWebView2_2> webview_2 =
           webview.query<ICoreWebView2_2>()) {
     webview_2->add_ContentLoading(
@@ -593,12 +469,7 @@ void ChScriptedWindow::registerEvents() {
               UriW uri(urir.get());
 
               if (uri.host() == L"krunker.io")
-                webview->ExecuteScript(
-                    (mainJS + L"\nfunction getRuntimeData() { return " +
-                     ST::wstring(runtimeData()) +
-                     L"; }; delete window.getRuntimeData;")
-                        .c_str(),
-                    nullptr);
+                injectJS();
 
               return S_OK;
             })

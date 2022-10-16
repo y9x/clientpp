@@ -1,8 +1,4 @@
-import console from "./console";
-import { css, js } from "./runtime";
-import chiefRuntime from "./runtime/chief";
-import idkrRuntime from "./runtime/idkr";
-import tampermonkeyRuntime from "./runtime/tampermonkey";
+import { css } from "./runtime";
 
 function addCSS() {
   for (const [name, data] of css) {
@@ -29,13 +25,3 @@ new MutationObserver((mutations, observer) => {
   childList: true,
   subtree: true,
 });
-
-for (const [script, code] of js)
-  try {
-    if (script.endsWith(".chief.js")) chiefRuntime(script, code);
-    else if (script.endsWith(".idkr.js")) idkrRuntime(script, code);
-    else if (script.endsWith(".user.js")) tampermonkeyRuntime(script, code);
-  } catch (err) {
-    console.error(`Failure loading ${script}:`);
-    console.error(err);
-  }

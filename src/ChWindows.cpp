@@ -26,7 +26,7 @@ ChWindow *ChWindows::getWindow(krunker::type type) {
 
 ChWindows::ChWindows(ClientFolder &folder, AccountManager &accounts)
     : game(folder, accounts, *this, {0.8, 0.8}, titleGame),
-      social(folder, accounts, *this, {0.8, 0.8}, titleSocial),
+      social(folder, *this, {0.8, 0.8}, titleSocial),
       editor(folder, *this, {0.8, 0.8}, titleEditor),
       viewer(folder, *this, {0.8, 0.8}, titleViewer),
       scripting(folder, *this, {0.8, 0.8}, titleScripting) {}

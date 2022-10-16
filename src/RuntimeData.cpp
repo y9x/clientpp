@@ -57,6 +57,29 @@ rapidjson::Value ChScriptedWindow::getUserStyles(
   return result;
 }
 
+rapidjson::Value ChGameWindow::getUserStyles(
+    rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator) {
+  rapidjson::Value value = ChScriptedWindow::getUserStyles(allocator);
+
+  {
+    rapidjson::Value row(rapidjson::kArrayType);
+    row.PushBack("game.css", allocator);
+    row.PushBack(rapidjson::Value(gameCSS1.data(), gameCSS1.size(), allocator),
+                 allocator);
+    value.PushBack(row, allocator);
+  }
+
+  {
+    rapidjson::Value row(rapidjson::kArrayType);
+    row.PushBack("AccountManager.css", allocator);
+    row.PushBack(rapidjson::Value(gameCSS2.data(), gameCSS2.size(), allocator),
+                 allocator);
+    value.PushBack(row, allocator);
+  }
+
+  return value;
+}
+
 std::string ChScriptedWindow::runtimeData() {
   rapidjson::Document data(rapidjson::kObjectType);
   rapidjson::Document::AllocatorType allocator = data.GetAllocator();

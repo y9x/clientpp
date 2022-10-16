@@ -33,7 +33,7 @@ async function updateLogo() {
   else mainLogo.src = defaultLogo;
 }
 
-function Settings() {
+function Settings({ html, UI, useLocalStorage }) {
   const [localEnabled, setLocalEnabled] = useLocalStorage(
     "logo changer enabled"
   );
