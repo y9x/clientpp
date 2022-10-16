@@ -1,8 +1,10 @@
 #include "./LobbySeeker.h"
 #include "../utils/StringUtil.h"
 #include "./Log.h"
-#include <net.h>
+#include "./fetch.h"
+#include <algorithm>
 #include <rapidjson/document.h>
+#include <rapidjson/error/en.h>
 
 // config.js
 std::vector<std::string> LobbySeeker::modes = {"Free for All",
@@ -34,7 +36,7 @@ std::vector<std::string> LobbySeeker::modes = {"Free for All",
                                                "Squad Deathmatch",
                                                "Kranked FFA"};
 
-std::vector<std::pair<std::string, std::string>> LobbySeeker::regions = {
+std::map<std::string, std::string> LobbySeeker::regions = {
     {"us-nj", "New York"},       {"us-il", "Chicago"},
     {"us-tx", "Dallas"},         {"us-wa", "Seattle"},
     {"us-ca-la", "Los Angeles"}, {"us-ga", "Atlanta"},
@@ -46,14 +48,6 @@ std::vector<std::pair<std::string, std::string>> LobbySeeker::regions = {
     {"brz", "Brazil"},           {"me-bhn", "Middle East"},
     {"af-ct", "South Africa"},   {"as-seoul", "South Korea"},
 };
-
-int regionID(std::string region) {
-  for (size_t mir = 0; mir < LobbySeeker::regions.size(); mir++)
-    if (LobbySeeker::regions[mir].first == region)
-      return (int)mir;
-
-  return -1;
-}
 
 GameConfig::GameConfig(const rapidjson::Value &data)
     : map(data["i"].GetString()), mode(data["g"].GetInt()),
@@ -77,49 +71,50 @@ std::string LobbySeeker::seek() {
   if (!use_map && mode == -1)
     return "https://krunker.io";
 
-  try {
-    auto res = net::fetch_request(net::url(
-        L"https://matchmaker.krunker.io/game-list?hostname=krunker.io"));
+  auto res =
+      fetchGet("https://matchmaker.krunker.io/game-list?hostname=krunker.io");
 
-    rapidjson::Document data;
-    data.Parse(res.data(), res.size());
+  std::cout << std::string(res.data(), res.size()) << std::endl;
 
-    std::vector<Game> games;
+  rapidjson::Document data;
+  rapidjson::ParseResult ok = data.Parse(res.data(), res.size());
 
-    for (const rapidjson::Value &data : data["games"].GetArray()) {
-      Game game(data);
+  if (!ok)
+    clog::error << "Error parsing games: " << GetParseError_En(ok.Code())
+                << " (" << ok.Offset() << ")" << clog::endl;
 
-      if (game.isFull())
-        continue;
-      if (mode != -1 && game.config.mode != mode)
-        continue;
-      if (!customs && game.config.custom)
-        continue;
-      if (region != -1 && regionID(game.region) != region)
-        continue;
-      if (use_map && ST::lowercase(game.config.map) != map)
-        continue;
+  std::vector<Game> games;
 
-      games.push_back(game);
-    }
+  for (const rapidjson::Value &data : data["games"].GetArray()) {
+    Game game(data);
 
-    if (games.size()) {
-      // game with the most time left
-      std::stable_sort(
-          games.begin(), games.end(),
-          [](const Game &a, const Game &b) -> bool { return a.time < b.time; });
+    if (game.isFull())
+      continue;
+    if (mode != -1 && game.config.mode != mode)
+      continue;
+    if (!customs && game.config.custom)
+      continue;
+    if (region != "" && game.region != region)
+      continue;
+    if (use_map && ST::lowercase(game.config.map) != map)
+      continue;
 
-      // game with the most players
-      std::stable_sort(
-          games.begin(), games.end(), [](const Game &a, const Game &b) -> bool {
-            return strongPlayers(a.players) < strongPlayers(b.players);
-          });
+    games.push_back(game);
+  }
 
-      return games[0].getLink();
-    }
-  } catch (net::error &err) {
-    clog::error << "Failure requesting matchmaker: " << err.what()
-                << clog::endl;
+  if (games.size()) {
+    // game with the most time left
+    std::stable_sort(
+        games.begin(), games.end(),
+        [](const Game &a, const Game &b) -> bool { return a.time < b.time; });
+
+    // game with the most players
+    std::stable_sort(
+        games.begin(), games.end(), [](const Game &a, const Game &b) -> bool {
+          return strongPlayers(a.players) < strongPlayers(b.players);
+        });
+
+    return games[0].getLink();
   }
 
   clog::error << "Error finding game" << clog::endl;

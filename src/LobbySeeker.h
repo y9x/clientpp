@@ -1,6 +1,8 @@
 #pragma once
-#include <functional>
+#include <map>
 #include <rapidjson/document.h>
+#include <string>
+#include <vector>
 
 struct GameConfig {
   bool custom;
@@ -25,8 +27,8 @@ class LobbySeeker {
 public:
   static std::vector<std::string> modes;
   // { short, long }
-  static std::vector<std::pair<std::string, std::string>> regions;
-  size_t region = -1;
+  static std::map<std::string, std::string> regions;
+  std::string region;
   size_t mode = -1;
   bool customs = false;
   bool use_map = false;

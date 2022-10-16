@@ -6,13 +6,6 @@ struct UpdaterServing {
   std::string version;
 };
 
-class Updater {
-private:
-  std::wstring url;
-  std::string version;
-
-public:
-  Updater(std::string version, std::wstring url);
-  bool GetServing(UpdaterServing &serving);
-  bool UpdatesAvailable(UpdaterServing &serving);
-};
+/// @brief Fetches the serving and returns if a newer version is available
+extern bool updatesAvailable(const std::string &version, const std::string &url,
+                             UpdaterServing &serving);

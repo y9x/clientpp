@@ -4,7 +4,7 @@ file(GLOB src
     "../utils/*.cpp"
 )
 
-add_definitions(-DCLIENT_VERSION_STRING="${CLIENT_VERSION_STRING}")
+add_definitions(-DCLIENT_VERSION_STRING="${CLIENT_VERSION_STRING}" -DWH_USE_WININET)
 add_executable(Client WIN32 ${src})
 target_sources(Client PRIVATE Resource.rc)
 target_include_directories(Client PRIVATE

@@ -1,15 +1,15 @@
 #include "./Updater.h"
 #include "../utils/StringUtil.h"
 #include "./Log.h"
-#include <net.h>
+#include "./fetch.h"
 #include <rapidjson/allocators.h>
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 #include <semver.hpp>
 
-bool Updater::GetServing(UpdaterServing &serving) {
+bool getServing(const std::string &url, UpdaterServing &serving) {
   try {
-    auto data = net::fetch_request(net::url(url));
+    auto data = fetchGet(url);
 
     rapidjson::Document document;
     rapidjson::ParseResult ok = document.Parse(data.data(), data.size());
@@ -33,16 +33,15 @@ bool Updater::GetServing(UpdaterServing &serving) {
     };
 
     return true;
-  } catch (net::error &err) {
-    clog::error << "Error checking updates: " << err.what() << clog::endl;
+  } catch (const std::runtime_error &e) {
+    clog::error << "Failure checking updates. " << e.what() << clog::endl;
     return false;
   }
 }
 
-bool Updater::UpdatesAvailable(UpdaterServing &serving) {
-  if (!GetServing(serving))
+bool updatesAvailable(const std::string &version, const std::string &url,
+                      UpdaterServing &serving) {
+  if (!getServing(url, serving))
     return false;
   return semver::version(version) < semver::version(serving.version);
 }
-
-Updater::Updater(std::string v, std::wstring u) : version(v), url(u) {}

@@ -45,11 +45,10 @@ int messages() {
 }
 
 bool testRuntimes() {
-  WebView2Installer installer(
-      L"https://go.microsoft.com/fwlink/p/?LinkId=2124703");
-
-  if (installer.Installed())
+  if (WebView2Installer::isInstalled())
     return true;
+
+  WebView2Installer installer;
 
   if (MessageBox(NULL,
                  L"You are missing runtimes. Install the WebView2 Runtime?",
@@ -57,14 +56,15 @@ bool testRuntimes() {
     WebView2Installer::Error error;
     MessageBox(NULL, L"Relaunch the client after installation is complete.",
                title, MB_OK);
-    if (!installer.Install(error))
+    if (!installer.install(error))
       switch (error) {
       case WebView2Installer::Error::CantOpenProcess:
         clog::error << "CantOpenProcess during WebView2 installation"
                     << clog::endl;
         MessageBox(NULL,
-                   (L"Unable to open " + installer.bin +
-                    L". You will need to run the exe manually.")
+                   (L"Unable to open the installer. You will need to run the "
+                    L"exe manually. Go to: " +
+                    installer.binPath)
                        .c_str(),
                    title, MB_OK);
         break;
@@ -90,16 +90,17 @@ bool testRuntimes() {
 }
 
 void update() {
-  Updater updater(version, L"https://6ct.github.io/serve/updates.json");
   UpdaterServing serving;
 
-  if (updater.UpdatesAvailable(serving) &&
+  if (!updatesAvailable(version, "https://6ct.github.io/serve/updates.json",
+                        serving) ||
       MessageBox(NULL, L"A new client update is available. Download?", title,
-                 MB_YESNO) == IDYES) {
-    ShellExecute(NULL, L"open", ST::wstring(serving.url).c_str(), L"", L"",
-                 SW_SHOW);
-    exit(EXIT_SUCCESS);
-  }
+                 MB_YESNO) == IDYES)
+    return;
+
+  ShellExecute(NULL, L"open", ST::wstring(serving.url).c_str(), L"", L"",
+               SW_SHOW);
+  exit(EXIT_SUCCESS);
 }
 } // namespace
 
