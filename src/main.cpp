@@ -16,7 +16,6 @@
 #include <sstream>
 #include <thread>
 
-
 constexpr const char *version = CLIENT_VERSION_STRING;
 constexpr const wchar_t *title = L"Chief Client";
 constexpr const char *discordRPC = "899137303182716968";
@@ -36,6 +35,8 @@ int messages() {
     windows->dispatch();
     TranslateMessage(&msg);
     DispatchMessage(&msg);
+    if (windows->shouldQuit())
+      break;
   }
 
   return EXIT_SUCCESS;
