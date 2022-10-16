@@ -29,7 +29,10 @@ if (currentSite === "game") {
   createKeybind("F11", () => ipc.send(IM.toggle_fullscreen));
 }
 
-createKeybind("F10", () => ipc.send(IM.open_devtools));
+// CTRL + SHIFT + I
+createKeybind("KeyI", (event) => {
+  if (event.ctrlKey && event.shiftKey) ipc.send(IM.open_devtools);
+});
 
 createKeybind("F5", () => ipc.send(IM.reload_window));
 
