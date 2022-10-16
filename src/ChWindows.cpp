@@ -67,3 +67,8 @@ void ChWindows::dispatch() {
   viewer.dispatch();
   scripting.dispatch();
 }
+
+bool ChWindows::shouldQuit() {
+  return !game.open && !social.open && !editor.open && !viewer.open &&
+         !scripting.open;
+}

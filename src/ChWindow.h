@@ -62,7 +62,6 @@ protected:
   wil::com_ptr<ICoreWebView2Controller> control;
   wil::com_ptr<ICoreWebView2> webview;
   wil::com_ptr<ICoreWebView2Environment> env;
-  bool open = false;
   Vector2 scale;
   HINSTANCE getHinstance();
   bool createWindow();
@@ -78,6 +77,7 @@ protected:
   MESSAGE_HANDLER(WM_SIZE, on_resize)
   END_MSG_MAP()
 public:
+  bool open = false;
   virtual void dispatch();
   Status show(UriW uri, ICoreWebView2 *sender = nullptr,
               std::function<void()> open = nullptr,
@@ -232,6 +232,9 @@ private:
 public:
   /// @brief Execute any pending operations from the main thread
   void dispatch();
+  /// @brief Should be called after handling messages. Checks if all the windows
+  /// are closed.
+  bool shouldQuit();
   ChWindows(ClientFolder &folder, AccountManager &accounts);
   /// @brief
   /// @param type Type of window.
