@@ -3,14 +3,15 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Node",
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "esModuleInterop": true,
     "strict": true,
     "noEmit": true,
     "baseUrl": "types",
     "typeRoots": ["node_modules/@types", "types"],
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "sourceMap": true
   },
   "include": ["src/react-env.d.ts", "src/menu/window.d.ts", "src/**/*"]
 }

@@ -67,11 +67,11 @@ const clientUtils: IClientUtil = Object.freeze({
               config.set(setting.id, event.currentTarget.checked);
               if (
                 setting.needsRestart &&
-                global.confirm(
+                window.confirm(
                   "The game will be restarted for this setting to take affect."
                 )
               )
-                global.location.reload();
+                window.location.reload();
             }}
           />
         );
@@ -86,11 +86,11 @@ const clientUtils: IClientUtil = Object.freeze({
               config.set(setting.id, event.currentTarget.value);
               if (
                 setting.needsRestart &&
-                global.confirm(
+                window.confirm(
                   "The game will be restarted for this setting to take affect."
                 )
               )
-                global.location.reload();
+                window.location.reload();
             }}
           >
             {Object.entries(setting.options).map(([id, name]) => (
@@ -109,11 +109,11 @@ const clientUtils: IClientUtil = Object.freeze({
               config.set(setting.id, event.currentTarget.value);
               if (
                 setting.needsRestart &&
-                global.confirm(
+                window.confirm(
                   "The game will be restarted for this setting to take affect."
                 )
               )
-                global.location.reload();
+                window.location.reload();
             }}
           />
         );
@@ -129,11 +129,11 @@ const clientUtils: IClientUtil = Object.freeze({
               config.set(setting.id, event.currentTarget.value);
               if (
                 setting.needsRestart &&
-                global.confirm(
+                window.confirm(
                   "The game will be restarted for this setting to take affect."
                 )
               )
-                global.location.reload();
+                window.location.reload();
             }}
           />
         );
@@ -149,11 +149,11 @@ const clientUtils: IClientUtil = Object.freeze({
               config.set(setting.id, event.currentTarget.value);
               if (
                 setting.needsRestart &&
-                global.confirm(
+                window.confirm(
                   "The game will be restarted for this setting to take affect."
                 )
               )
-                global.location.reload();
+                window.location.reload();
             }}
           />
         );
@@ -175,11 +175,11 @@ const clientUtils: IClientUtil = Object.freeze({
                 config.set(setting.id, event.currentTarget.value);
                 if (
                   setting.needsRestart &&
-                  global.confirm(
+                  window.confirm(
                     "The game will be restarted for this setting to take affect."
                   )
                 )
-                  global.location.reload();
+                  window.location.reload();
               }}
             />
           </Control>

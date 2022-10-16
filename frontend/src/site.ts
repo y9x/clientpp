@@ -4,6 +4,6 @@ const paths: Record<string, "game" | "social" | "editor" | undefined> = {
   "/editor.html": "editor",
 };
 
-const currentSite = paths[global.location.pathname];
+const currentSite = paths[window.location.pathname];
 
 export default currentSite;

@@ -4,7 +4,6 @@
 import "./keybinds";
 import "./resources";
 import "./menu/createUI";
-import "./fixes";
 import console from "./console";
 import ipc, { IM } from "./ipc";
 import { js } from "./runtime";

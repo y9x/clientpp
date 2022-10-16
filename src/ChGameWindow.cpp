@@ -3,6 +3,7 @@
 #include "./JSMessage.h"
 #include "./KrunkerWindow.h"
 #include "./LoadRes.h"
+#include "./LobbySeeker.h"
 #include "./Log.h"
 #include "./resource.h"
 
@@ -171,11 +172,71 @@ ChGameWindow::~ChGameWindow() {
     unhookMouse();
 }
 
+void ChGameWindow::seekGame() {
+  if (folder.config["game"]["seek"]["F4"].GetBool())
+    if (folder.config["game"]["seek"]["custom_logic"].GetBool())
+      new std::thread([this]() {
+        postMessage(
+            JSMessage(IM::get_ping_region),
+            [this](const rapidjson::Value &value) -> void {
+              std::string region(value.GetString(), value.GetStringLength());
+
+              seeking = true;
+
+              LobbySeeker seeker;
+
+              for (size_t mi = 0; mi < LobbySeeker::modes.size(); mi++)
+                if (LobbySeeker::modes[mi] ==
+                    JT::string(folder.config["game"]["seek"]["mode"])) {
+                  seeker.mode = mi;
+                }
+
+              for (size_t ri = 0; ri < LobbySeeker::regions.size(); ri++)
+                if (LobbySeeker::regions[ri].first == region) {
+                  seeker.region = ri;
+                }
+
+              seeker.customs =
+                  folder.config["game"]["seek"]["customs"].GetBool();
+              seeker.map = ST::lowercase(
+                  JT::string(folder.config["game"]["seek"]["map"]));
+
+              if (seeker.map.length())
+                seeker.use_map = true;
+
+              std::string url = seeker.seek();
+
+              dispatchMtx.lock();
+              pendingNavigations.push_back(ST::wstring(url));
+              dispatchMtx.unlock();
+
+              seeking = false;
+            },
+            nullptr);
+      });
+    else {
+      dispatchMtx.lock();
+      pendingNavigations.push_back(L"https://krunker.io/");
+      dispatchMtx.unlock();
+    }
+}
+
 void ChGameWindow::handleMessage(JSMessage msg) {
   ChScriptedWindow::handleMessage(msg);
 
   switch (msg.event) {
+  case IM::pointer:
+    last_pointer_poll = now();
+    if (msg.args[0].GetBool() && !mouseHooked)
+      hookMouse();
+    else if (!msg.args[0].GetBool() && mouseHooked)
+      unhookMouse();
 
+    break;
+  case IM::seek_game:
+    seekGame();
+
+    break;
   case IM::account_password: {
     JSMessage res(msg.args[0].GetInt());
     std::string dec;
@@ -248,13 +309,5 @@ void ChGameWindow::handleMessage(JSMessage msg) {
     if (!sendMessage(res))
       clog::error << "Unable to send " << res.dump() << clog::endl;
   } break;
-  case IM::pointer:
-    last_pointer_poll = now();
-    if (msg.args[0].GetBool() && !mouseHooked)
-      hookMouse();
-    else if (!msg.args[0].GetBool() && mouseHooked)
-      unhookMouse();
-
-    break;
   }
 }

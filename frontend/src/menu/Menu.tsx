@@ -102,7 +102,7 @@ export default function Menu() {
             config.render.uncap_fps = event.currentTarget.checked;
             setConfig(config);
             if (
-              global.confirm(
+              window.confirm(
                 "The client will be restarted for this setting to take affect."
               )
             )
@@ -118,7 +118,7 @@ export default function Menu() {
             config.render.angle = event.currentTarget.value;
             setConfig(config);
             if (
-              global.confirm(
+              window.confirm(
                 "The client will be restarted for this setting to take affect."
               )
             )
@@ -140,7 +140,7 @@ export default function Menu() {
             config.render.color = event.currentTarget.value;
             setConfig(config);
             if (
-              global.confirm(
+              window.confirm(
                 "The client will be restarted for this setting to take affect."
               )
             )
@@ -162,11 +162,11 @@ export default function Menu() {
             config.game.account_manager.enabled = event.currentTarget.checked;
             setConfig(config);
             if (
-              global.confirm(
+              window.confirm(
                 "The game will be restarted for this setting to take affect."
               )
             )
-              global.location.reload();
+              window.location.reload();
           }}
         />
         <Switch

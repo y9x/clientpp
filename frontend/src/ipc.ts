@@ -1,5 +1,5 @@
-import { IM, LogType } from "../../src/IPCMessages.h";
 import EventEmitter from "./EventEmitter";
+import { IM, LogType } from "./IPCMessages";
 
 export const ipcConsole = {
   log: (...args: unknown[]) =>

@@ -5,7 +5,6 @@
 #include "../utils/StringUtil.h"
 #include "../utils/Uri.h"
 #include "./LoadRes.h"
-#include "./LobbySeeker.h"
 #include "./Log.h"
 #include "./Site.h"
 #include "./main.h"
@@ -172,55 +171,6 @@ bool ChWindow::monitorData(Vector2 &pos, Vector2 &size) {
 LRESULT ChWindow::on_resize(UINT uMsg, WPARAM wParam, LPARAM lParam,
                             BOOL &fHandled) {
   return resizeWV();
-}
-
-void ChScriptedWindow::seekGame() {
-  if (folder.config["game"]["seek"]["F4"].GetBool())
-    if (folder.config["game"]["seek"]["custom_logic"].GetBool())
-      new std::thread([this]() {
-        postMessage(
-            JSMessage(IM::get_ping_region),
-            [this](const rapidjson::Value &value) -> void {
-              std::string region(value.GetString(), value.GetStringLength());
-
-              seeking = true;
-
-              LobbySeeker seeker;
-
-              for (size_t mi = 0; mi < LobbySeeker::modes.size(); mi++)
-                if (LobbySeeker::modes[mi] ==
-                    JT::string(folder.config["game"]["seek"]["mode"])) {
-                  seeker.mode = mi;
-                }
-
-              for (size_t ri = 0; ri < LobbySeeker::regions.size(); ri++)
-                if (LobbySeeker::regions[ri].first == region) {
-                  seeker.region = ri;
-                }
-
-              seeker.customs =
-                  folder.config["game"]["seek"]["customs"].GetBool();
-              seeker.map = ST::lowercase(
-                  JT::string(folder.config["game"]["seek"]["map"]));
-
-              if (seeker.map.length())
-                seeker.use_map = true;
-
-              std::string url = seeker.seek();
-
-              dispatchMtx.lock();
-              pendingNavigations.push_back(ST::wstring(url));
-              dispatchMtx.unlock();
-
-              seeking = false;
-            },
-            nullptr);
-      });
-    else {
-      dispatchMtx.lock();
-      pendingNavigations.push_back(L"https://krunker.io/");
-      dispatchMtx.unlock();
-    }
 }
 
 // https://peter.sh/experiments/chromium-command-line-switches/

@@ -13,7 +13,7 @@ new MutationObserver((mutations, observer) => {
     for (const node of mutation.addedNodes) {
       if (
         node instanceof HTMLLinkElement &&
-        new URL(node.href || "/", global.location.toString()).pathname ===
+        new URL(node.href || "/", window.location.toString()).pathname ===
           "/css/main_custom.css"
       ) {
         addCSS();

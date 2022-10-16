@@ -105,7 +105,6 @@ private:
   std::vector<JSMessage> pendingMessages;
 
   std::wstring genericJS;
-  bool seeking = false;
 
   // Messaging:
 
@@ -124,9 +123,6 @@ private:
   bool sendResource(ICoreWebView2WebResourceRequestedEventArgs *args,
                     int resource, std::wstring mime);
   virtual Status create(std::function<void()> callback = nullptr) override;
-
-  std::string getPingRegion();
-  void seekGame();
 
 protected:
   /// @brief Handle a message sent from the frontend
@@ -193,6 +189,9 @@ private:
   std::string gameCSS2;
   std::wstring gameJS;
 
+  bool seeking = false;
+  void seekGame();
+
 protected:
   // game CSS
   virtual rapidjson::Value getUserStyles(
@@ -226,9 +225,9 @@ class ChWindows {
 private:
   ChGameWindow game;
   ChScriptedWindow social;
-  ChWindow editor;
-  ChWindow viewer;
-  ChWindow scripting;
+  ChScriptedWindow editor;
+  ChScriptedWindow viewer;
+  ChScriptedWindow scripting;
 
 public:
   /// @brief Execute any pending operations from the main thread

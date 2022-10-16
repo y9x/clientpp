@@ -135,10 +135,6 @@ void ChScriptedWindow::handleMessage(JSMessage msg) {
     webview->Reload();
 
     break;
-  case IM::seek_game:
-    seekGame();
-
-    break;
   case IM::open_devtools:
     if (folder.config["client"]["devtools"].GetBool())
       webview->OpenDevToolsWindow();
@@ -250,11 +246,6 @@ void ChScriptedWindow::handleMessage(JSMessage msg) {
       DiscordRichPresence data = loadPresenceData(msg.args[0]);
       Discord_UpdatePresence(&data);
     }
-
-    break;
-  default:
-
-    clog::error << "Unknown message " << msg.dump() << clog::endl;
 
     break;
   }
