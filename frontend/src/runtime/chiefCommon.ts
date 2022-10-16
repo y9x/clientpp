@@ -15,9 +15,8 @@ import type Text from "../menu/components/Text";
 import setLocalStorage from "../setLocalStorage";
 import currentSite from "../site";
 import type useLocalStorage from "../useLocalStorage";
-import { sourceMappingURL } from "./common";
+import { nameCode } from "./common";
 import type htm from "htm";
-import MagicString from "magic-string";
 import type { FunctionComponent } from "preact";
 import type Preact from "preact";
 
@@ -83,16 +82,8 @@ export default function executeUserScript(
     "eval(code)"
   ) as UserscriptContext;
 
-  const magic = new MagicString(code);
-
   run(
-    magic.toString() +
-      "//# " +
-      sourceMappingURL(
-        magic.generateMap({
-          source: new URL("file:" + script).toString(),
-        })
-      ),
+    nameCode(script, code),
     console,
     () => currentSite,
     setLocalStorage,

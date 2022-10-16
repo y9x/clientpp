@@ -2,8 +2,7 @@
  * Tampermonky UserScript support
  */
 import console from "../console";
-import { sourceMappingURL } from "./common";
-import MagicString from "magic-string";
+import { nameCode } from "./common";
 import { parse } from "match-pattern";
 
 function* getComments(script: string) {
@@ -128,20 +127,10 @@ export default function tampermonkeyRuntime(script: string, code: string) {
       xml.open("GET", require, false);
       xml.send();
 
-      const magic = new MagicString(xml.responseText);
-
       // eslint-disable-next-line no-new-func
       const run = new Function("code", "eval(code)") as (code: string) => void;
 
-      run(
-        magic.toString() +
-          "//# " +
-          sourceMappingURL(
-            magic.generateMap({
-              source: require,
-            })
-          )
-      );
+      run(nameCode(code, require));
     }
   }
 
@@ -155,16 +144,8 @@ export default function tampermonkeyRuntime(script: string, code: string) {
     "eval(code)"
   ) as UserscriptContext;
 
-  const magic = new MagicString(code);
-
   run(
-    magic.toString() +
-      "//# " +
-      sourceMappingURL(
-        magic.generateMap({
-          source: new URL("file:" + script).toString(),
-        })
-      ),
+    nameCode(script, code),
     console,
     window,
     (key) => localStorage.getItem(key),

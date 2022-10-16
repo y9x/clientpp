@@ -1,8 +1,7 @@
 /*
  * IDKR Userscript support
  */
-import { sourceMappingURL } from "./common";
-import MagicString from "magic-string";
+import { nameFunctionCode } from "./common";
 import type { ComponentChild } from "preact";
 
 // One too many interfaces had to be fixed... TODO: open PR @ https://github.com/idkr-client/idkr/blob/master/Userscripts.md#script-structure
@@ -164,7 +163,7 @@ export type UserscriptContext = (
   clientUtils: IClientUtil,
   exports: IUserscriptExports,
   module: IUserscriptModule
-) => IUserscript;
+) => IUserscript | void;
 
 export function executeUserScript(
   script: string,
@@ -181,32 +180,19 @@ export function executeUserScript(
     "return eval(code)()"
   ) as UserscriptContext;
 
-  const magic = new MagicString(code);
-
-  magic.appendLeft(0, "()=>{");
-  magic.append("}");
-
   const module = {
     exports: {},
   } as IUserscriptModule;
 
   const ret = run(
-    magic.toString() +
-      "//# " +
-      sourceMappingURL(
-        magic.generateMap({
-          source: new URL("file:" + script).toString(),
-        })
-      ),
+    nameFunctionCode(script, code),
     console,
     clientUtils,
     module.exports,
     module
   );
 
-  if (ret) {
-    ret.clientUtils = clientUtils;
-  }
+  if (typeof ret === "object" && ret !== null) ret.clientUtils = clientUtils;
 
   const userscript = {
     config: ret?.config || module?.exports,
