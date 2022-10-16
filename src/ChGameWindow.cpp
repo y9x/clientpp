@@ -1,11 +1,12 @@
 #include "../utils/JsonUtil.h"
 #include "../utils/StringUtil.h"
+#include "./ChWindow.h"
 #include "./JSMessage.h"
-#include "./KrunkerWindow.h"
 #include "./LoadRes.h"
 #include "./LobbySeeker.h"
 #include "./Log.h"
 #include "./resource.h"
+
 
 // #include <rapidjson/writer.h>
 

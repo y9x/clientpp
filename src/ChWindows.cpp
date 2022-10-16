@@ -1,4 +1,4 @@
-#include "./KrunkerWindow.h"
+#include "./ChWindow.h"
 
 constexpr const wchar_t *title = L"Chief Client";
 constexpr const wchar_t *titleGame = title;

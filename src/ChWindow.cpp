@@ -1,5 +1,5 @@
 
-#include "./KrunkerWindow.h"
+#include "./ChWindow.h"
 #include "../utils/Base64.h"
 #include "../utils/JsonUtil.h"
 #include "../utils/StringUtil.h"
@@ -793,7 +793,7 @@ ChWindow::Status ChWindow::callCreateWebView(std::function<void()> callback) {
                       resizeWV();
                       registerEvents();
 
-                      clog::debug << "KrunkerWindow created" << clog::endl;
+                      clog::debug << "ChWindow created" << clog::endl;
 
                       /*if (on_webview2_startup) on_webview2_startup();*/
 

@@ -3,8 +3,8 @@
 #include "../utils/JsonUtil.h"
 #include "../utils/StringUtil.h"
 #include "./AccountManager.h"
+#include "./ChWindow.h"
 #include "./ClientFolder.h"
-#include "./KrunkerWindow.h"
 #include "./Log.h"
 #include "./Updater.h"
 #include "./WebView2Installer.h"
@@ -15,6 +15,7 @@
 #include <shellapi.h>
 #include <sstream>
 #include <thread>
+
 
 constexpr const char *version = CLIENT_VERSION_STRING;
 constexpr const wchar_t *title = L"Chief Client";

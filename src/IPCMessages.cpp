@@ -1,6 +1,6 @@
 #include "../utils/JsonUtil.h"
 #include "../utils/StringUtil.h"
-#include "./KrunkerWindow.h"
+#include "./ChWindow.h"
 #include "./Log.h"
 #include "./main.h"
 #include "./resource.h"
