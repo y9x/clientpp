@@ -65,6 +65,11 @@ JSMessage msgFct(unsigned short event, std::vector<double> nums) {
 }
 
 void ChGameWindow::dispatch() {
+  ChScriptedWindow::dispatch();
+
+  if (!open)
+    return;
+
   bool active = GetActiveWindow() == m_hWnd;
 
   if (!active && mouseHooked)
@@ -175,45 +180,42 @@ ChGameWindow::~ChGameWindow() {
 void ChGameWindow::seekGame() {
   if (folder.config["game"]["seek"]["F4"].GetBool())
     if (folder.config["game"]["seek"]["custom_logic"].GetBool())
-      new std::thread([this]() {
-        postMessage(
-            JSMessage(IM::get_ping_region),
-            [this](const rapidjson::Value &value) -> void {
-              std::string region(value.GetString(), value.GetStringLength());
+      postMessage(
+          JSMessage(IM::get_ping_region),
+          [this](const rapidjson::Value &value) -> void {
+            std::string region(value.GetString(), value.GetStringLength());
 
-              seeking = true;
+            seeking = true;
 
-              LobbySeeker seeker;
+            LobbySeeker seeker;
 
-              for (size_t mi = 0; mi < LobbySeeker::modes.size(); mi++)
-                if (LobbySeeker::modes[mi] ==
-                    JT::string(folder.config["game"]["seek"]["mode"])) {
-                  seeker.mode = mi;
-                }
+            for (size_t mi = 0; mi < LobbySeeker::modes.size(); mi++)
+              if (LobbySeeker::modes[mi] ==
+                  JT::string(folder.config["game"]["seek"]["mode"])) {
+                seeker.mode = mi;
+              }
 
-              for (size_t ri = 0; ri < LobbySeeker::regions.size(); ri++)
-                if (LobbySeeker::regions[ri].first == region) {
-                  seeker.region = ri;
-                }
+            for (size_t ri = 0; ri < LobbySeeker::regions.size(); ri++)
+              if (LobbySeeker::regions[ri].first == region) {
+                seeker.region = ri;
+              }
 
-              seeker.customs =
-                  folder.config["game"]["seek"]["customs"].GetBool();
-              seeker.map = ST::lowercase(
-                  JT::string(folder.config["game"]["seek"]["map"]));
+            seeker.customs = folder.config["game"]["seek"]["customs"].GetBool();
+            seeker.map =
+                ST::lowercase(JT::string(folder.config["game"]["seek"]["map"]));
 
-              if (seeker.map.length())
-                seeker.use_map = true;
+            if (seeker.map.length())
+              seeker.use_map = true;
 
-              std::string url = seeker.seek();
+            std::string url = seeker.seek();
 
-              dispatchMtx.lock();
-              pendingNavigations.push_back(ST::wstring(url));
-              dispatchMtx.unlock();
+            dispatchMtx.lock();
+            pendingNavigations.push_back(ST::wstring(url));
+            dispatchMtx.unlock();
 
-              seeking = false;
-            },
-            nullptr);
-      });
+            seeking = false;
+          },
+          nullptr);
     else {
       dispatchMtx.lock();
       pendingNavigations.push_back(L"https://krunker.io/");

@@ -181,64 +181,66 @@ void ChScriptedWindow::handleMessage(JSMessage msg) {
     folder.load_config();
 
     break;
-  case IM::browse_file:
-    new std::thread(
-        [this](JSMessage msg) {
-          wchar_t filename[MAX_PATH];
+  case IM::browse_file: {
+    std::wstring title = JT::wstring(msg.args[1]);
+    std::wstring filters;
 
-          OPENFILENAME ofn;
-          ZeroMemory(&filename, sizeof(filename));
-          ZeroMemory(&ofn, sizeof(ofn));
-          ofn.lStructSize = sizeof(ofn);
-          ofn.hwndOwner = m_hWnd;
-          std::wstring title = JT::wstring(msg.args[1]);
-          std::wstring filters;
+    for (rapidjson::Value::ValueIterator it = msg.args[2].Begin();
+         it != msg.args[2].End(); ++it) {
+      std::wstring wlabel = JT::wstring((*it)[0]);
+      std::wstring wfilter = JT::wstring((*it)[1]);
 
-          for (rapidjson::Value::ValueIterator it = msg.args[2].Begin();
-               it != msg.args[2].End(); ++it) {
-            std::wstring wlabel = JT::wstring((*it)[0]);
-            std::wstring wfilter = JT::wstring((*it)[1]);
+      wlabel += L" (" + wfilter + L")";
 
-            wlabel += L" (" + wfilter + L")";
+      filters += wlabel;
+      filters += L'\0';
+      filters += wfilter;
+      filters += L'\0';
+    }
 
-            filters += wlabel;
-            filters += L'\0';
-            filters += wfilter;
-            filters += L'\0';
-          }
+    int id = msg.args[0].GetInt();
 
-          // L"Icon Files\0*.ico\0Any File\0*.*\0"
-          // filters is terminated by 2 null characters
-          // each filter is terminated by 1 null character
-          ofn.lpstrFilter = filters.c_str();
-          ofn.lpstrFile = filename;
-          ofn.nMaxFile = MAX_PATH;
-          ofn.lpstrTitle = title.c_str();
-          ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
+    new std::thread([this, id, title, filters]() {
+      wchar_t filename[MAX_PATH];
 
-          JSMessage res(msg.args[0].GetInt());
+      OPENFILENAME ofn;
+      ZeroMemory(&filename, sizeof(filename));
+      ZeroMemory(&ofn, sizeof(ofn));
+      ofn.lStructSize = sizeof(ofn);
+      ofn.hwndOwner = m_hWnd;
 
-          if (GetOpenFileName(&ofn)) {
-            std::wstring fn;
-            fn.resize(MAX_PATH);
-            fn = filename;
+      // L"Icon Files\0*.ico\0Any File\0*.*\0"
+      // filters is terminated by 2 null characters
+      // each filter is terminated by 1 null character
+      ofn.lpstrFilter = filters.c_str();
+      ofn.lpstrFile = filename;
+      ofn.nMaxFile = MAX_PATH;
+      ofn.lpstrTitle = title.c_str();
+      ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
 
-            // make relative
-            std::string rel = ST::string(folder.relative_path(fn));
-            res.args.PushBack(
-                rapidjson::Value(rel.data(), rel.size(), res.allocator),
-                res.allocator);
-            res.args.PushBack(rapidjson::Value(false), res.allocator);
-          } else
-            res.args.PushBack(rapidjson::Value(true), res.allocator);
+      JSMessage res(id);
 
-          dispatchMtx.lock();
-          pendingMessages.push_back(res);
-          dispatchMtx.unlock();
-        },
-        msg);
+      if (GetOpenFileName(&ofn)) {
+        std::wstring fn;
+        fn.resize(MAX_PATH);
+        fn = filename;
 
-    break;
+        // make relative
+        std::string rel = ST::string(folder.relative_path(fn));
+        res.args.PushBack(
+            rapidjson::Value(rel.data(), rel.size(), res.allocator),
+            res.allocator);
+        res.args.PushBack(rapidjson::Value(rapidjson::kNullType),
+                          res.allocator);
+      } else
+        res.args.PushBack(rapidjson::Value(true), res.allocator);
+
+      dispatchMtx.lock();
+      pendingMessages.push_back(res);
+      dispatchMtx.unlock();
+    });
+
+  } break;
   case IM::rpc_update:
     if (msg.args[0].IsNull()) {
       Discord_ClearPresence();
