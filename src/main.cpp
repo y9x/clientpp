@@ -11,6 +11,8 @@
 #include "./resource.h"
 #include <ShellScalingApi.h>
 #include <WinUser.h>
+#include <discord_register.h>
+#include <discord_rpc.h>
 #include <functional>
 #include <shellapi.h>
 #include <sstream>

@@ -1,12 +1,11 @@
+#include "./ChGameWindow.h"
 #include "../utils/JsonUtil.h"
 #include "../utils/StringUtil.h"
-#include "./ChWindow.h"
 #include "./JSMessage.h"
 #include "./LoadRes.h"
 #include "./LobbySeeker.h"
 #include "./Log.h"
 #include "./resource.h"
-
 
 // #include <rapidjson/writer.h>
 
@@ -313,4 +312,27 @@ void ChGameWindow::handleMessage(JSMessage msg) {
       clog::error << "Unable to send " << res.dump() << clog::endl;
   } break;
   }
+}
+
+rapidjson::Value ChGameWindow::getUserStyles(
+    rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator) {
+  rapidjson::Value value = ChScriptedWindow::getUserStyles(allocator);
+
+  {
+    rapidjson::Value row(rapidjson::kArrayType);
+    row.PushBack("game.css", allocator);
+    row.PushBack(rapidjson::Value(gameCSS1.data(), gameCSS1.size(), allocator),
+                 allocator);
+    value.PushBack(row, allocator);
+  }
+
+  {
+    rapidjson::Value row(rapidjson::kArrayType);
+    row.PushBack("AccountManager.css", allocator);
+    row.PushBack(rapidjson::Value(gameCSS2.data(), gameCSS2.size(), allocator),
+                 allocator);
+    value.PushBack(row, allocator);
+  }
+
+  return value;
 }

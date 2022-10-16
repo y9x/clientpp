@@ -1,10 +1,12 @@
 #include "../utils/JsonUtil.h"
 #include "../utils/StringUtil.h"
-#include "./ChWindow.h"
+#include "./ChScriptedWindow.h"
 #include "./Log.h"
 #include "./main.h"
 #include "./resource.h"
 #include <commdlg.h>
+#include <discord_register.h>
+#include <discord_rpc.h>
 #include <rapidjson/prettywriter.h>
 #include <shellapi.h>
 
