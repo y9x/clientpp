@@ -14,16 +14,17 @@ import Switch from "../../menu/components/Switch";
 import Text from "../../menu/components/Text";
 import useLocalStorage from "../../useLocalStorage";
 import executeUserScript from "../chiefCommon";
+import type { CallSettingsData } from "../chiefCommon";
 import htm from "htm";
-import type { FunctionComponent } from "react";
-import React from "react";
+import type { FunctionComponent } from "preact";
+import * as Preact from "preact";
 
 export const renderSettings: FunctionComponent[] = [];
 
-const callSettingsData = Object.freeze({
-  React,
+const callSettingsData: CallSettingsData = Object.freeze({
+  Preact,
   // expose `htm` to allow for manipulating JSX
-  html: htm.bind(React.createElement),
+  html: htm.bind(Preact.createElement),
   // expose components for building a GUI extension
   UI: Object.freeze({
     Button,
@@ -48,6 +49,6 @@ const callSettingsData = Object.freeze({
  */
 export default function chiefRuntime(script: string, code: string) {
   executeUserScript(script, code, ({ Settings }) => {
-    if (Settings) renderSettings.push(() => Settings(callSettingsData));
+    if (Settings) renderSettings.push(() => <Settings {...callSettingsData} />);
   });
 }

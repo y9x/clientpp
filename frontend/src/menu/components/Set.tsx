@@ -1,5 +1,5 @@
-import { useState } from "react";
-import type { ReactNode } from "react";
+import type { ComponentChild } from "preact";
+import { useState } from "preact/hooks";
 
 interface SetProps {
   /**
@@ -9,7 +9,7 @@ interface SetProps {
   /**
    * This set's body.
    */
-  children?: ReactNode;
+  children?: ComponentChild;
 }
 
 /**
@@ -40,7 +40,7 @@ interface HeadlessSetProps {
   /**
    * This set's body.
    */
-  children: ReactNode;
+  children: ComponentChild;
 }
 
 export function HeadlessSet({ children }: HeadlessSetProps) {

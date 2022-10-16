@@ -4,6 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "jsx": "preserve",
+    "jsxImportSource": "preact",
     "esModuleInterop": true,
     "strict": true,
     "noEmit": true,

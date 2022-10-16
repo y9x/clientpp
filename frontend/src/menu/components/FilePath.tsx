@@ -1,11 +1,11 @@
 import ipc, { IM } from "../../ipc";
 import Control from "./Control";
 import type { BaseControlProps } from "./Control";
-import type { ReactElement } from "react";
+import type { JSX, VNode } from "preact";
 
 export interface FilePathProps extends BaseControlProps {
   onPick?: (file: string) => void;
-  children: ReactElement<
+  children: VNode<
     Omit<Omit<JSX.IntrinsicElements["option"], "children">, "value"> & {
       value?: string;
       children?: string;

@@ -1,5 +1,5 @@
 import { target } from "./setLocalStorage";
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "preact/hooks";
 
 /**
  * localStorage hook.

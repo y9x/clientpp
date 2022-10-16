@@ -1,4 +1,3 @@
-import type swcrcSchema from "./swcrc.js";
 import type { JsMinifyOptions } from "@swc/core";
 import ESLintPlugin from "eslint-webpack-plugin";
 import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
@@ -41,7 +40,7 @@ const config: Configuration = {
       {
         enforce: "pre",
         test: /\.(js|mjs|jsx|ts|tsx)$/,
-        exclude: /@swc(?:\/|\\{1,2})helpers/,
+        exclude: /@babel(?:\/|\\{1,2})runtime/,
         loader: "source-map-loader",
       },
       {
@@ -49,42 +48,68 @@ const config: Configuration = {
           {
             test: /\.[mc]?[jt]sx?$/,
             include: resolve("src"),
-            loader: "swc-loader",
-            resolve: {
-              fullySpecified: false,
-            },
-            options: {
-              sourceMaps: true,
-              minify: !isDevelopment,
-              jsc: {
-                parser: {
-                  syntax: "typescript",
-                  tsx: true,
-                  decorators: false,
-                  dynamicImport: true,
+            use: [
+              {
+                loader: "babel-loader",
+                options: {
+                  customize: resolve(
+                    "node_modules/babel-preset-react-app/webpack-overrides.js"
+                  ),
+                  presets: [
+                    [
+                      "@babel/preset-typescript",
+                      {
+                        allowDeclareFields: true,
+                      },
+                    ],
+                    [
+                      "babel-preset-react-app",
+                      {
+                        runtime: "automatic",
+                      },
+                    ],
+                  ],
+                  plugins: [
+                    [
+                      "@babel/plugin-transform-react-jsx",
+                      {
+                        runtime: "automatic",
+                        importSource: "preact",
+                      },
+                    ],
+                  ],
+                  // This is a feature of `babel-loader` for webpack (not Babel itself).
+                  // It enables caching results in ./node_modules/.cache/babel-loader/
+                  // directory for faster rebuilds.
+                  cacheDirectory: true,
+                  // See #6846 for context on why cacheCompression is disabled
+                  cacheCompression: false,
+                  compact: !isDevelopment,
                 },
-                transform: {
-                  react: {
-                    runtime: "automatic",
-                  },
-                },
-                target: "es2015",
-                externalHelpers: true,
               },
-            } as swcrcSchema,
+            ],
           },
           {
             test: /\.(js|mjs)$/,
             exclude: /@swc(?:\/|\\{1,2})helpers/,
-            loader: "swc-loader",
+            loader: "babel-loader",
             options: {
-              minify: !isDevelopment,
+              babelrc: false,
+              configFile: false,
+              compact: false,
+              presets: [
+                ["babel-preset-react-app/dependencies", { helpers: true }],
+              ],
+              cacheDirectory: true,
+              // See #6846 for context on why cacheCompression is disabled
+              cacheCompression: false,
+
+              // Babel sourcemaps are needed for debugging into node_modules
+              // code.  Without the options below, debuggers like VSCode
+              // show incorrect code and set breakpoints on the wrong lines.
               sourceMaps: true,
-              jsc: {
-                target: "es2015",
-                externalHelpers: true,
-              },
-            } as swcrcSchema,
+              inputSourceMap: true,
+            },
           },
           {
             test: /IPCMessages\.h$/,

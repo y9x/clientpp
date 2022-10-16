@@ -1,6 +1,6 @@
 import Control from "./Control";
 import type { BaseControlProps } from "./Control";
-import type { ChangeEvent } from "react";
+import type { JSX } from "preact";
 
 export interface TextProps extends BaseControlProps {
   placeholder?: string;
@@ -10,7 +10,7 @@ export interface TextProps extends BaseControlProps {
    * False by default.
    */
   spellCheck?: boolean;
-  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+  onChange?: JSX.GenericEventHandler<HTMLInputElement>;
 }
 
 export default function Text({

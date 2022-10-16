@@ -1,14 +1,14 @@
-import type { Root } from "react-dom/client";
-import { createRoot } from "react-dom/client";
+import type { ComponentChild } from "preact";
+import { render } from "preact";
 
-export type RenderOnDemand = (root: Root) => void;
+export type RenderOnDemand = () => ComponentChild;
 
 /**
  *
  * @description The raw HTML instantitates a custom element that executes code to create a react-dom root in it's parent. When the innerHTML of the parent is set, the react-dom root is unmounted. This allows for the mount and unmount lifecycles to be triggered.
  * @returns Raw HTML to create a hook element.
  */
-export default function createRenderContainer(render: RenderOnDemand) {
+export default function createRenderContainer(d: RenderOnDemand) {
   const id = "a-" + Math.random().toString().slice(2);
 
   class HTMLProxyElement extends HTMLElement {
@@ -17,9 +17,9 @@ export default function createRenderContainer(render: RenderOnDemand) {
 
       this.remove();
 
-      const root = createRoot(settHolder);
+      const vnode = d();
 
-      render(root);
+      render(vnode, settHolder);
 
       Reflect.defineProperty(settHolder, "innerHTML", {
         configurable: true,
@@ -27,7 +27,7 @@ export default function createRenderContainer(render: RenderOnDemand) {
           // remove descriptor
           Reflect.deleteProperty(settHolder, "innerHTML");
 
-          root.unmount();
+          render(null, settHolder);
 
           settHolder.innerHTML = html;
         },

@@ -3,7 +3,7 @@
  */
 import { sourceMappingURL } from "./common";
 import MagicString from "magic-string";
-import type { ReactElement } from "react";
+import type { ComponentChild } from "preact";
 
 // One too many interfaces had to be fixed... TODO: open PR @ https://github.com/idkr-client/idkr/blob/master/Userscripts.md#script-structure
 
@@ -81,7 +81,7 @@ interface ISetting {
   type: string;
   // type: "checkbox" | "select" | "text" | "slider" | string;
   needsRestart?: boolean;
-  html(): (config: Config) => ReactElement;
+  html(): (config: Config) => ComponentChild;
   set?(): void;
 }
 
@@ -117,7 +117,7 @@ interface ITextSetting extends ISetting {
 
 interface IUnknownSetting extends ISetting {
   type: "";
-  val: string | number | ReadonlyArray<string> | undefined;
+  val: string | number | undefined;
   placeholder?: string;
 }
 
@@ -136,8 +136,8 @@ export interface IClientUtil {
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   events: typeof import("../EventEmitter").default;
   // settings: { [key: string]: ISetting };
-  // setCSetting(name: string, value: any): ReactNode;
-  // genCSettingsHTML(setting: ISetting): ReactNode;
+  // setCSetting(name: string, value: any): ComponentChild;
+  // genCSettingsHTML(setting: ISetting): ComponentChild;
   // delayIDs: Record<string, NodeJS.Timeout>;
   // delaySetCSetting(name: String, target: HTMLInputElement, delay?: Number);
   // searchMatches(entry: ISetting);
@@ -146,7 +146,7 @@ export interface IClientUtil {
    */
   genCSettingsHTML(
     setting: SomeSetting
-  ): (config: Config) => ReactElement | void;
+  ): (config: Config) => ComponentChild | void;
   // initUtil();
 }
 

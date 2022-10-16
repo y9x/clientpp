@@ -11,7 +11,7 @@ import { HeadlessSet, Set } from "./components/Set";
 import Switch from "./components/Switch";
 import Text from "./components/Text";
 import { useConfig } from "./useConfig";
-import type { MouseEvent } from "react";
+import type { JSX } from "preact";
 
 const seekModes = [
   "Free for All",
@@ -44,7 +44,7 @@ const seekModes = [
   "Kranked FFA",
 ];
 
-function openShell(event: MouseEvent<HTMLAnchorElement>) {
+function openShell(event: JSX.TargetedMouseEvent<HTMLAnchorElement>) {
   event.preventDefault();
   ipc.send(IM.shell_open, "url", event.currentTarget.href);
 }

@@ -1,10 +1,10 @@
 import Control from "./Control";
 import type { BaseControlProps } from "./Control";
-import type { MouseEvent } from "react";
+import type { JSX } from "preact";
 
 export interface ButtonProps extends BaseControlProps {
   text: string;
-  onClick?: (event: MouseEvent<HTMLDivElement>) => void;
+  onClick?: JSX.MouseEventHandler<HTMLDivElement>;
 }
 
 export default function Button({

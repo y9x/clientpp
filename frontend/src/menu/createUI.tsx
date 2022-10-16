@@ -9,7 +9,7 @@ import getConfig from "./useConfig";
 
 if (currentSite === "game") {
   // settings = 0
-  extendRoot("Client", (root) => root.render(<Menu />));
+  extendRoot("Client", () => <Menu />);
 
   if (getConfig().game.account_manager.enabled)
     waitFor(
@@ -22,8 +22,7 @@ if (currentSite === "game") {
           width: 1100,
           popup: true,
         },
-        (root) =>
-          root.render(<AddAccount accountManagerID={() => accountManagerID} />)
+        () => <AddAccount accountManagerID={() => accountManagerID} />
       );
 
       const accountManagerID = extendWindows(
@@ -33,8 +32,7 @@ if (currentSite === "game") {
           width: 1100,
           popup: true,
         },
-        (root) =>
-          root.render(<AccountManager addAccountID={() => addAccountID} />)
+        () => <AccountManager addAccountID={() => addAccountID} />
       );
 
       const createButton = (bar: HTMLDivElement) => {

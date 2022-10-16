@@ -1,5 +1,5 @@
 import ipc, { IM } from "../ipc";
-import { useRef } from "react";
+import { useRef } from "preact/hooks";
 
 export default function AddAccount({
   accountManagerID,

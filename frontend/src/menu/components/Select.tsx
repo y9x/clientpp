@@ -1,12 +1,12 @@
 import Control from "./Control";
 import type { BaseControlProps } from "./Control";
-import type { ChangeEvent, ReactNode } from "react";
+import type { JSX, ComponentChild } from "preact";
 
 export interface SelectProps extends BaseControlProps {
-  children?: ReactNode;
+  children?: ComponentChild;
   value?: string;
   defaultValue?: string;
-  onChange?: (event: ChangeEvent<HTMLSelectElement>) => void;
+  onChange?: JSX.GenericEventHandler<HTMLSelectElement>;
 }
 
 export default function Select({

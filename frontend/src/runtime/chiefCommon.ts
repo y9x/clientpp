@@ -18,12 +18,13 @@ import type useLocalStorage from "../useLocalStorage";
 import { sourceMappingURL } from "./common";
 import type htm from "htm";
 import MagicString from "magic-string";
-import type { FunctionComponent, ReactElement } from "react";
-import type React from "react";
+import type { FunctionComponent } from "preact";
+import type Preact from "preact";
 
 export const renderSettings: FunctionComponent[] = [];
-interface CallSettingsData {
-  React: typeof React;
+
+export interface CallSettingsData {
+  Preact: typeof Preact;
   // expose `htm` to allow for manipulating JSX
   html: typeof htm;
   // expose components for building a GUI extension
@@ -49,7 +50,7 @@ interface ExportedUserscriptData {
   /**
    * Extend the client settings GUI.
    */
-  Settings?: (data: CallSettingsData) => ReactElement;
+  Settings?: FunctionComponent<CallSettingsData>;
 }
 
 type ExportUserscriptCallback = (data: ExportedUserscriptData) => void;

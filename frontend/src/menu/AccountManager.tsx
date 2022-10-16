@@ -1,6 +1,6 @@
 import ipc, { IM } from "../ipc";
 import Button from "./components/Button";
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "preact/hooks";
 
 function AccountTile({
   username,

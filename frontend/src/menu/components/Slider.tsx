@@ -1,7 +1,7 @@
 import Control from "./Control";
 import type { BaseControlProps } from "./Control";
-import type { ChangeEvent } from "react";
-import { useState } from "react";
+import type { JSX } from "preact";
+import { useState } from "preact/hooks";
 
 export interface SliderProps extends BaseControlProps {
   value?: number;
@@ -9,7 +9,7 @@ export interface SliderProps extends BaseControlProps {
   min?: number;
   max?: number;
   step?: number;
-  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+  onChange?: JSX.GenericEventHandler<HTMLInputElement>;
 }
 
 export default function Slider({
@@ -34,10 +34,14 @@ export default function Slider({
         max={max}
         step={step}
         value={localValue}
-        defaultValue={defaultValue}
+        defaultValue={
+          typeof defaultValue === "number"
+            ? defaultValue.toString()
+            : defaultValue
+        }
         onChange={(event) => {
           setLocalValue(event.currentTarget.valueAsNumber);
-          if (onChange) onChange(event);
+          if (onChange) onChange.call(undefined as never, event);
         }}
         style={{ marginRight: 0, borderWidth: 0 }}
       />
@@ -46,13 +50,17 @@ export default function Slider({
           className="sliderM"
           type="range"
           value={localValue}
-          defaultValue={defaultValue}
+          defaultValue={
+            typeof defaultValue === "number"
+              ? defaultValue.toString()
+              : defaultValue
+          }
           min={min}
           max={max}
           step={step}
           onChange={(event) => {
             setLocalValue(event.currentTarget.valueAsNumber);
-            if (onChange) onChange(event);
+            if (onChange) onChange.call(undefined as never, event);
           }}
         />
       </div>

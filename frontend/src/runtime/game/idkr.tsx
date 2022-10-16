@@ -18,7 +18,7 @@ import type {
 } from "../idkrCommon";
 import { createConfig, executeUserScript } from "../idkrCommon";
 import { renderSettings } from "./chief";
-import type { ReactElement } from "react";
+import type { ComponentChild } from "preact";
 
 const IDKRComponent = ({
   settings,
@@ -27,7 +27,7 @@ const IDKRComponent = ({
   settings: ISettingsCollection;
   config: Config;
 }) => {
-  const categories: Record<string, ReactElement[]> = {};
+  const categories: Record<string, ComponentChild[]> = {};
 
   for (const key in settings) {
     const setting = settings[key];
@@ -158,7 +158,8 @@ const clientUtils: IClientUtil = Object.freeze({
           />
         );
       // catch-all similiar to the current one in IDKR
-      default:
+      default: {
+        const got = config.get(setting.id, setting.val);
         return (
           <Control
             attention={setting.needsRestart}
@@ -169,7 +170,7 @@ const clientUtils: IClientUtil = Object.freeze({
               type={setting.type}
               className="inputGrey2"
               placeholder={setting.placeholder}
-              defaultValue={config.get(setting.id, setting.val)}
+              defaultValue={typeof got === "number" ? got.toString() : got}
               onChange={(event) => {
                 config.set(setting.id, event.currentTarget.value);
                 if (
@@ -183,6 +184,7 @@ const clientUtils: IClientUtil = Object.freeze({
             />
           </Control>
         );
+      }
     }
   },
 });

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ComponentChild } from "preact";
 
 export type onChange<T> = (value: T, init: boolean) => void;
 
@@ -6,7 +6,7 @@ export interface BaseControlProps {
   /**
    * This control's title.
    */
-  title: ReactNode;
+  title: ComponentChild;
   /**
    * Description of the control.
    */
@@ -25,7 +25,7 @@ export function ControlTitle({
   children,
 }: {
   attention?: boolean;
-  children: ReactNode;
+  children: ComponentChild;
 }) {
   return (
     <>
@@ -42,7 +42,7 @@ export function ControlContainer({
   children,
 }: {
   description?: string;
-  children: ReactNode;
+  children: ComponentChild;
 }) {
   return (
     <div className="settName" title={description}>
@@ -60,7 +60,7 @@ export default function Control({
   attention,
   children,
 }: BaseControlProps & {
-  children?: ReactNode;
+  children?: ComponentChild;
 }) {
   return (
     <div className="settName" title={description}>
