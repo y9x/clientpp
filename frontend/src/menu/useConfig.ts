@@ -18,8 +18,8 @@ ipc.on(IM.update_menu, (config) => setConfig(config));
  * Sets the config and triggers hooks.
  */
 export function setConfig(newConfig: typeof config) {
-  ipc.send(IM.save_config, currentConfig);
   currentConfig = newConfig;
+  ipc.send(IM.save_config, currentConfig);
   for (const listener of listeners) listener();
 }
 

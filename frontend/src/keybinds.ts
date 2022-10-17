@@ -2,6 +2,7 @@ import "./menu/createUI";
 import "./resources";
 import { createKeybind } from "./Keybind";
 import ipc, { IM } from "./ipc";
+import getConfig, { setConfig } from "./menu/useConfig";
 import currentSite from "./site";
 
 window.addEventListener("beforeunload", (event) => {
@@ -24,7 +25,12 @@ if (currentSite === "game") {
     else ipc.send(IM.seek_game);
   });
 
-  createKeybind("F11", () => ipc.send(IM.toggle_fullscreen));
+  createKeybind("F11", () => {
+    const config = getConfig();
+    config.render.fullscreen = !config.render.fullscreen;
+    setConfig(config);
+    ipc.send(IM.fullscreen);
+  });
 }
 
 // CTRL + SHIFT + I

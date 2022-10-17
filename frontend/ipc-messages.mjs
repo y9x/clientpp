@@ -27,7 +27,6 @@ const enums = {
     "close_window",
     "reload_window",
     "seek_game",
-    "toggle_fullscreen",
     "account_list",
     "account_password",
     "account_set",

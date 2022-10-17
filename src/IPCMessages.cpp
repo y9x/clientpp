@@ -142,20 +142,6 @@ void ChScriptedWindow::handleMessage(JSMessage msg) {
       webview->OpenDevToolsWindow();
 
     break;
-  case IM::toggle_fullscreen:
-    folder.config["render"]["fullscreen"] =
-        rapidjson::Value(!folder.config["render"]["fullscreen"].GetBool());
-    folder.save_config();
-
-    {
-      JSMessage msg(IM::update_menu);
-
-      msg.args.PushBack(rapidjson::Value(folder.config, msg.allocator),
-                        msg.allocator);
-
-      if (!sendMessage(msg))
-        clog::error << "Unable to send " << msg.dump() << clog::endl;
-    }
   case IM::fullscreen:
     if (folder.config["render"]["fullscreen"].GetBool())
       enterFullscreen();
