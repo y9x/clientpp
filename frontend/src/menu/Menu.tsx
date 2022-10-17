@@ -96,7 +96,7 @@ export default function Menu() {
         <Switch
           title="Uncap FPS"
           defaultChecked={config.render.uncap_fps}
-          description="Client Restart Required"
+          description="Client Requires Restart"
           attention
           onChange={(event) => {
             config.render.uncap_fps = event.currentTarget.checked;
@@ -112,7 +112,7 @@ export default function Menu() {
         <Select
           title="Angle backend"
           defaultValue={config.render.angle}
-          description="Client Restart Required"
+          description="Client Requires Restart"
           attention
           onChange={(event) => {
             config.render.angle = event.currentTarget.value;
@@ -134,7 +134,7 @@ export default function Menu() {
         <Select
           title="Color profile"
           defaultValue={config.render.color}
-          description="Client Restart Required"
+          description="Client Requires Restart"
           attention
           onChange={(event) => {
             config.render.color = event.currentTarget.value;
@@ -156,7 +156,7 @@ export default function Menu() {
         <Switch
           title="Account Manager"
           attention
-          description="Restart Required"
+          description="Requires Restart"
           defaultChecked={config.game.account_manager.enabled}
           onChange={(event) => {
             config.game.account_manager.enabled = event.currentTarget.checked;
@@ -289,7 +289,7 @@ export default function Menu() {
         <Switch
           title="Watermark"
           attention
-          description="Restart Required"
+          description="Requires Restart"
           defaultChecked={config.client.watermark}
           onChange={(event) => {
             config.client.watermark = event.currentTarget.checked;
