@@ -26,6 +26,8 @@ LANGUAGE LANG_ENGLISH,
 
     JS_GENERIC RCDATA "..\\frontend\\dist\\generic.js"
 
+    JS_TAMPERMONKEY RCDATA "..\\frontend\\dist\\tampermonkey.js"
+
     CSS_GAME_1 RCDATA "..\\resources\\game.css"
 
     CSS_GAME_2 RCDATA "..\\resources\\AccountManager.css"

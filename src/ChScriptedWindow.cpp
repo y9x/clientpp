@@ -16,6 +16,13 @@ ChScriptedWindow::ChScriptedWindow(ClientFolder &_folder, ChWindows &_windows,
     genericJS = ST::wstring(mGenericJS);
   else
     clog::error << "Failure loading generic.js" << clog::endl;
+
+  std::string mTampermonkeyJS;
+
+  if (loadResource(JS_TAMPERMONKEY, mTampermonkeyJS))
+    tampermonkeyJS = ST::wstring(mTampermonkeyJS);
+  else
+    clog::error << "Failure loading tampermonkey.js" << clog::endl;
 }
 
 ChWindow::Status ChScriptedWindow::create(std::function<void()> callback) {
@@ -145,12 +152,17 @@ void ChScriptedWindow::dispatch() {
   dispatchMtx.unlock();
 }
 
-void ChScriptedWindow::injectJS() {
-  webview->ExecuteScript((genericJS + L"\nfunction getRuntimeData() { return " +
+void ChScriptedWindow::injectRuntimeScript(const std::wstring &script) {
+  webview->ExecuteScript((script + L"\nfunction getRuntimeData() { return " +
                           ST::wstring(runtimeData()) +
                           L"; }; delete window.getRuntimeData;")
                              .c_str(),
                          nullptr);
+}
+
+void ChScriptedWindow::injectJS() {
+  injectRuntimeScript(tampermonkeyJS);
+  injectRuntimeScript(genericJS);
 }
 
 void ChScriptedWindow::registerEvents() {

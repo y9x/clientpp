@@ -40,6 +40,8 @@ private:
   virtual Status create(std::function<void()> callback = nullptr) override;
 
 protected:
+  std::wstring tampermonkeyJS;
+
   /// @brief Handle a message sent from the frontend
   /// @param msg
   virtual void handleMessage(JSMessage msg);
@@ -48,6 +50,9 @@ protected:
 
   /// @brief Ran as soon as the DOM is available and the domain is krunker.io
   virtual void injectJS();
+
+  /// @brief Util for executing script that requires runtime data.
+  void injectRuntimeScript(const std::wstring &script);
 
   /// @brief Produce runtime data
   /// format.

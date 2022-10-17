@@ -25,52 +25,31 @@ const isDevelopment = process.env.NODE_ENV === "development";
  * @type {import("rollup").RollupOptions[]}
  */
 const configs = [
-  {
-    input: "./src/game.ts",
-    output: {
-      sourcemap: "inline",
-      sourcemapPathTransform: (relativeSourcePath) =>
-        new URL(
-          "./frontend/" + relativeSourcePath,
-          "rollup://chief/frontend/"
-        ).toString(),
-      dir: "./dist/",
-      format: "iife",
-    },
-    plugins: [
-      commonjs(),
-      nodeResolve(),
-      typescript({
-        sourceMap: true,
-        inlineSources: true,
-      }),
-      tryCatch(),
-      !isDevelopment && terser(),
-    ],
+  ["./src/game.ts", "./dist/game.js"],
+  ["./src/generic.ts", "./dist/generic.js"],
+  ["./src/tampermonkey.ts", "./dist/tampermonkey.js"],
+].map(([input, file]) => ({
+  input,
+  output: {
+    sourcemap: "inline",
+    sourcemapPathTransform: (relativeSourcePath) =>
+      new URL(
+        "./frontend/" + relativeSourcePath,
+        "rollup://chief/frontend/"
+      ).toString(),
+    file,
+    format: "iife",
   },
-  {
-    input: "./src/generic.ts",
-    output: {
-      sourcemap: "inline",
-      sourcemapPathTransform: (relativeSourcePath) =>
-        new URL(
-          "./frontend/" + relativeSourcePath,
-          "rollup://chief/frontend/"
-        ).toString(),
-      dir: "./dist/",
-      format: "iife",
-    },
-    plugins: [
-      commonjs(),
-      nodeResolve(),
-      typescript({
-        sourceMap: true,
-        inlineSources: true,
-      }),
-      tryCatch(),
-      !isDevelopment && terser(),
-    ],
-  },
-];
+  plugins: [
+    commonjs(),
+    nodeResolve(),
+    typescript({
+      sourceMap: true,
+      inlineSources: true,
+    }),
+    tryCatch(),
+    !isDevelopment && terser(),
+  ],
+}));
 
 export default configs;

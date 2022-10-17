@@ -33,11 +33,8 @@ ChGameWindow::ChGameWindow(ClientFolder &_folder, AccountManager &_accounts,
 }
 
 void ChGameWindow::injectJS() {
-  webview->ExecuteScript((gameJS + L"\nfunction getRuntimeData() { return " +
-                          ST::wstring(runtimeData()) +
-                          L"; }; delete window.getRuntimeData;")
-                             .c_str(),
-                         nullptr);
+  injectRuntimeScript(tampermonkeyJS);
+  injectRuntimeScript(gameJS);
 }
 
 void ChGameWindow::registerEvents() {

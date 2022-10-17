@@ -9,7 +9,6 @@ import ipc, { IM } from "./ipc";
 import { js } from "./runtime";
 import chiefRuntime from "./runtime/game/chief";
 import idkrRuntime from "./runtime/game/idkr";
-import tampermonkeyRuntime from "./runtime/tampermonkey";
 import { waitFor } from "./utils";
 
 let lockedNode: Element | null;
@@ -99,7 +98,6 @@ for (const [script, code] of js)
   try {
     if (script.endsWith(".chief.js")) chiefRuntime(script, code);
     else if (script.endsWith(".idkr.js")) idkrRuntime(script, code);
-    else if (script.endsWith(".user.js")) tampermonkeyRuntime(script, code);
   } catch (err) {
     console.error(`Failure loading ${script}:`);
     console.error(err);
