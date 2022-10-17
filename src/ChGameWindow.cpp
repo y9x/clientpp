@@ -32,10 +32,7 @@ ChGameWindow::ChGameWindow(ClientFolder &_folder, AccountManager &_accounts,
   rawInput.usUsage = 0x02;
 }
 
-void ChGameWindow::injectJS() {
-  injectRuntimeScript(tampermonkeyJS);
-  injectRuntimeScript(gameJS);
-}
+void ChGameWindow::injectJS() { injectRuntimeScript(gameJS); }
 
 void ChGameWindow::registerEvents() {
   ChScriptedWindow::registerEvents();

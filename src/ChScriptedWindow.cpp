@@ -160,10 +160,7 @@ void ChScriptedWindow::injectRuntimeScript(const std::wstring &script) {
                          nullptr);
 }
 
-void ChScriptedWindow::injectJS() {
-  injectRuntimeScript(tampermonkeyJS);
-  injectRuntimeScript(genericJS);
-}
+void ChScriptedWindow::injectJS() { injectRuntimeScript(genericJS); }
 
 void ChScriptedWindow::registerEvents() {
   ChWindow::registerEvents();
@@ -196,6 +193,8 @@ void ChScriptedWindow::registerEvents() {
               wil::unique_cotaskmem_string urir;
               webview->get_Source(&urir);
               UriW uri(urir.get());
+
+              injectRuntimeScript(tampermonkeyJS);
 
               if (uri.host() == L"krunker.io")
                 injectJS();
