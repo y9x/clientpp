@@ -17,7 +17,7 @@ import executeUserScript from "../chiefCommon";
 import type { CallSettingsData } from "../chiefCommon";
 import htm from "htm";
 import type { FunctionComponent } from "preact";
-import * as Preact from "preact";
+import * as Preact from "preact/compat";
 
 export const renderSettings: FunctionComponent[] = [];
 

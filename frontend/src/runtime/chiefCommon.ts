@@ -18,11 +18,13 @@ import type useLocalStorage from "../useLocalStorage";
 import { nameCode } from "./common";
 import type htm from "htm";
 import type { FunctionComponent } from "preact";
-import type Preact from "preact";
+import type Preact from "preact/compat";
 
 export const renderSettings: FunctionComponent[] = [];
 
 export interface CallSettingsData {
+  // expose more all-in-one preact
+  // we want to expose: hooks, states, createElement, JSX
   Preact: typeof Preact;
   // expose `htm` to allow for manipulating JSX
   html: typeof htm;
