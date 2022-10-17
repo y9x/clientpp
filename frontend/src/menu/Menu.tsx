@@ -286,6 +286,22 @@ export default function Menu() {
             setConfig(config);
           }}
         />
+        <Switch
+          title="Watermark"
+          attention
+          description="Restart Required"
+          defaultChecked={config.client.watermark}
+          onChange={(event) => {
+            config.client.watermark = event.currentTarget.checked;
+            setConfig(config);
+            if (
+              window.confirm(
+                "The game will be restarted for this setting to take affect."
+              )
+            )
+              window.location.reload();
+          }}
+        />
         <ControlContainer>Chief Client v{clientVersion}</ControlContainer>
       </Set>
       {renderSettings.map((Settings, i) => (

@@ -13,7 +13,8 @@
   },
   "client": {
     "devtools": false,
-    "auto_update": true
+    "auto_update": true,
+    "watermark": true
   },
   "render": {
     "uncap_fps": false,
