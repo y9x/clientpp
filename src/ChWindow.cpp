@@ -1,6 +1,6 @@
-
 #include "./ChWindow.h"
 #include "../utils/Base64.h"
+#include "../utils/EncodeURI.h"
 #include "../utils/IOUtil.h"
 #include "../utils/JsonUtil.h"
 #include "../utils/StringUtil.h"
@@ -215,22 +215,6 @@ std::string status_name(COREWEBVIEW2_WEB_ERROR_STATUS status) {
     return "Unknown";
     break;
   }
-}
-
-std::wstring encodeURIComponent(std::wstring decoded) {
-  std::wostringstream oss;
-  std::wregex r(L"[!'\\(\\)*-.0-9A-Za-z_~]");
-
-  for (wchar_t &c : decoded) {
-    std::wstring cw;
-    cw += c;
-    if (std::regex_match(cw, r))
-      oss << c;
-    else
-      oss << "%" << std::uppercase << std::hex << (0xff & c);
-  }
-
-  return oss.str();
 }
 
 void ChWindow::dispatch() {

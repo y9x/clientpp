@@ -37,16 +37,14 @@ private:
   bool first = true;
   bool stopped = false;
   bool cnext = false;
-  bool frame_filen = false;
-  std::wstring filen;
   bool test_filename();
 
 public:
   WDirectoryIterator(std::wstring folder, std::wstring filter = L"*.*");
   ~WDirectoryIterator();
   void stop();
-  std::wstring file();
-  std::wstring path();
+  std::wstring file() const;
+  std::wstring path() const;
   // Starts iterating or goes to the next file
   bool operator++();
 };
