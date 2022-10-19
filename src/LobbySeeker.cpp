@@ -7,47 +7,34 @@
 #include <rapidjson/error/en.h>
 
 // config.js
-std::vector<std::string> LobbySeeker::modes = {"Free for All",
-                                               "Team Deathmatch",
-                                               "Hardpoint",
-                                               "Capture the Flag",
-                                               "Parkour",
-                                               "Hide & Seek",
-                                               "Infected",
-                                               "Race",
-                                               "Last Man Standing",
-                                               "Simon Says",
-                                               "Gun Game",
-                                               "Prop Hunt",
-                                               "Boss Hunt",
-                                               "unused",
-                                               "unused",
-                                               "Stalker",
-                                               "King of the Hill",
-                                               "One in the Chamber",
-                                               "Trade",
-                                               "Kill Confirmed",
-                                               "Defuse",
-                                               "Sharp Shooter",
-                                               "Traitor",
-                                               "Raid",
-                                               "Blitz",
-                                               "Domination",
-                                               "Squad Deathmatch",
-                                               "Kranked FFA"};
-
-std::map<std::string, std::string> LobbySeeker::regions = {
-    {"us-nj", "New York"},       {"us-il", "Chicago"},
-    {"us-tx", "Dallas"},         {"us-wa", "Seattle"},
-    {"us-ca-la", "Los Angeles"}, {"us-ga", "Atlanta"},
-    {"nl-ams", "Amsterdam"},     {"gb-lon", "London"},
-    {"de-fra", "Frankfurt"},     {"us-ca-sv", "Silicon Valley"},
-    {"au-syd", "Sydney"},        {"fr-par", "Paris"},
-    {"jb-hnd", "Tokyo"},         {"us-fl", "Miami"},
-    {"sgp", "Singapore"},        {"blr", "India"},
-    {"brz", "Brazil"},           {"me-bhn", "Middle East"},
-    {"af-ct", "South Africa"},   {"as-seoul", "South Korea"},
-};
+std::vector<std::string> seekerModes = {"Free for All",
+                                        "Team Deathmatch",
+                                        "Hardpoint",
+                                        "Capture the Flag",
+                                        "Parkour",
+                                        "Hide & Seek",
+                                        "Infected",
+                                        "Race",
+                                        "Last Man Standing",
+                                        "Simon Says",
+                                        "Gun Game",
+                                        "Prop Hunt",
+                                        "Boss Hunt",
+                                        "unused",
+                                        "unused",
+                                        "Stalker",
+                                        "King of the Hill",
+                                        "One in the Chamber",
+                                        "Trade",
+                                        "Kill Confirmed",
+                                        "Defuse",
+                                        "Sharp Shooter",
+                                        "Traitor",
+                                        "Raid",
+                                        "Blitz",
+                                        "Domination",
+                                        "Squad Deathmatch",
+                                        "Kranked FFA"};
 
 GameConfig::GameConfig(const rapidjson::Value &data)
     : map(data["i"].GetString()), mode(data["g"].GetInt()),
@@ -67,9 +54,10 @@ std::string Game::getLink() {
 // increase weight of game players if it is within the target range (4, 6)
 size_t strongPlayers(size_t x) { return (x >= 4 || x <= 6) ? 8 : x; }
 
-std::string LobbySeeker::seek() {
-  if (!use_map && mode == -1)
-    return "https://krunker.io";
+std::string seekLobby(const std::string &region, size_t mode, bool customs,
+                      const std::string &map) {
+  if (!map.size() && mode == -1)
+    return "https://krunker.io/";
 
   auto res =
       fetchGet("https://matchmaker.krunker.io/game-list?hostname=krunker.io");
@@ -96,7 +84,7 @@ std::string LobbySeeker::seek() {
       continue;
     if (region != "" && game.region != region)
       continue;
-    if (use_map && ST::lowercase(game.config.map) != map)
+    if (map.size() && ST::lowercase(game.config.map) != map)
       continue;
 
     games.push_back(game);

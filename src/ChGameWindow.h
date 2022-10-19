@@ -27,7 +27,7 @@ private:
   std::string gameCSS2;
   std::wstring gameJS;
 
-  bool seeking = false;
+  std::mutex seeking;
   void seekGame();
 
 protected:

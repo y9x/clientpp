@@ -172,49 +172,40 @@ ChGameWindow::~ChGameWindow() {
 }
 
 void ChGameWindow::seekGame() {
-  if (folder.config["game"]["seek"]["F4"].GetBool())
-    if (folder.config["game"]["seek"]["custom_logic"].GetBool())
-      postMessage(
-          JSMessage(IM::get_ping_region),
-          [this](const rapidjson::Value &value) -> void {
-            std::string region(value.GetString(), value.GetStringLength());
+  if (!folder.config["game"]["seek"]["F4"].GetBool())
+    return;
 
-            seeking = true;
+  std::unique_lock seekLock(seeking);
 
-            new std::thread([this, region] {
-              LobbySeeker seeker;
+  if (!folder.config["game"]["seek"]["custom_logic"].GetBool()) {
+    webview->Stop();
+    webview->Navigate(L"https://krunker.io/");
+  }
 
-              for (size_t mi = 0; mi < LobbySeeker::modes.size(); mi++)
-                if (LobbySeeker::modes[mi] ==
-                    JT::string(folder.config["game"]["seek"]["mode"])) {
-                  seeker.mode = mi;
-                }
+  postMessage(
+      JSMessage(IM::get_ping_region),
+      [this](const rapidjson::Value &value) -> void {
+        std::string region(value.GetString(), value.GetStringLength());
 
-              seeker.region = region;
+        new std::thread([this, region] {
+          std::string configMode =
+              JT::string(folder.config["game"]["seek"]["mode"]);
 
-              seeker.customs =
-                  folder.config["game"]["seek"]["customs"].GetBool();
-              seeker.map = ST::lowercase(
-                  JT::string(folder.config["game"]["seek"]["map"]));
+          size_t mode = -1;
 
-              if (seeker.map.length())
-                seeker.use_map = true;
+          for (size_t mi = 0; mi < seekModes.size(); mi++)
+            if (seekModes[mi] == configMode)
+              mode = mi;
 
-              std::string url = seeker.seek();
+          std::string gameURL = seekLobby(
+              region, mode, folder.config["game"]["seek"]["customs"].GetBool(),
+              ST::lowercase(JT::string(folder.config["game"]["seek"]["map"])));
 
-              dispatchMtx.lock();
-              pendingNavigations.push_back(ST::wstring(url));
-              dispatchMtx.unlock();
-
-              seeking = false;
-            });
-          },
-          nullptr);
-    else {
-      dispatchMtx.lock();
-      pendingNavigations.push_back(L"https://krunker.io/");
-      dispatchMtx.unlock();
-    }
+          webview->Stop();
+          webview->Navigate(ST::wstring(gameURL).c_str());
+        });
+      },
+      nullptr);
 }
 
 void ChGameWindow::handleMessage(JSMessage msg) {

@@ -23,15 +23,15 @@ struct Game {
   std::string getLink();
 };
 
-class LobbySeeker {
-public:
-  static std::vector<std::string> modes;
-  // { short, long }
-  static std::map<std::string, std::string> regions;
-  std::string region;
-  size_t mode = -1;
-  bool customs = false;
-  bool use_map = false;
-  std::string map;
-  std::string seek();
-};
+// { short mode name, long mode name }
+extern std::vector<std::string> seekModes;
+extern std::map<std::string, std::string> seekRegions;
+
+/// @brief
+/// @param region
+/// @param mode If -1, no mode will be searched for
+/// @param customs
+/// @param map If empty, any map will be searched for.
+/// @return URL to found game.
+extern std::string seekLobby(const std::string &region, size_t mode,
+                             bool customs, const std::string &map);
