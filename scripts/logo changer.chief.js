@@ -33,50 +33,48 @@ async function updateLogo() {
   else mainLogo.src = defaultLogo;
 }
 
-function Settings({ html, UI, useLocalStorage }) {
-  const [localEnabled, setLocalEnabled] = useLocalStorage(
-    "logo changer enabled"
-  );
-
-  const [logoURL, setLogoURL] = useLocalStorage("logo changer url");
-
-  return html`
-  <${UI.Set} title="Logo Changer">
-    <${UI.Switch}
-      title="Enabled"
-      defaultChecked=${localEnabled === "on"}
-      onChange=${(event) => {
-        const newValue = event.currentTarget.checked ? "on" : "off";
-        setLocalEnabled(newValue);
-        updateLogo();
-      }}
-    />
-    <${UI.FilePicker}
-      title="Logo File"
-      onChange=${(event) => {
-        const [file] = event.currentTarget.files;
-        if (!file) return;
-        const fileReader = new FileReader();
-
-        fileReader.addEventListener("load", () => {
-          setLogoURL(fileReader.result);
-          updateLogo();
-        });
-
-        fileReader.readAsDataURL(file);
-      }}
-    />
-    <${UI.Text}
-      title="Logo URL"
-      value=${logoURL}
-      onChange=${(event) => {
-        setLogoURL(event.currentTarget.value);
-        updateLogo();
-      }}
-    />
-  </${UI.Set} />`;
-}
-
 exportUserscript({
-  Settings,
+  renderSettings: ({ html, UI, useLocalStorage }) => {
+    const [localEnabled, setLocalEnabled] = useLocalStorage(
+      "logo changer enabled"
+    );
+
+    const [logoURL, setLogoURL] = useLocalStorage("logo changer url");
+
+    return html`
+    <${UI.Set} title="Logo Changer">
+      <${UI.Switch}
+        title="Enabled"
+        defaultChecked=${localEnabled === "on"}
+        onChange=${(event) => {
+          const newValue = event.currentTarget.checked ? "on" : "off";
+          setLocalEnabled(newValue);
+          updateLogo();
+        }}
+      />
+      <${UI.FilePicker}
+        title="Logo File"
+        onChange=${(event) => {
+          const [file] = event.currentTarget.files;
+          if (!file) return;
+          const fileReader = new FileReader();
+
+          fileReader.addEventListener("load", () => {
+            setLogoURL(fileReader.result);
+            updateLogo();
+          });
+
+          fileReader.readAsDataURL(file);
+        }}
+      />
+      <${UI.Text}
+        title="Logo URL"
+        value=${logoURL}
+        onChange=${(event) => {
+          setLogoURL(event.currentTarget.value);
+          updateLogo();
+        }}
+      />
+    </${UI.Set} />`;
+  },
 });

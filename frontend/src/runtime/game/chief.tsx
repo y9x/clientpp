@@ -15,7 +15,7 @@ import Text from "../../menu/components/Text";
 import useLocalStorage from "../../useLocalStorage";
 import executeUserScript from "../chiefCommon";
 import type { CallSettingsData } from "../chiefCommon";
-import htm from "htm";
+import { html } from "htm/preact";
 import type { FunctionComponent } from "preact";
 import * as Preact from "preact/compat";
 
@@ -24,7 +24,7 @@ export const renderSettings: FunctionComponent[] = [];
 const callSettingsData: CallSettingsData = Object.freeze({
   Preact,
   // expose `htm` to allow for manipulating JSX
-  html: htm.bind(Preact.createElement),
+  html,
   // expose components for building a GUI extension
   UI: Object.freeze({
     Button,
@@ -48,7 +48,8 @@ const callSettingsData: CallSettingsData = Object.freeze({
  * Run a Chief userscript
  */
 export default function chiefRuntime(script: string, code: string) {
-  executeUserScript(script, code, ({ Settings }) => {
-    if (Settings) renderSettings.push(() => <Settings {...callSettingsData} />);
+  executeUserScript(script, code, ({ renderGameSettings }) => {
+    if (renderGameSettings)
+      renderSettings.push(() => renderGameSettings(callSettingsData) || null);
   });
 }

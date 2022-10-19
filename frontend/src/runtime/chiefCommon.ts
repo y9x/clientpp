@@ -16,18 +16,20 @@ import setLocalStorage from "../setLocalStorage";
 import currentSite from "../site";
 import type useLocalStorage from "../useLocalStorage";
 import { nameCode } from "./common";
-import type htm from "htm";
-import type { FunctionComponent } from "preact";
+import type { html } from "htm/preact";
+import type { VNode } from "preact";
 import type Preact from "preact/compat";
 
-export const renderSettings: FunctionComponent[] = [];
+type RenderCallback = (data: CallSettingsData) => VNode | void;
+
+export const renderSettings: RenderCallback[] = [];
 
 export interface CallSettingsData {
   // expose more all-in-one preact
   // we want to expose: hooks, states, createElement, JSX
   Preact: typeof Preact;
   // expose `htm` to allow for manipulating JSX
-  html: typeof htm;
+  html: typeof html;
   // expose components for building a GUI extension
   UI: {
     Button: typeof Button;
@@ -50,8 +52,9 @@ export interface CallSettingsData {
 interface ExportedUserscriptData {
   /**
    * Extend the client settings GUI.
+   * We do not intend for you to build Preact hooks/components using this interface. This is simply for extending the in-game interface.
    */
-  Settings?: FunctionComponent<CallSettingsData>;
+  renderGameSettings?: RenderCallback;
 }
 
 type ExportUserscriptCallback = (data: ExportedUserscriptData) => void;

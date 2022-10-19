@@ -66,28 +66,28 @@ if (enabled) {
   window.isFrvrDotCom = false;
 }
 
-function Settings({ html, UI, useLocalStorage }) {
-  const [localEnabled, setLocalEnabled] = useLocalStorage("adblock enabled");
-
-  return html`
-  <${UI.Set} title="Adblock">
-    <${UI.Switch}
-      title="Adblock"
-      description="Requires Restart"
-      attention
-      defaultChecked=${localEnabled === "on"}
-      onChange=${(event) => {
-        const newValue = event.currentTarget.checked ? "on" : "off";
-        setLocalEnabled(newValue);
-        if (
-          confirm("The game will be reloaded for this setting to take affect.")
-        )
-          location.reload();
-      }}
-    />
-  </${UI.Set} />`;
-}
-
 exportUserscript({
-  Settings,
+  renderGameSettings: ({ html, UI, useLocalStorage }) => {
+    const [localEnabled, setLocalEnabled] = useLocalStorage("adblock enabled");
+
+    return html`
+    <${UI.Set} title="Adblock">
+      <${UI.Switch}
+        title="Adblock"
+        description="Requires Restart"
+        attention
+        defaultChecked=${localEnabled === "on"}
+        onChange=${(event) => {
+          const newValue = event.currentTarget.checked ? "on" : "off";
+          setLocalEnabled(newValue);
+          if (
+            confirm(
+              "The game will be reloaded for this setting to take affect."
+            )
+          )
+            location.reload();
+        }}
+      />
+    </${UI.Set} />`;
+  },
 });
