@@ -3,12 +3,12 @@
  */
 import EventEmitter from "../EventEmitter";
 import currentSite from "../site";
-import type { Config, SomeSetting, IClientUtil } from "./idkrCommon";
+import type { IClientUtil } from "./idkrCommon";
 import { createConfig, executeUserScript } from "./idkrCommon";
 
 const clientUtils: IClientUtil = Object.freeze({
   events: EventEmitter,
-  genCSettingsHTML: (setting: SomeSetting) => (config: Config) => undefined,
+  genCSettingsHTML: () => () => undefined,
 });
 
 /**
