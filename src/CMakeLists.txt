@@ -24,6 +24,13 @@ target_include_directories(Client PRIVATE
     ${WEBVIEW2}/build/native/include
     ${WIL}/include
 )
-target_link_libraries(Client crypt32 winhttp discord-rpc uriparser ${WEBVIEW2}/build/native/x86/WebView2LoaderStatic.lib)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    SET(WEBVIEW2_ARCH "x64")
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    SET(WEBVIEW2_ARCH "x86")
+endif()
+
+target_link_libraries(Client crypt32 winhttp discord-rpc uriparser ${WEBVIEW2}/build/native/${WEBVIEW2_ARCH}/WebView2LoaderStatic.lib)
 target_compile_features(Client PUBLIC cxx_std_20)
 set_target_properties(Client PROPERTIES CXX_EXTENSIONS OFF)
