@@ -8,33 +8,33 @@
 
 // config.js
 std::vector<std::string> seekModes = {"Free for All",
-                                        "Team Deathmatch",
-                                        "Hardpoint",
-                                        "Capture the Flag",
-                                        "Parkour",
-                                        "Hide & Seek",
-                                        "Infected",
-                                        "Race",
-                                        "Last Man Standing",
-                                        "Simon Says",
-                                        "Gun Game",
-                                        "Prop Hunt",
-                                        "Boss Hunt",
-                                        "unused",
-                                        "unused",
-                                        "Stalker",
-                                        "King of the Hill",
-                                        "One in the Chamber",
-                                        "Trade",
-                                        "Kill Confirmed",
-                                        "Defuse",
-                                        "Sharp Shooter",
-                                        "Traitor",
-                                        "Raid",
-                                        "Blitz",
-                                        "Domination",
-                                        "Squad Deathmatch",
-                                        "Kranked FFA"};
+                                      "Team Deathmatch",
+                                      "Hardpoint",
+                                      "Capture the Flag",
+                                      "Parkour",
+                                      "Hide & Seek",
+                                      "Infected",
+                                      "Race",
+                                      "Last Man Standing",
+                                      "Simon Says",
+                                      "Gun Game",
+                                      "Prop Hunt",
+                                      "Boss Hunt",
+                                      "unused",
+                                      "unused",
+                                      "Stalker",
+                                      "King of the Hill",
+                                      "One in the Chamber",
+                                      "Trade",
+                                      "Kill Confirmed",
+                                      "Defuse",
+                                      "Sharp Shooter",
+                                      "Traitor",
+                                      "Raid",
+                                      "Blitz",
+                                      "Domination",
+                                      "Squad Deathmatch",
+                                      "Kranked FFA"};
 
 GameConfig::GameConfig(const rapidjson::Value &data)
     : map(data["i"].GetString()), mode(data["g"].GetInt()),
@@ -61,8 +61,6 @@ std::string seekLobby(const std::string &region, size_t mode, bool customs,
 
   auto res =
       fetchGet("https://matchmaker.krunker.io/game-list?hostname=krunker.io");
-
-  std::cout << std::string(res.data(), res.size()) << std::endl;
 
   rapidjson::Document data;
   rapidjson::ParseResult ok = data.Parse(res.data(), res.size());
