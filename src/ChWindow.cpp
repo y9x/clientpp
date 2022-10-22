@@ -39,7 +39,7 @@ ChWindow::~ChWindow() {
 }
 
 HINSTANCE ChWindow::getHinstance() {
-  return (HINSTANCE)GetWindowLong(GWL_HINSTANCE);
+  return (HINSTANCE)GetWindowLong(GWLP_HINSTANCE);
 }
 
 bool ChWindow::createWindow() {
@@ -312,16 +312,12 @@ void ChWindow::registerEvents() {
             COREWEBVIEW2_PERMISSION_KIND kind;
             args->get_PermissionKind(&kind);
 
-            switch (kind) {
-            case COREWEBVIEW2_PERMISSION_KIND::
-                COREWEBVIEW2_PERMISSION_KIND_MICROPHONE:
-            case COREWEBVIEW2_PERMISSION_KIND::
-                COREWEBVIEW2_PERMISSION_KIND_CLIPBOARD_READ:
+            if(kind == COREWEBVIEW2_PERMISSION_KIND::
+                COREWEBVIEW2_PERMISSION_KIND_MICROPHONE || kind == COREWEBVIEW2_PERMISSION_KIND::
+                COREWEBVIEW2_PERMISSION_KIND_CLIPBOARD_READ)
               args->put_State(COREWEBVIEW2_PERMISSION_STATE::
                                   COREWEBVIEW2_PERMISSION_STATE_ALLOW);
-              break;
-            }
-
+            
             return S_OK;
           })
           .Get(),
