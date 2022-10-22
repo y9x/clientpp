@@ -199,8 +199,7 @@ void ChGameWindow::seekGame() {
               region, mode, folder.config["game"]["seek"]["customs"].GetBool(),
               ST::lowercase(JT::string(folder.config["game"]["seek"]["map"])));
 
-          webview->Stop();
-          webview->Navigate(ST::wstring(gameURL).c_str());
+          pendingNavigations.push_back(ST::wstring(gameURL).c_str());
         });
       },
       nullptr);
