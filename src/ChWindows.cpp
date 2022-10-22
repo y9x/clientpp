@@ -28,11 +28,11 @@ ChWindow *ChWindows::getWindow(krunker::type type) {
 
 ChWindows::ChWindows(ClientFolder &folder, AccountManager &accounts)
     : game(new ChGameWindow(folder, accounts, *this, {0.8, 0.8}, titleGame)),
-      social(new ChScriptedWindow(folder, *this, {0.8, 0.8}, titleSocial)),
+      social(new ChScriptedWindow(folder, *this, {0.7, 0.7}, titleSocial)),
       editor(new ChScriptedWindow(folder, *this, {0.8, 0.8}, titleEditor)),
       viewer(new ChScriptedWindow(folder, *this, {0.8, 0.8}, titleViewer)),
       scripting(
-          new ChScriptedWindow(folder, *this, {0.8, 0.8}, titleScripting)) {}
+          new ChScriptedWindow(folder, *this, {0.4, 0.5}, titleScripting)) {}
 
 ChWindows::~ChWindows() {
   delete game;
