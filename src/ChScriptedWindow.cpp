@@ -115,7 +115,7 @@ bool ChScriptedWindow::postMessage(
     const JSMessage &message,
     std::function<void(const rapidjson::Value &)> then,
     std::function<void(const rapidjson::Value &)> catchError) {
-  short id = 0xff; // reserved
+  unsigned short id = 0xff; // reserved
 
   for (; id < 0xffff; id++)
     if (!postedMessages.contains(id))
