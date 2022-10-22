@@ -53,10 +53,10 @@ void ChWindows::dispatch() {
 ChWindow::Status
 ChWindows::navigate(UriW uri, ICoreWebView2 *sender,
                     std::function<void(ChWindow *newWindow)> open,
-                    bool &shown) {
+                    bool *shown) {
   if (uri.host() == L"chief.krunker.io") {
-    if (&shown)
-      shown = false;
+    if (shown)
+      *shown = false;
 
     return ChWindow::Status::Ok;
   }

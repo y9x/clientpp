@@ -234,15 +234,15 @@ void ChWindow::dispatch() {
 }
 
 ChWindow::Status ChWindow::show(UriW uri, ICoreWebView2 *sender,
-                                std::function<void()> open, bool &shown) {
+                                std::function<void()> open, bool *shown) {
   if (webview && webview == sender) {
-    if (&shown)
-      shown = false;
+    if (shown)
+      *shown = false;
     return Status::Ok;
   }
 
-  if (&shown)
-    shown = true;
+  if (shown)
+    *shown = true;
 
   return get([this, uri, open](bool newly_created) {
     webview->Navigate(uri.toString().c_str());
@@ -278,7 +278,7 @@ void ChWindow::registerEvents() {
                     args->put_Handled(true);
                     defer->Complete();
                   },
-                  shown);
+                  &shown);
 
               if (!shown)
                 defer->Complete();
@@ -296,7 +296,7 @@ void ChWindow::registerEvents() {
             wil::unique_cotaskmem_string uri;
             args->get_Uri(&uri);
             bool shown = false;
-            windows.navigate(UriW(uri.get()), sender, nullptr, shown);
+            windows.navigate(UriW(uri.get()), sender, nullptr, &shown);
             if (shown)
               args->put_Cancel(true);
 
@@ -312,12 +312,13 @@ void ChWindow::registerEvents() {
             COREWEBVIEW2_PERMISSION_KIND kind;
             args->get_PermissionKind(&kind);
 
-            if(kind == COREWEBVIEW2_PERMISSION_KIND::
-                COREWEBVIEW2_PERMISSION_KIND_MICROPHONE || kind == COREWEBVIEW2_PERMISSION_KIND::
-                COREWEBVIEW2_PERMISSION_KIND_CLIPBOARD_READ)
+            if (kind == COREWEBVIEW2_PERMISSION_KIND::
+                            COREWEBVIEW2_PERMISSION_KIND_MICROPHONE ||
+                kind == COREWEBVIEW2_PERMISSION_KIND::
+                            COREWEBVIEW2_PERMISSION_KIND_CLIPBOARD_READ)
               args->put_State(COREWEBVIEW2_PERMISSION_STATE::
                                   COREWEBVIEW2_PERMISSION_STATE_ALLOW);
-            
+
             return S_OK;
           })
           .Get(),

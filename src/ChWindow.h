@@ -76,8 +76,7 @@ public:
   bool open = false;
   virtual void dispatch();
   Status show(UriW uri, ICoreWebView2 *sender = nullptr,
-              std::function<void()> open = nullptr,
-              bool &shown = *(bool *)nullptr);
+              std::function<void()> open = nullptr, bool *shown = nullptr);
   ChWindow(ClientFolder &folder, ChWindows &windows, Vector2 scale,
            std::wstring title);
   ~ChWindow();
@@ -115,5 +114,5 @@ public:
   ChWindow::Status
   navigate(UriW uri, ICoreWebView2 *sender = nullptr,
            std::function<void(ChWindow *newWindow)> open = nullptr,
-           bool &shown = *(bool *)nullptr);
+           bool *shown = nullptr);
 };
