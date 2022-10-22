@@ -30,10 +30,11 @@ ClientFolder *folder;
 ChWindows *windows;
 
 int messages() {
-  MSG msg;
-  BOOL ret;
-
-  while (ret = GetMessage(&msg, 0, 0, 0)) {
+  while (true) {
+    MSG msg;
+    BOOL ret = GetMessage(&msg, 0, 0, 0);
+    if (!ret)
+      break;
     windows->dispatch();
     TranslateMessage(&msg);
     DispatchMessage(&msg);
