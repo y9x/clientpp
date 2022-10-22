@@ -7,8 +7,6 @@
 #include "./Log.h"
 #include "./resource.h"
 
-// #include <rapidjson/writer.h>
-
 ChGameWindow::ChGameWindow(ClientFolder &_folder, AccountManager &_accounts,
                            ChWindows &_windows, Vector2 _scale,
                            std::wstring _title)
