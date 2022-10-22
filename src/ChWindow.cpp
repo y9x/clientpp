@@ -39,7 +39,7 @@ ChWindow::~ChWindow() {
 }
 
 HINSTANCE ChWindow::getHinstance() {
-  return (HINSTANCE)GetWindowLong(GWLP_HINSTANCE);
+  return (HINSTANCE)GetWindowLongPtr(GWLP_HINSTANCE);
 }
 
 bool ChWindow::createWindow() {
