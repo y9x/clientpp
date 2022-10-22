@@ -7,7 +7,7 @@
 #include <rapidjson/error/en.h>
 
 // config.js
-std::vector<std::string> seekerModes = {"Free for All",
+std::vector<std::string> seekModes = {"Free for All",
                                         "Team Deathmatch",
                                         "Hardpoint",
                                         "Capture the Flag",

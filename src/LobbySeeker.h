@@ -25,7 +25,6 @@ struct Game {
 
 // { short mode name, long mode name }
 extern std::vector<std::string> seekModes;
-extern std::map<std::string, std::string> seekRegions;
 
 /// @brief
 /// @param region
