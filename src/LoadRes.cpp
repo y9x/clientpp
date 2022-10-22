@@ -26,8 +26,6 @@ bool loadResource(int resource, std::string &string) {
         std::cerr << "Failure locking resource. Last Error: " << GetLastError()
                   << std::endl;
 #endif
-
-      UnlockResource(header);
     }
 #ifdef DEBUG_LOAD_RES
     else
