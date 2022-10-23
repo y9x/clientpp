@@ -149,7 +149,7 @@ bool ClientFolder::load_config() {
   {
     std::string config_buffer;
 
-    if (IOUtil::read_file(directory + p_config, config_buffer)) {
+    if (IOUtil::readFile(directory + p_config, config_buffer)) {
       rapidjson::ParseResult ok =
           new_config.Parse(config_buffer.data(), config_buffer.size());
 
@@ -185,8 +185,8 @@ bool ClientFolder::save_config() {
   rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
   config.Accept(writer);
 
-  if (IOUtil::write_file(directory + p_config,
-                         std::string(buffer.GetString(), buffer.GetSize()))) {
+  if (IOUtil::writeFile(directory + p_config,
+                        std::string(buffer.GetString(), buffer.GetSize()))) {
     clog::debug << "Config saved" << clog::endl;
     return true;
   } else

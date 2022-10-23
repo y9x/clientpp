@@ -403,7 +403,7 @@ void ChWindow::registerEvents() {
               std::wstring swap =
                   folder.directory + folder.p_swapper + uri.path();
 
-              if (IOUtil::file_exists(swap)) {
+              if (IOUtil::fileExists(swap)) {
                 clog::info << "Swapping " << ST::string(uri.path())
                            << clog::endl;
                 // Create an empty IStream:

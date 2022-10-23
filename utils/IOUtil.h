@@ -1,15 +1,22 @@
-#include <Windows.h>
+/**
+ * Quick util to work with files.
+ */
+#pragma once
 #include <filesystem>
-#include <string>
 
 namespace IOUtil {
-// returns true if a handle to the file can be created, false if failure
-bool file_exists(const std::filesystem::path &path);
-
-// reads a file into buffer, returns true if successful, false if failure
-bool read_file(const std::filesystem::path &path, std::string &buffer);
-
-// writes a file from the buffer, for small data
-bool write_file(const std::filesystem::path &path, const std::string &buffer);
-
+/// @brief Check if a file exists
+/// @param path File to access
+/// @return If the file handle was opened
+bool fileExists(const std::filesystem::path &path);
+/// @brief Read a file
+/// @param path File to read from
+/// @param buffer A pointer to store the contents of the file
+/// @return If the file handle was opened
+bool readFile(const std::filesystem::path &path, std::string &buffer);
+/// @brief Write a file
+/// @param path The file to write to
+/// @param buffer The new contents the file
+/// @return If the file handle was opened
+bool writeFile(const std::filesystem::path &path, const std::string &buffer);
 }; // namespace IOUtil

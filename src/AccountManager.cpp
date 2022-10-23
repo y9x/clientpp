@@ -93,12 +93,12 @@ rapidjson::Value AccountManager::dump(
 }
 
 bool AccountManager::save() {
-  return IOUtil::write_file(folder.directory + path, dump());
+  return IOUtil::writeFile(folder.directory + path, dump());
 }
 
 bool AccountManager::load() {
   std::string read;
-  if (IOUtil::read_file(folder.directory + path, read)) {
+  if (IOUtil::readFile(folder.directory + path, read)) {
     rapidjson::Document document;
     rapidjson::ParseResult ok = document.Parse(read.data(), read.size());
 

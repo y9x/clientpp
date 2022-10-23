@@ -1,19 +1,16 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include "./IOUtil.h"
 #include "./StringUtil.h"
 #include <fstream>
 #include <sstream>
-#include <windows.h>
 
-namespace IOUtil {
-bool file_exists(const std::filesystem::path &path) {
+bool IOUtil::fileExists(const std::filesystem::path &path) {
   std::fstream t(path);
   if (!t)
     return false;
   return true;
 }
 
-bool read_file(const std::filesystem::path &path, std::string &out) {
+bool IOUtil::readFile(const std::filesystem::path &path, std::string &out) {
   std::ifstream t(path);
   if (!t)
     return false;
@@ -23,8 +20,8 @@ bool read_file(const std::filesystem::path &path, std::string &out) {
   return true;
 }
 
-// for small data
-bool write_file(const std::filesystem::path &path, const std::string &buffer) {
+bool IOUtil::writeFile(const std::filesystem::path &path,
+                       const std::string &buffer) {
   std::ofstream t(path);
   if (!t)
     return false;
@@ -32,4 +29,3 @@ bool write_file(const std::filesystem::path &path, const std::string &buffer) {
   t.close();
   return true;
 }
-}; // namespace IOUtil

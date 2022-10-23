@@ -18,7 +18,7 @@ rapidjson::Value ChScriptedWindow::getUserScripts(
            folder.directory + folder.p_scripts)) {
     std::string buffer;
 
-    if (IOUtil::read_file(dir_entry.path(), buffer)) {
+    if (IOUtil::readFile(dir_entry.path(), buffer)) {
       rapidjson::Value row(rapidjson::kArrayType);
       std::string name = dir_entry.path().string();
       row.PushBack(rapidjson::Value(name.data(), name.size(), allocator),
@@ -41,7 +41,7 @@ rapidjson::Value ChScriptedWindow::getUserStyles(
            folder.directory + folder.p_styles)) {
     std::string buffer;
 
-    if (IOUtil::read_file(dir_entry.path(), buffer)) {
+    if (IOUtil::readFile(dir_entry.path(), buffer)) {
       rapidjson::Value row(rapidjson::kArrayType);
       std::string name = dir_entry.path().string();
       row.PushBack(rapidjson::Value(name.data(), name.size(), allocator),
