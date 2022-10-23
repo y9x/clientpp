@@ -34,7 +34,7 @@ async function updateLogo() {
 }
 
 exportUserscript({
-  renderSettings: ({ html, UI, useLocalStorage }) => {
+  renderGameSettings: ({ html, UI, useLocalStorage }) => {
     const [localEnabled, setLocalEnabled] = useLocalStorage(
       "logo changer enabled"
     );
