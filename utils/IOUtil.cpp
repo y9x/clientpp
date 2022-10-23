@@ -1,6 +1,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "./IOUtil.h"
 #include "./StringUtil.h"
+#include <fstream>
+#include <sstream>
 #include <windows.h>
 
 namespace IOUtil {
@@ -93,86 +95,30 @@ bool WDirectoryIterator::operator++() {
   return cnext = true;
 }
 
-bool file_exists(std::string path) {
-  FILE *file = fopen(path.c_str(), "r");
-  if (!file)
+bool file_exists(const std::filesystem::path &path) {
+  std::fstream t(path);
+  if (!t)
     return false;
-  fclose(file);
   return true;
 }
 
-bool file_exists(std::wstring path) {
-  FILE *file = _wfopen(path.c_str(), L"r");
-  if (!file)
+bool read_file(const std::filesystem::path &path, std::string &out) {
+  std::ifstream t(path);
+  if (!t)
     return false;
-  fclose(file);
-  return true;
-}
-
-bool read_file(std::string path, std::string &buffer) {
-  FILE *file = fopen(path.c_str(), "r");
-
-  if (!file)
-    return false;
-
-  fseek(file, 0, SEEK_END);
-  size_t size = ftell(file);
-  rewind(file);
-
-  buffer.resize(size);
-
-  // size_t bytes_read =
-  // buffer.resize(
-  buffer.resize(fread(&buffer[0], 1, size, file));
-
-  fclose(file);
-
-  return true;
-}
-
-bool read_file(std::wstring path, std::string &buffer) {
-  FILE *file = _wfopen(path.c_str(), L"r");
-
-  if (!file)
-    return false;
-
-  fseek(file, 0, SEEK_END);
-  size_t size = ftell(file);
-  rewind(file);
-
-  buffer.resize(size);
-
-  buffer.resize(fread(&buffer[0], 1, size, file));
-
-  fclose(file);
-
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+  out = buffer.str();
   return true;
 }
 
 // for small data
-bool write_file(std::string path, std::string buffer) {
-  FILE *file = fopen(path.c_str(), "w");
-
-  if (!file)
+bool write_file(const std::filesystem::path &path, const std::string &buffer) {
+  std::ofstream t(path);
+  if (!t)
     return false;
-
-  fwrite(buffer.data(), sizeof(char), buffer.length(), file);
-
-  fclose(file);
-
-  return true;
-}
-
-bool write_file(std::wstring path, std::string buffer) {
-  FILE *file = _wfopen(path.c_str(), L"w");
-
-  if (!file)
-    return false;
-
-  fwrite(buffer.data(), sizeof(char), buffer.length(), file);
-
-  fclose(file);
-
+  t << buffer;
+  t.close();
   return true;
 }
 }; // namespace IOUtil
