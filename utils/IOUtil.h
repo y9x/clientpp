@@ -3,53 +3,6 @@
 #include <string>
 
 namespace IOUtil {
-// Iterates over files in the specified directory
-class DirectoryIterator {
-private:
-  HANDLE find;
-  WIN32_FIND_DATA find_data;
-  std::string folder;
-  std::wstring folder_ws;
-  bool bad = true;
-  bool first = true;
-  bool stopped = false;
-  bool cnext = false;
-  bool frame_filen = false;
-  std::string filen;
-  bool test_filename();
-
-public:
-  DirectoryIterator(std::string folder, std::string filter = "*.*");
-  ~DirectoryIterator();
-  void stop();
-  std::string file();
-  std::string path();
-  // Starts iterating or goes to the next file
-  bool operator++();
-};
-
-class WDirectoryIterator {
-private:
-  HANDLE find;
-  WIN32_FIND_DATA find_data;
-  std::wstring folder;
-  std::wstring filter;
-  bool bad = true;
-  bool first = true;
-  bool stopped = false;
-  bool cnext = false;
-  bool test_filename();
-
-public:
-  WDirectoryIterator(std::wstring folder, std::wstring filter = L"*.*");
-  ~WDirectoryIterator();
-  void stop();
-  std::wstring file() const;
-  std::wstring path() const;
-  // Starts iterating or goes to the next file
-  bool operator++();
-};
-
 // returns true if a handle to the file can be created, false if failure
 bool file_exists(const std::filesystem::path &path);
 
