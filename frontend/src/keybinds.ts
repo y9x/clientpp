@@ -12,8 +12,11 @@ window.addEventListener("beforeunload", (event) => {
 
 try {
   Reflect.defineProperty(window, "closeClient", {
-    writable: false,
-    value: () => ipc.send(IM.close_window),
+    get: () => () => ipc.send(IM.close_window),
+    set: () => {
+      //
+    },
+    configurable: true,
   });
 } catch (err) {
   //
