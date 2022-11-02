@@ -1,6 +1,6 @@
 /*
  * Chief Client - Adblock
- * v1.0.0
+ * v1.0.1
  */
 
 // set default
@@ -18,40 +18,24 @@ if (enabled) {
     document.documentElement.append(style);
   });
 
-  const shimFRVR = Object.freeze({
-    init: () => {},
-    lifecycle: Object.freeze({}),
-    tracker: Object.freeze({
-      addExtraFieldFunction: () => {},
-      logEvent: () => {},
-    }),
-    bootstrapper: Object.freeze({
-      init: () => Promise.resolve(),
-      setProgress: () => {},
-      complete: () => {},
-    }),
-  });
-
-  // :((((
-  // we break the AD loader in head by making this non-configurable :(
-  Object.defineProperty(window, "FRVR", {
-    get: () => shimFRVR,
-    set: (value) => {
-      // krunker sets FRVR = window.FRVR || {}
-      // we can detect this expression by checking if the value is equal to window.FRVR
-      if (value === shimFRVR) {
-        throw new Error(
-          "This error is safe to ignore! FRVR was blocked from loading."
-        );
-      }
+  window.FRVR = {
+    set(config) {
+      window.FRVR = { config };
+      throw new Error(
+        "This error is safe to ignore! FRVR was blocked from loading."
+      );
     },
-  });
+  };
 
   // now we have to configure the AD networks ourselves...
   window.canShowAds = false;
   window.useFRANads = false;
   window.useFreestarAds = false;
   window.useAdinplayAds = false;
+
+  window.isForSmallScreens = false;
+  window.isMsPwa = false;
+  window.isSteamClient = false;
 
   // and the app restrictions...
   window.canShowExternalLinks = true;
