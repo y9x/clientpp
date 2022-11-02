@@ -23,11 +23,27 @@ export default function extendWindows(
 
   const id = windows.length;
 
+  // we're breaking SO MUCH haha
+  // they only trim the array once, in showWindow() ?
+
+  windows = Object.create(windows);
+
   Reflect.defineProperty(windows, id, {
     // the game tends to delete our window.
-    writable: false,
-    value: window,
+    get: () => window,
+    set: () => {
+      //
+    },
   });
+
+  /*Reflect.defineProperty(windows, "length", {
+    // the game tends to delete our window.
+    get: () => id + 1,
+    set: () => {
+      // quit truncating the array!
+    },
+    configurable: true,
+  });*/
 
   return id + 1;
 }
