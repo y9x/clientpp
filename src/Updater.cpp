@@ -9,7 +9,7 @@
 
 bool getServing(const std::string &url, UpdaterServing &serving) {
   try {
-    auto data = fetchGet(url);
+    std::string data = fetchGet(url);
 
     rapidjson::Document document;
     rapidjson::ParseResult ok = document.Parse(data.data(), data.size());

@@ -59,11 +59,11 @@ std::string seekLobby(const std::string &region, size_t mode, bool customs,
   if (!map.size() && mode == -1)
     return "https://krunker.io/";
 
-  auto res =
+  std::string data =
       fetchGet("https://matchmaker.krunker.io/game-list?hostname=krunker.io");
 
-  rapidjson::Document data;
-  rapidjson::ParseResult ok = data.Parse(res.data(), res.size());
+  rapidjson::Document gameDoc;
+  rapidjson::ParseResult ok = gameDoc.Parse(data.data(), data.size());
 
   if (!ok)
     clog::error << "Error parsing games: " << GetParseError_En(ok.Code())
@@ -71,7 +71,7 @@ std::string seekLobby(const std::string &region, size_t mode, bool customs,
 
   std::vector<Game> games;
 
-  for (const rapidjson::Value &data : data["games"].GetArray()) {
+  for (const rapidjson::Value &data : gameDoc["games"].GetArray()) {
     Game game(data);
 
     if (game.isFull())

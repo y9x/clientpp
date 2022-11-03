@@ -18,9 +18,10 @@ WebView2Installer::WebView2Installer() {
 bool WebView2Installer::install(Error &error) {
   error = Error::OK;
 
-  auto res = fetchGet("https://go.microsoft.com/fwlink/p/?LinkId=2124703");
+  std::string data =
+      fetchGet("https://go.microsoft.com/fwlink/p/?LinkId=2124703");
 
-  if (!res.size()) {
+  if (!data.size()) {
     error = Error::NoBytesDownloaded;
     return false;
   }
@@ -30,7 +31,7 @@ bool WebView2Installer::install(Error &error) {
 
   if (file != INVALID_HANDLE_VALUE) {
     DWORD bytes;
-    WriteFile(file, res.data(), res.size(), &bytes, nullptr);
+    WriteFile(file, data.data(), data.size(), &bytes, nullptr);
     CloseHandle(file);
     clog::info << "Downloaded " << ST::string(binPath) << clog::endl;
   }
