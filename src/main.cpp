@@ -96,7 +96,7 @@ void update() {
   if (!updatesAvailable(version, "https://6ct.github.io/serve/updates.json",
                         serving) ||
       MessageBox(NULL, L"A new client update is available. Download?", title,
-                 MB_YESNO) == IDYES)
+                 MB_YESNO) == IDNO)
     return;
 
   ShellExecute(NULL, L"open", ST::wstring(serving.url).c_str(), L"", L"",
