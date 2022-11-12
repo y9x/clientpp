@@ -49,17 +49,19 @@ export class Config {
   }
 }
 
-export function createConfig(script: string) {
+export function createConfig(scriptID: string) {
+  const lsID = "idkr_script_" + scriptID;
+
   let data: ConfigData;
 
   try {
-    data = JSON.parse(localStorage.getItem(script) || "");
+    data = JSON.parse(localStorage.getItem(lsID) || "");
   } catch (err) {
     data = {};
   }
 
   return new Config(data, (data) =>
-    localStorage.setItem(script, JSON.stringify(data))
+    localStorage.setItem(lsID, JSON.stringify(data))
   );
 }
 
@@ -167,6 +169,7 @@ export type UserscriptContext = (
 
 export function executeUserScript(
   script: string,
+  scriptID: string,
   code: string,
   clientUtils: IClientUtil
 ): IUserscript {

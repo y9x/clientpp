@@ -76,9 +76,16 @@ function parseIncludeExclude(value: string) {
 }
 
 /**
- * Run a Tampermonkey UserScript
+ * Run a Tampermonkey IDKR userscript
+ * @param script The userscript's path in the filesystem (for debugging purposes).
+ * @param scriptID The unique identifier of the userscript.
+ * @param code The userscript's source code.
  */
-export default function tampermonkeyRuntime(script: string, code: string) {
+export default function tampermonkeyRuntime(
+  script: string,
+  scriptID: string,
+  code: string
+) {
   /*
    * TODO: read tampermonkey header
    * Provide shim GM_ functions such as getValue & setValue depending on @grant

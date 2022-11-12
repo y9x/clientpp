@@ -71,9 +71,14 @@ export type UserscriptContext = (
 
 /**
  * Run a Chief userscript
+ * @param script The userscript's path in the filesystem (for debugging purposes).
+ * @param scriptID The unique identifier of the userscript.
+ * @param code The userscript's source code.
+ * @param exportUserscript The handler for exported userscript data.
  */
 export default function executeUserScript(
   script: string,
+  scriptID: string,
   code: string,
   exportUserscript: ExportUserscriptCallback
 ) {

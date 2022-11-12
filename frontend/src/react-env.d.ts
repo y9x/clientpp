@@ -14,8 +14,8 @@ declare module "*.module.css" {
 }
 
 declare function getRuntimeData(): {
-  css: [name: string, data: string][];
-  js: [name: string, data: string][];
+  css: [script: string, code: string][];
+  js: [script: string, scriptID: string, code: string][];
   config: typeof import("../../resources/config.json");
   version: string;
 };

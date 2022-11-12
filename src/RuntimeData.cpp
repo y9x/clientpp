@@ -16,14 +16,19 @@ rapidjson::Value ChScriptedWindow::getUserScripts(
 
   for (auto const &dir_entry : std::filesystem::directory_iterator(
            folder.directory + folder.p_scripts)) {
-    std::string buffer;
-
-    if (IOUtil::readFile(dir_entry.path(), buffer)) {
+    std::string code;
+    if (IOUtil::readFile(dir_entry.path(), code)) {
       rapidjson::Value row(rapidjson::kArrayType);
-      std::string name = dir_entry.path().string();
-      row.PushBack(rapidjson::Value(name.data(), name.size(), allocator),
+      std::string script = dir_entry.path().string();
+      std::string scriptID = dir_entry.path().filename().string();
+
+      // [script: string, scriptID: string, code: string]
+      row.PushBack(rapidjson::Value(script.data(), script.size(), allocator),
                    allocator);
-      row.PushBack(rapidjson::Value(buffer.data(), buffer.size(), allocator),
+      row.PushBack(
+          rapidjson::Value(scriptID.data(), scriptID.size(), allocator),
+          allocator);
+      row.PushBack(rapidjson::Value(code.data(), code.size(), allocator),
                    allocator);
       result.PushBack(row, allocator);
     } else
@@ -39,14 +44,14 @@ rapidjson::Value ChScriptedWindow::getUserStyles(
 
   for (auto const &dir_entry : std::filesystem::directory_iterator(
            folder.directory + folder.p_styles)) {
-    std::string buffer;
-
-    if (IOUtil::readFile(dir_entry.path(), buffer)) {
+    std::string code;
+    if (IOUtil::readFile(dir_entry.path(), code)) {
       rapidjson::Value row(rapidjson::kArrayType);
-      std::string name = dir_entry.path().string();
-      row.PushBack(rapidjson::Value(name.data(), name.size(), allocator),
+      std::string script = dir_entry.path().string();
+      // [script: string, code: string]
+      row.PushBack(rapidjson::Value(script.data(), script.size(), allocator),
                    allocator);
-      row.PushBack(rapidjson::Value(buffer.data(), buffer.size(), allocator),
+      row.PushBack(rapidjson::Value(code.data(), code.size(), allocator),
                    allocator);
       result.PushBack(row, allocator);
     } else

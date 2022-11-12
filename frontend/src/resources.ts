@@ -1,9 +1,9 @@
 import { css } from "./runtime";
 
 function addCSS() {
-  for (const [name, data] of css) {
+  for (const [script, code] of css) {
     const style = document.createElement("style");
-    style.textContent = data + `/*# sourceURL=${name} */`;
+    style.textContent = code + `/*# sourceURL=${script} */`;
     document.head.appendChild(style);
   }
 }
