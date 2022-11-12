@@ -200,7 +200,7 @@ export function executeUserScript(
   const userscript = {
     config: ret?.config || module?.exports,
     meta: ret?.meta || module?.exports,
-    load: ret?.load || module?.exports?.run,
+    load: ret?.load?.bind(ret) || module?.exports?.run?.bind(module.exports),
     unload: ret?.unload,
   } as IUserscript;
 
