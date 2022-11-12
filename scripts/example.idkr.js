@@ -1,3 +1,6 @@
+/*
+ * This is not a userscript intended to be used outside of debugging. This serves as a test and a reference.
+ */
 "use strict";
 
 class Userscript {
