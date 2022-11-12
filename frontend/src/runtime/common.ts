@@ -11,10 +11,12 @@ const sourceMappingURL = (data: string) =>
 /**
  * Produce a snippet that will map to the specified name.
  */
-export const nameCode = (script: string, code: string) => {
+export const nameCode = (script: string, code: string, useStrict = false) => {
   const mappings: string[] = [];
 
   const lines = code.split("\n");
+
+  if (useStrict) mappings.push("");
 
   for (let i = 0; i < lines.length; i++) {
     if (i === 0) mappings.push("AAAA");
@@ -30,7 +32,12 @@ export const nameCode = (script: string, code: string) => {
     mappings: mappings.join(";"),
   };
 
-  return code + "//# " + sourceMappingURL(JSON.stringify(map));
+  return (
+    (useStrict ? '"use strict";\n' : "") +
+    code +
+    "//# " +
+    sourceMappingURL(JSON.stringify(map))
+  );
 };
 
 /**

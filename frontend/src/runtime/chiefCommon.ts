@@ -88,7 +88,7 @@ export default function executeUserScript(
   ) as UserscriptContext;
 
   run(
-    nameCode(script, code),
+    nameCode(script, code, true),
     console,
     () => currentSite,
     setLocalStorage,
