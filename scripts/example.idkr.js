@@ -1,3 +1,5 @@
+"use strict";
+
 class Userscript {
   constructor() {
     this.meta = {
