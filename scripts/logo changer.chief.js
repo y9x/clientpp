@@ -3,9 +3,14 @@
  * v1.0.0
  */
 
+/**
+ * @type {HTMLImageElement|void}
+ */
 let mainLogo;
-
-const defaultLogo = "https://krunker.io/img/logo_1.png";
+/**
+ * @type {string|void}
+ */
+let defaultLogo;
 
 // set default
 if (!localStorage.getItem("logo changer enabled"))
@@ -14,9 +19,10 @@ if (!localStorage.getItem("logo changer enabled"))
 new MutationObserver((mutations, observer) => {
   for (const mutation of mutations)
     for (const node of mutation.addedNodes) {
-      if (node instanceof HTMLImageElement && node.src === defaultLogo) {
+      if (node instanceof HTMLImageElement && node.id === 'mainLogo') {
         observer.disconnect();
         mainLogo = node;
+        defaultLogo = node.src;
         updateLogo();
         return;
       }
@@ -27,6 +33,9 @@ new MutationObserver((mutations, observer) => {
 });
 
 async function updateLogo() {
+  if(!mainLogo) 
+    alert("Logo Changer: Could not find logo element")
+  
   const enabled = localStorage.getItem("logo changer enabled") === "on";
 
   if (enabled) mainLogo.src = localStorage.getItem("logo changer url");
