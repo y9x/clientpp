@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "build": "cross-env NODE_ENV=production rollup -c",
-    "build:dev": "cross-env NODE_ENV=development rollup -c",
-    "build:watch": "cross-env NODE_ENV=development rollup -cw"
+    "dev": "cross-env NODE_ENV=development rollup -c",
+    "watch": "cross-env NODE_ENV=development rollup -cw"
   },
   "dependencies": {
     "htm": "^3.1.1",
