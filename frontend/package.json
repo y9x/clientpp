@@ -10,26 +10,25 @@
   "dependencies": {
     "htm": "^3.1.1",
     "match-pattern": "^0.0.2",
-    "preact": "^10.11.2"
+    "preact": "^10.11.3"
   },
   "devDependencies": {
-    "@ianvs/prettier-plugin-sort-imports": "^3.4.2",
-    "@rollup/plugin-commonjs": "^23.0.0",
-    "@rollup/plugin-node-resolve": "^15.0.0",
-    "@rollup/plugin-typescript": "^9.0.1",
+    "@ianvs/prettier-plugin-sort-imports": "^3.7.1",
+    "@rollup/plugin-commonjs": "^24.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-terser": "^0.1.0",
+    "@rollup/plugin-typescript": "^10.0.1",
     "@types/multi-stage-sourcemap": "^0.3.0",
-    "@types/node": "^18.8.2",
-    "@typescript-eslint/eslint-plugin": "^5.39.0",
-    "@typescript-eslint/parser": "^5.39.0",
+    "@types/node": "^18.11.18",
+    "@typescript-eslint/eslint-plugin": "^5.47.1",
+    "@typescript-eslint/parser": "^5.47.1",
     "cross-env": "^7.0.3",
-    "eslint": "^8.24.0",
-    "eslint-config-react-app": "^7.0.1",
+    "eslint": "^8.31.0",
     "eslint-import-resolver-node": "^0.3.6",
     "eslint-plugin-import": "^2.26.0",
-    "magic-string": "^0.26.7",
-    "prettier": "^2.7.1",
-    "rollup": "^2.79.1",
-    "rollup-plugin-banner2": "^1.2.2",
-    "rollup-plugin-terser": "^7.0.2"
+    "magic-string": "^0.27.0",
+    "prettier": "^2.8.1",
+    "rollup": "^3.9.1",
+    "rollup-plugin-banner2": "^1.2.2"
   }
 }
