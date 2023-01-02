@@ -1,11 +1,6 @@
 /* eslint-disable no-var */
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 
-declare module "*IPCMessages.h" {
-  export const IM: Record<string, number>;
-  export const LogType: Record<string, number>;
-}
-
 declare module "*.css" {}
 
 declare module "*.module.css" {
