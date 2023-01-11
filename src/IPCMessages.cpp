@@ -138,7 +138,10 @@ void ChScriptedWindow::handleMessage(JSMessage msg) {
 
     break;
   case IM::open_devtools:
+#if _DEBUG != 1
     if (folder.config["client"]["devtools"].GetBool())
+#endif
+      // if debugging, just open devtools
       webview->OpenDevToolsWindow();
 
     break;
