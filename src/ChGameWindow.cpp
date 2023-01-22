@@ -98,8 +98,8 @@ LRESULT ChGameWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam,
     USHORT flags = mouse.usButtonFlags;
 
     if (flags & RI_MOUSE_WHEEL)
-      msgFct(IM::mousewheel,
-             {double((*(short *)&mouse.usButtonData) / WHEEL_DELTA) * -100});
+      sendMessage(msgFct(IM::mousewheel,
+             {double((*(short *)&mouse.usButtonData) / WHEEL_DELTA) * -100}));
     if (flags & RI_MOUSE_BUTTON_1_DOWN)
       sendMessage(msgFct(IM::mousedown, {0}));
     if (flags & RI_MOUSE_BUTTON_1_UP)
