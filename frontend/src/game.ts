@@ -11,8 +11,6 @@ import chiefRuntime from "./runtime/game/chief";
 import idkrRuntime from "./runtime/game/idkr";
 import { waitFor } from "./utils";
 
-let lockedNode: Element | null;
-
 ipc.send(IM.pointer, false);
 
 window.addEventListener("beforeunload", () => {
@@ -20,13 +18,38 @@ window.addEventListener("beforeunload", () => {
   ipc.send(IM.pointer, false);
 });
 
-document.addEventListener("pointerlockchange", () => {
-  if (!document.pointerLockElement) {
-    lockedNode = null;
-    return ipc.send(IM.pointer, false);
-  }
+let wheelListener: ((event: WheelEvent) => void) | undefined;
+let mouseDownListener: ((event: MouseEvent) => void) | undefined;
+let mouseUpListener: ((event: MouseEvent) => void) | undefined;
+let mouseMoveListener: ((event: MouseEvent) => void) | undefined;
 
-  lockedNode = document.pointerLockElement;
+HTMLCanvasElement.prototype.addEventListener = function (
+  type: string,
+  listener: any,
+  options: any
+) {
+  // only the game canvas has this property
+  if (this.dataset.engine)
+    switch (type) {
+      case "wheel":
+        wheelListener = listener;
+        break;
+      case "mousedown":
+        mouseDownListener = listener;
+        break;
+      case "mouseup":
+        mouseUpListener = listener;
+        break;
+      case "mousemove":
+        mouseMoveListener = listener;
+        break;
+    }
+
+  EventTarget.prototype.addEventListener.call(this, type, listener, options);
+};
+
+document.addEventListener("pointerlockchange", () => {
+  if (!document.pointerLockElement) return ipc.send(IM.pointer, false);
   ipc.send(IM.pointer, true);
 });
 
@@ -34,22 +57,37 @@ setInterval(() => {
   ipc.send(IM.pointer, !!document.pointerLockElement);
 }, 200);
 
+function spoofEvent<E extends Event>(event: E) {
+  return new Proxy(event, {
+    get: (target, key) => {
+      if (key === "isTrusted") return true;
+      const value = Reflect.get(target, key);
+      if (typeof value === "function") return value.bind(target);
+      return value;
+    },
+  });
+}
+
 ipc.on(IM.mousewheel, (deltaY: number) => {
-  lockedNode?.dispatchEvent(new WheelEvent("wheel", { deltaY }));
+  if (wheelListener)
+    wheelListener(spoofEvent(new WheelEvent("wheel", { deltaY })));
 });
 
 ipc.on(IM.mousedown, (button: number) => {
-  lockedNode?.dispatchEvent(new MouseEvent("mousedown", { button }));
+  if (mouseDownListener)
+    mouseDownListener(spoofEvent(new MouseEvent("mousedown", { button })));
 });
 
 ipc.on(IM.mouseup, (button: number) => {
-  lockedNode?.dispatchEvent(new MouseEvent("mouseup", { button }));
+  if (mouseUpListener)
+    mouseUpListener(spoofEvent(new MouseEvent("mouseup", { button })));
 });
 
 ipc.on(IM.mousemove, (movementX, movementY) => {
-  lockedNode?.dispatchEvent(
-    new MouseEvent("mousemove", { movementX, movementY })
-  );
+  if (mouseMoveListener)
+    mouseMoveListener(
+      spoofEvent(new MouseEvent("mousemove", { movementX, movementY }))
+    );
 });
 
 if (!localStorage.kro_setngss_scaleUI) localStorage.kro_setngss_scaleUI = "0.7";
