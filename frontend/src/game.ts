@@ -21,29 +21,32 @@ window.addEventListener("beforeunload", () => {
 let wheelListener: ((event: WheelEvent) => void) | undefined;
 let mouseDownListener: ((event: MouseEvent) => void) | undefined;
 let mouseUpListener: ((event: MouseEvent) => void) | undefined;
-let mouseMoveListener: ((event: MouseEvent) => void) | undefined;
+/**
+ * type bypasses event.isTrusted
+ * used for fakeMouse
+ */
+let mouseMoveListener: ((event: MouseEvent, type?: string) => void) | undefined;
 
 HTMLCanvasElement.prototype.addEventListener = function (
   type: string,
   listener: any,
   options: any
 ) {
-  // only the game canvas has this property
-  if (this.dataset.engine)
-    switch (type) {
-      case "wheel":
-        wheelListener = listener;
-        break;
-      case "mousedown":
-        mouseDownListener = listener;
-        break;
-      case "mouseup":
-        mouseUpListener = listener;
-        break;
-      case "mousemove":
-        mouseMoveListener = listener;
-        break;
-    }
+  // just catch the first canvas listeners
+  switch (type) {
+    case "wheel":
+      wheelListener ||= listener;
+      break;
+    case "mousedown":
+      mouseDownListener ||= listener;
+      break;
+    case "mouseup":
+      mouseUpListener ||= listener;
+      break;
+    case "mousemove":
+      mouseMoveListener ||= listener;
+      break;
+  }
 
   EventTarget.prototype.addEventListener.call(this, type, listener, options);
 };
@@ -61,6 +64,7 @@ function spoofEvent<E extends Event>(event: E) {
   return new Proxy(event, {
     get: (target, key) => {
       if (key === "isTrusted") return true;
+      if (key === "cancelable") return true;
       const value = Reflect.get(target, key);
       if (typeof value === "function") return value.bind(target);
       return value;
@@ -86,7 +90,8 @@ ipc.on(IM.mouseup, (button: number) => {
 ipc.on(IM.mousemove, (movementX, movementY) => {
   if (mouseMoveListener)
     mouseMoveListener(
-      spoofEvent(new MouseEvent("mousemove", { movementX, movementY }))
+      spoofEvent(new MouseEvent("mousemove", { movementX, movementY })),
+      "cntrlInput"
     );
 });
 
