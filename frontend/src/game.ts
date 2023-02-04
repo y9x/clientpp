@@ -90,8 +90,7 @@ ipc.on(IM.mouseup, (button: number) => {
 ipc.on(IM.mousemove, (movementX, movementY) => {
   if (mouseMoveListener)
     mouseMoveListener(
-      spoofEvent(new MouseEvent("mousemove", { movementX, movementY })),
-      "cntrlInput"
+      spoofEvent(new MouseEvent("mousemove", { movementX, movementY }))
     );
 });
 
