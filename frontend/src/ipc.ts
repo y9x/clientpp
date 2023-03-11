@@ -38,6 +38,9 @@ class IPC extends EventEmitter {
 
 const ipc = new IPC();
 
-chrome.webview.addEventListener("message", ({ data }) => ipc.emit(...data));
+chrome.webview.addEventListener("message", ({ data }) => {
+  window.event = undefined;
+  ipc.emit(...data);
+});
 
 export { IM, ipc as default };
