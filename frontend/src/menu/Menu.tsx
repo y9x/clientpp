@@ -27,8 +27,8 @@ const seekModes = [
   "Gun Game",
   "Prop Hunt",
   "Boss Hunt",
-  "unused",
-  "unused",
+  "Classic FFA",
+  "Deposit",
   "Stalker",
   "King of the Hill",
   "One in the Chamber",
@@ -42,6 +42,15 @@ const seekModes = [
   "Domination",
   "Squad Deathmatch",
   "Kranked FFA",
+  "Team Defender",
+  "Deposit FFA",
+  "Carrier",
+  "All or Nothing",
+  "Mag Dump",
+  "Chaos Snipers",
+  "Bighead FFA",
+  "Zombies",
+  "Impulsed",
 ];
 
 function openShell(event: JSX.TargetedMouseEvent<HTMLAnchorElement>) {
