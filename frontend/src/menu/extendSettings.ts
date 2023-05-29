@@ -17,11 +17,14 @@ export default async function extendSettings(
   name: string,
   render: RenderOnDemand
 ) {
-  const window = (
-    await waitFor(
-      () => typeof windows === "object" && Array.isArray(windows) && windows
-    )
-  )[id] as Settings | undefined;
+  await waitFor(
+    () =>
+      typeof windows === "object" &&
+      Array.isArray(windows) &&
+      windows.length >= 52
+  );
+
+  const window = windows[id] as Settings | undefined;
 
   if (!window) throw new Error(`Couldn't find game window with ID ${id}`);
 
