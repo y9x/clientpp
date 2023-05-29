@@ -1,7 +1,3 @@
-/*
- * createRoot
- */
-import { waitFor } from "../utils";
 import type { RenderOnDemand } from "./renderContainer";
 import createRenderContainer from "./renderContainer";
 
@@ -13,17 +9,7 @@ const id = 0;
 /**
  * Create a native react settings tab
  */
-export default async function extendSettings(
-  name: string,
-  render: RenderOnDemand
-) {
-  await waitFor(
-    () =>
-      typeof windows === "object" &&
-      Array.isArray(windows) &&
-      windows.length >= 52
-  );
-
+export default function extendSettings(name: string, render: RenderOnDemand) {
   const window = windows[id] as Settings | undefined;
 
   if (!window) throw new Error(`Couldn't find game window with ID ${id}`);

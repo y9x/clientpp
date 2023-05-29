@@ -1,23 +1,25 @@
 import { waitFor } from "../utils";
 import AccountManager from "./AccountManager";
 import AddAccount from "./AddAccount";
-import Menu from "./Menu";
 import extendRoot from "./extendSettings";
 import extendWindows from "./extendWindows";
+import Menu from "./Menu";
 import getConfig from "./useConfig";
 import createWatermark from "./watermark";
-
-// settings = 0
-extendRoot("Client", () => <Menu />);
 
 document.addEventListener("DOMContentLoaded", () => {
   if (getConfig().client.watermark) createWatermark();
 });
 
-if (getConfig().game.account_manager.enabled)
-  waitFor(
-    () => typeof windows === "object" && Array.isArray(windows) && windows
-  ).then(() => {
+waitFor(
+  () =>
+    typeof windows === "object" &&
+    Array.isArray(windows) &&
+    windows.length >= 52
+).then(() => {
+  extendRoot("Client", () => <Menu />);
+
+  if (getConfig().game.account_manager.enabled) {
     const addAccountID = extendWindows(
       {
         header: "Account Manager",
@@ -49,4 +51,5 @@ if (getConfig().game.account_manager.enabled)
     waitFor(() =>
       document.querySelector<HTMLDivElement>("#signedOutHeaderBar")
     ).then(createButton);
-  });
+  }
+});
