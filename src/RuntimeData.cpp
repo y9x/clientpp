@@ -14,13 +14,13 @@ rapidjson::Value ChScriptedWindow::getUserScripts(
     rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator) {
   rapidjson::Value result(rapidjson::kArrayType);
 
-  for (auto const &dir_entry : std::filesystem::directory_iterator(
+  for (auto const &dirEntry : std::filesystem::directory_iterator(
            folder.directory + folder.p_scripts)) {
     std::string code;
-    if (IOUtil::readFile(dir_entry.path(), code)) {
+    if (IOUtil::readFile(dirEntry.path(), code)) {
       rapidjson::Value row(rapidjson::kArrayType);
-      std::string script = dir_entry.path().string();
-      std::string scriptID = dir_entry.path().filename().string();
+      std::string script = dirEntry.path().string();
+      std::string scriptID = dirEntry.path().filename().string();
 
       // [script: string, scriptID: string, code: string]
       row.PushBack(rapidjson::Value(script.data(), script.size(), allocator),
@@ -32,7 +32,7 @@ rapidjson::Value ChScriptedWindow::getUserScripts(
                    allocator);
       result.PushBack(row, allocator);
     } else
-      clog::error << "Failure reading userscript " << dir_entry << clog::endl;
+      clog::error << "Failure reading userscript " << dirEntry << clog::endl;
   }
 
   return result;
@@ -42,12 +42,12 @@ rapidjson::Value ChScriptedWindow::getUserStyles(
     rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator) {
   rapidjson::Value result(rapidjson::kArrayType);
 
-  for (auto const &dir_entry : std::filesystem::directory_iterator(
+  for (auto const &dirEntry : std::filesystem::directory_iterator(
            folder.directory + folder.p_styles)) {
     std::string code;
-    if (IOUtil::readFile(dir_entry.path(), code)) {
+    if (IOUtil::readFile(dirEntry.path(), code)) {
       rapidjson::Value row(rapidjson::kArrayType);
-      std::string script = dir_entry.path().string();
+      std::string script = dirEntry.path().string();
       // [script: string, code: string]
       row.PushBack(rapidjson::Value(script.data(), script.size(), allocator),
                    allocator);
@@ -55,7 +55,7 @@ rapidjson::Value ChScriptedWindow::getUserStyles(
                    allocator);
       result.PushBack(row, allocator);
     } else
-      clog::error << "Failure reading userscript " << dir_entry << clog::endl;
+      clog::error << "Failure reading userscript " << dirEntry << clog::endl;
   }
 
   return result;

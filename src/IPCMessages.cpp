@@ -77,9 +77,9 @@ void ChScriptedWindow::handleMessage(JSMessage msg) {
   }
 
   switch (msg.event) {
-  case IM::save_config: {
+  case IM::saveConfig: {
     folder.config.CopyFrom(msg.args[0], folder.config.GetAllocator());
-    folder.save_config();
+    folder.saveConfig();
   } break;
   case IM::shell_open: {
     std::wstring open;
@@ -155,21 +155,20 @@ void ChScriptedWindow::handleMessage(JSMessage msg) {
     title = JT::wstring(folder.config["window"]["meta"]["title"]);
     SetIcon((HICON)LoadImage(
         NULL,
-        folder
-            .resolve_path(JT::wstring(folder.config["window"]["meta"]["icon"]))
+        folder.resolvePath(JT::wstring(folder.config["window"]["meta"]["icon"]))
             .c_str(),
         IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
     SetWindowText(title.c_str());
 
     break;
   case IM::revert_meta:
-    title = og_title;
+    title = ogTitle;
     SetIcon(getMainIcon());
     SetWindowText(title.c_str());
 
     break;
-  case IM::reload_config:
-    folder.load_config();
+  case IM::reloadConfig:
+    folder.loadConfig();
 
     break;
   case IM::browse_file: {
@@ -217,7 +216,7 @@ void ChScriptedWindow::handleMessage(JSMessage msg) {
         fn = filename;
 
         // make relative
-        std::string rel = ST::string(folder.relative_path(fn));
+        std::string rel = ST::string(folder.relativePath(fn));
         res.args.PushBack(
             rapidjson::Value(rel.data(), rel.size(), res.allocator),
             res.allocator);

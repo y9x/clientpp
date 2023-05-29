@@ -51,10 +51,10 @@ GameConfig::GameConfig(const rapidjson::Value &data)
 
 Game::Game(const rapidjson::Value &data)
     : id(data[0].GetString()), region(data[1].GetString()),
-      players(data[2].GetInt()), max_players(data[3].GetInt()), config(data[4]),
+      players(data[2].GetInt()), maxPlayers(data[3].GetInt()), config(data[4]),
       time(data[5].GetInt()) {}
 
-bool Game::isFull() { return players == max_players; }
+bool Game::isFull() { return players == maxPlayers; }
 
 std::string Game::getLink() {
   return "https://krunker.io/?game=" + std::string(id);

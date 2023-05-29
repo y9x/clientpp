@@ -11,7 +11,7 @@ ChGameWindow::ChGameWindow(ClientFolder &_folder, AccountManager &_accounts,
                            ChWindows &_windows, Vector2 _scale,
                            std::wstring _title)
     : ChScriptedWindow(_folder, _windows, _scale, _title), accounts(_accounts),
-      last_pointer_poll(now()) {
+      lastPointerPoll(now()) {
   if (!loadResource(CSS_GAME_1, gameCSS1))
     clog::error << "Failure loading game.css" << clog::endl;
 
@@ -67,10 +67,10 @@ void ChGameWindow::dispatch() {
   if (!active && mouseHooked)
     unhookMouse();
 
-  time_t last_poll = now() - last_pointer_poll;
+  time_t lastPoll = now() - lastPointerPoll;
 
-  if (last_poll > 1500 && mouseHooked) {
-    clog::error << "Pointer lock timeout: " << last_poll << "ms" << clog::endl;
+  if (lastPoll > 1500 && mouseHooked) {
+    clog::error << "Pointer lock timeout: " << lastPoll << "ms" << clog::endl;
     unhookMouse();
   }
 
@@ -78,16 +78,16 @@ void ChGameWindow::dispatch() {
     long long nw = now();
     long long delta = nw - then;
 
-    if (delta > mouse_interval) {
-      then = nw - (delta % mouse_interval);
+    if (delta > mouseInterval) {
+      then = nw - (delta % mouseInterval);
       sendMessage(msgFct(IM::mousemove, {movebuffer.x, movebuffer.y}));
       movebuffer.clear();
     }
   }
 }
 
-LRESULT ChGameWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam,
-                               BOOL &fHandled) {
+LRESULT ChGameWindow::onInput(UINT uMsg, WPARAM wParam, LPARAM lParam,
+                              BOOL &fHandled) {
   unsigned size = sizeof(RAWINPUT);
   static RAWINPUT raw[sizeof(RAWINPUT)];
   GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw, &size,
@@ -98,8 +98,9 @@ LRESULT ChGameWindow::on_input(UINT uMsg, WPARAM wParam, LPARAM lParam,
     USHORT flags = mouse.usButtonFlags;
 
     if (flags & RI_MOUSE_WHEEL)
-      sendMessage(msgFct(IM::mousewheel,
-             {double((*(short *)&mouse.usButtonData) / WHEEL_DELTA) * -100}));
+      sendMessage(msgFct(
+          IM::mousewheel,
+          {double((*(short *)&mouse.usButtonData) / WHEEL_DELTA) * -100}));
     if (flags & RI_MOUSE_BUTTON_1_DOWN)
       sendMessage(msgFct(IM::mousedown, {0}));
     if (flags & RI_MOUSE_BUTTON_1_UP)
@@ -210,7 +211,7 @@ void ChGameWindow::handleMessage(JSMessage msg) {
 
   switch (msg.event) {
   case IM::pointer:
-    last_pointer_poll = now();
+    lastPointerPoll = now();
     if (msg.args[0].GetBool() && !mouseHooked)
       hookMouse();
     else if (!msg.args[0].GetBool() && mouseHooked)
@@ -224,14 +225,14 @@ void ChGameWindow::handleMessage(JSMessage msg) {
   case IM::account_password: {
     JSMessage res(msg.args[0].GetInt());
     std::string dec;
-    std::string account_name = JT::string(msg.args[1]);
+    std::string accountName = JT::string(msg.args[1]);
 
-    if (!accounts.data.contains(account_name)) {
+    if (!accounts.data.contains(accountName)) {
       res.args.PushBack(rapidjson::Value(rapidjson::kNullType), res.allocator);
       res.args.PushBack(
           rapidjson::Value("Account doesn't exist", res.allocator),
           res.allocator);
-    } else if (!accounts.decrypt(accounts.data[account_name].password, dec)) {
+    } else if (!accounts.decrypt(accounts.data[accountName].password, dec)) {
       res.args.PushBack(rapidjson::Value(rapidjson::kNullType), res.allocator);
       res.args.PushBack(rapidjson::Value("Unknown", res.allocator),
                         res.allocator);

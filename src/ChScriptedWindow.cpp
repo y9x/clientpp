@@ -43,15 +43,15 @@ bool ChScriptedWindow::enterFullscreen() {
   if (!monitorData(screen))
     return false;
 
-  GetClientRect(&saved_size);
-  ClientToScreen(&saved_size);
+  GetClientRect(&savedSize);
+  ClientToScreen(&savedSize);
 
-  saved_style = GetWindowLong(GWL_STYLE);
-  saved_ex_style = GetWindowLong(GWL_EXSTYLE);
+  savedStyle = GetWindowLong(GWL_STYLE);
+  savedExStyle = GetWindowLong(GWL_EXSTYLE);
   SetWindowLong(GWL_EXSTYLE,
-                saved_ex_style & ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE |
-                                   WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
-  SetWindowLong(GWL_STYLE, saved_style & ~(WS_CAPTION | WS_THICKFRAME));
+                savedExStyle & ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE |
+                                 WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
+  SetWindowLong(GWL_STYLE, savedStyle & ~(WS_CAPTION | WS_THICKFRAME));
   SetWindowPos(0, &screen, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 
   resizeWV();
@@ -65,9 +65,9 @@ bool ChScriptedWindow::exitFullscreen() {
   if (!fullscreen)
     return false;
 
-  SetWindowLong(GWL_STYLE, saved_style);
-  SetWindowLong(GWL_EXSTYLE, saved_ex_style);
-  SetWindowPos(NULL, RECT_ARGS(saved_size),
+  SetWindowLong(GWL_STYLE, savedStyle);
+  SetWindowLong(GWL_EXSTYLE, savedExStyle);
+  SetWindowPos(NULL, RECT_ARGS(savedSize),
                SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
   resizeWV();
 

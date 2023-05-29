@@ -12,13 +12,13 @@ class FileOut : private std::streambuf, public std::ostream {
 private:
   std::string buffer;
   int overflow(int c) override;
-  bool badge_file;
+  bool badgeFile;
   bool work;
   std::string badge;
   std::wstring file;
 
 public:
-  FileOut(std::string badge, std::wstring file, bool add_badge_to_file = false,
+  FileOut(std::string badge, std::wstring file, bool addBadge = false,
           bool work = true);
 };
 

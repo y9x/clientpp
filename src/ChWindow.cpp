@@ -30,7 +30,7 @@ HRESULT ChWindow::getLastHError() { return lastHError; }
 
 ChWindow::ChWindow(ClientFolder &_folder, ChWindows &_windows, Vector2 _scale,
                    std::wstring _title)
-    : folder(_folder), windows(_windows), title(_title), og_title(_title),
+    : folder(_folder), windows(_windows), title(_title), ogTitle(_title),
       scale(_scale){};
 
 ChWindow::~ChWindow() {
@@ -449,8 +449,7 @@ ChWindow::Status ChWindow::create(std::function<void()> callback) {
   if (folder.config["window"]["meta"]["replace"].GetBool())
     SetIcon((HICON)LoadImage(
         NULL,
-        folder
-            .resolve_path(JT::wstring(folder.config["window"]["meta"]["icon"]))
+        folder.resolvePath(JT::wstring(folder.config["window"]["meta"]["icon"]))
             .c_str(),
         IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
   else

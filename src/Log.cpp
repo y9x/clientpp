@@ -22,7 +22,7 @@ int FileOut::overflow(int c) {
   if (c == endl) {
     std::string prefix;
 
-    if (vdebug || badge_file)
+    if (vdebug || badgeFile)
       prefix += "[" + badge + "] ";
 
     if (!vdebug) {
@@ -53,10 +53,10 @@ int FileOut::overflow(int c) {
   return 0;
 }
 
-bool console_attached = false;
+bool consoleAttached = false;
 
-bool attach_console() {
-  if (console_attached)
+bool attachConsole() {
+  if (consoleAttached)
     return true;
 
 #if _DEBUG == 1
@@ -77,8 +77,8 @@ bool attach_console() {
 }
 
 FileOut::FileOut(std::string b, std::wstring f, bool bf, bool work)
-    : work(work), badge(b), badge_file(bf), file(f), std::ostream(this) {
-  console_attached = attach_console();
+    : work(work), badge(b), badgeFile(bf), file(f), std::ostream(this) {
+  consoleAttached = attachConsole();
 }
 
 // badges for shared log files

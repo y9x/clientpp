@@ -11,9 +11,9 @@ private:
       postedMessages;
 
   // Fullscreen:
-  RECT saved_size;
-  DWORD saved_style = 0;
-  DWORD saved_ex_style = 0;
+  RECT savedSize;
+  DWORD savedStyle = 0;
+  DWORD savedExStyle = 0;
   bool fullscreen = false;
   bool enterFullscreen();
   bool exitFullscreen();

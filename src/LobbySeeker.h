@@ -15,7 +15,7 @@ struct Game {
   const char *id;
   const char *region;
   size_t players;
-  size_t max_players;
+  size_t maxPlayers;
   GameConfig config;
   int time;
   Game(const rapidjson::Value &data);

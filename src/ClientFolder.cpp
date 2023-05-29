@@ -54,30 +54,30 @@ bool writeResource(std::wstring path, int resource) {
   return ret;
 }
 
-bool ClientFolder::create_directory(std::wstring directory) {
+bool ClientFolder::createDirectory(std::wstring directory) {
   bool result = CreateDirectory(directory.c_str(), NULL);
 
   if (result) {
     clog::info << "Created " << ST::string(directory) << clog::endl;
     return true;
   } else {
-    DWORD last_error = GetLastError();
+    DWORD lastError = GetLastError();
 
-    if (last_error == ERROR_ALREADY_EXISTS)
+    if (lastError == ERROR_ALREADY_EXISTS)
       return true;
     else {
       clog::error << "Unable to create " << ST::string(directory)
-                  << ", GetLastError() was " << last_error << clog::endl;
+                  << ", GetLastError() was " << lastError << clog::endl;
       return false;
     }
   }
 }
 
 // document as "relative to config.json"
-std::wstring ClientFolder::resolve_path(std::wstring file) {
+std::wstring ClientFolder::resolvePath(std::wstring file) {
   std::wstring joined = directory + L"\\" + file;
 
-  // default_config["window"]["meta"]["icon"] = ST::string(directory +
+  // defaultConfig["window"]["meta"]["icon"] = ST::string(directory +
   // p_krunker);
 
   FILE *f = _wfopen(joined.c_str(), L"r");
@@ -90,7 +90,7 @@ std::wstring ClientFolder::resolve_path(std::wstring file) {
   return file;
 }
 
-std::wstring ClientFolder::relative_path(std::wstring path) {
+std::wstring ClientFolder::relativePath(std::wstring path) {
   return ST::replace_all(path, directory + L"\\", L"");
 }
 
@@ -109,7 +109,7 @@ bool ClientFolder::create(std::wstring name) {
 
   directory += L"\\" + name;
 
-  if (create_directory(directory)) {
+  if (createDirectory(directory)) {
     if (writeResource(directory + p_chief, ICON_CHIEF))
       clog::info << "Created " << ST::string(directory + p_chief) << clog::endl;
     if (writeResource(directory + p_krunker, ICON_KRUNKER))
@@ -117,7 +117,7 @@ bool ClientFolder::create(std::wstring name) {
                  << clog::endl;
 
     for (std::wstring sdir : directories) {
-      if (!create_directory(directory + sdir))
+      if (!createDirectory(directory + sdir))
         ret = false;
     }
 
@@ -127,11 +127,11 @@ bool ClientFolder::create(std::wstring name) {
     ret = false;
   }
 
-  std::string config_buffer;
+  std::string configBuffer;
 
-  if (loadResource(JSON_CONFIG, config_buffer)) {
+  if (loadResource(JSON_CONFIG, configBuffer)) {
     rapidjson::ParseResult ok =
-        default_config.Parse(config_buffer.data(), config_buffer.size());
+        defaultConfig.Parse(configBuffer.data(), configBuffer.size());
 
     if (!ok)
       clog::error << "Error parsing default config: "
@@ -143,44 +143,43 @@ bool ClientFolder::create(std::wstring name) {
   return ret;
 }
 
-bool ClientFolder::load_config() {
-  rapidjson::Document new_config;
+bool ClientFolder::loadConfig() {
+  rapidjson::Document newConfig;
 
   {
-    std::string config_buffer;
+    std::string configBuffer;
 
-    if (IOUtil::readFile(directory + p_config, config_buffer)) {
+    if (IOUtil::readFile(directory + p_config, configBuffer)) {
       rapidjson::ParseResult ok =
-          new_config.Parse(config_buffer.data(), config_buffer.size());
+          newConfig.Parse(configBuffer.data(), configBuffer.size());
 
       if (!ok) {
         clog::error << "Error parsing default config: "
                     << GetParseError_En(ok.Code()) << " (" << ok.Offset() << ")"
                     << clog::endl;
-        new_config.CopyFrom(default_config, new_config.GetAllocator());
+        newConfig.CopyFrom(defaultConfig, newConfig.GetAllocator());
       }
     } else {
-      new_config.CopyFrom(default_config, new_config.GetAllocator());
+      newConfig.CopyFrom(defaultConfig, newConfig.GetAllocator());
     }
   }
 
-  config.CopyFrom(
-      TraverseCopy(new_config, default_config, config.GetAllocator()),
-      config.GetAllocator());
+  config.CopyFrom(TraverseCopy(newConfig, defaultConfig, config.GetAllocator()),
+                  config.GetAllocator());
 
-  if (new_config.IsObject() && new_config.HasMember("userscripts") &&
-      new_config["userscripts"].IsObject())
+  if (newConfig.IsObject() && newConfig.HasMember("userscripts") &&
+      newConfig["userscripts"].IsObject())
     config["userscripts"] =
-        rapidjson::Value(new_config["userscripts"], config.GetAllocator());
+        rapidjson::Value(newConfig["userscripts"], config.GetAllocator());
 
   clog::debug << "Config loaded" << clog::endl;
 
-  save_config();
+  saveConfig();
 
   return true;
 }
 
-bool ClientFolder::save_config() {
+bool ClientFolder::saveConfig() {
   rapidjson::StringBuffer buffer;
   rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
   config.Accept(writer);

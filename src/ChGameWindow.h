@@ -10,16 +10,16 @@ private:
   // Mouse hooking:
 
   static LRESULT CALLBACK mouseMessage(int code, WPARAM wParam, LPARAM lParam);
-  LRESULT on_input(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
+  LRESULT onInput(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &fHandled);
   void hookMouse();
   void unhookMouse();
   RAWINPUTDEVICE rawInput;
   HHOOK mouseHook = 0;
   bool mouseHooked = false;
-  std::time_t last_pointer_poll;
+  std::time_t lastPointerPoll;
 
-  long long mouse_hz = 244;
-  long long mouse_interval = 1000 / mouse_hz;
+  long long mouseHz = 244;
+  long long mouseInterval = 1000 / mouseHz;
   long long then = now();
   Vector2 movebuffer;
 
@@ -47,7 +47,7 @@ protected:
 
   BEGIN_MSG_MAP(ChGameWindow)
   CHAIN_MSG_MAP(ChWindow)
-  MESSAGE_HANDLER(WM_INPUT, on_input)
+  MESSAGE_HANDLER(WM_INPUT, onInput)
   END_MSG_MAP()
 public:
   // init resources

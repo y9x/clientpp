@@ -109,16 +109,16 @@ HICON getMainIcon() { return mainIcon; }
 
 int APIENTRY WinMain(HINSTANCE _In_ hInstance, HINSTANCE _In_opt_ hPrevInstance,
                      _In_ LPSTR cmdline, _In_ int nCmdShow) {
-  DiscordEventHandlers presence_events;
-  presence_events.disconnected = nullptr;
-  presence_events.errored = nullptr;
-  presence_events.joinGame = nullptr;
-  presence_events.joinRequest = nullptr;
-  presence_events.ready = nullptr;
-  presence_events.spectateGame = nullptr;
+  DiscordEventHandlers presenceEvents;
+  presenceEvents.disconnected = nullptr;
+  presenceEvents.errored = nullptr;
+  presenceEvents.joinGame = nullptr;
+  presenceEvents.joinRequest = nullptr;
+  presenceEvents.ready = nullptr;
+  presenceEvents.spectateGame = nullptr;
 
-  memset(&presence_events, 0, sizeof(presence_events));
-  Discord_Initialize(discordRPC, &presence_events, 1, nullptr);
+  memset(&presenceEvents, 0, sizeof(presenceEvents));
+  Discord_Initialize(discordRPC, &presenceEvents, 1, nullptr);
 
   mainIcon = LoadIcon(hInstance, MAKEINTRESOURCE(MAINICON));
 
@@ -132,7 +132,7 @@ int APIENTRY WinMain(HINSTANCE _In_ hInstance, HINSTANCE _In_opt_ hPrevInstance,
     return EXIT_FAILURE;
   }
 
-  folder->load_config();
+  folder->loadConfig();
 
   accounts = new AccountManager(*folder);
   accounts->load();

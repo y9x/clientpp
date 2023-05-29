@@ -7,7 +7,7 @@
 rapidjson::Value
 TraverseCopy(rapidjson::Value &value, rapidjson::Value &match,
              rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> allocator,
-             bool allow_new_props, bool *changed) {
+             bool allowNewProps, bool *changed) {
   rapidjson::Value result;
 
   // there is only a true or false type, no bool
@@ -23,8 +23,8 @@ TraverseCopy(rapidjson::Value &value, rapidjson::Value &match,
          it != value.MemberEnd(); ++it)
       if (match.HasMember(it->name))
         result[it->name] = TraverseCopy(it->value, match[it->name], allocator,
-                                        allow_new_props, changed);
-      else if (allow_new_props)
+                                        allowNewProps, changed);
+      else if (allowNewProps)
         result.AddMember(it->name, it->value, allocator);
       else if (changed)
         *changed = true;

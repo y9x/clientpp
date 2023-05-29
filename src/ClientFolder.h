@@ -14,14 +14,14 @@ public:
   std::wstring p_chief = L"\\Chief.ico";
   std::wstring p_krunker = L"\\Krunker.ico";
   std::wstring p_logs = L"\\Logs";
-  rapidjson::Document default_config;
+  rapidjson::Document defaultConfig;
   rapidjson::Document config;
   bool create(std::wstring name);
-  bool create_directory(std::wstring directory);
-  bool load_config();
-  bool save_config();
-  std::wstring relative_path(std::wstring path);
-  std::wstring resolve_path(std::wstring file);
+  bool createDirectory(std::wstring directory);
+  bool loadConfig();
+  bool saveConfig();
+  std::wstring relativePath(std::wstring path);
+  std::wstring resolvePath(std::wstring file);
 
 private:
   std::vector<std::wstring> directories{p_logs, p_scripts, p_styles, p_swapper,

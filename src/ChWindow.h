@@ -49,9 +49,9 @@ protected:
   ChWindows &windows;
   ClientFolder &folder;
   std::vector<std::wstring> pendingNavigations;
-  // todo: never overwrite og_title & title
+  // todo: never overwrite ogTitle & title
   std::wstring title;
-  std::wstring og_title;
+  std::wstring ogTitle;
   std::mutex dispatchMtx;
   virtual void registerEvents();
   Status callCreateWebView(std::function<void()> callback = nullptr);
