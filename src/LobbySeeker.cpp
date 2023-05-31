@@ -98,18 +98,26 @@ std::string seekLobby(const std::string &region, size_t mode, bool customs,
   }
 
   if (games.size()) {
+    /*
     // game with the most time left
-    std::stable_sort(
-        games.begin(), games.end(),
-        [](const Game &a, const Game &b) -> bool { return a.time < b.time; });
+     std::stable_sort(
+         games.begin(), games.end(),
+         [](const Game &a, const Game &b) -> bool { return a.time < b.time; });
 
-    // game with the most players
-    std::stable_sort(
-        games.begin(), games.end(), [](const Game &a, const Game &b) -> bool {
-          return strongPlayers(a.players) < strongPlayers(b.players);
-        });
+     // game with the most players
+     std::stable_sort(
+         games.begin(), games.end(), [](const Game &a, const Game &b) -> bool {
+           return strongPlayers(a.players) < strongPlayers(b.players);
+         });
 
-    return games[0].getLink();
+     return games[0].getLink();
+     */
+
+    srand(time(nullptr)); // Seed the random number generator
+
+    size_t randomIndex = rand() % games.size(); // Generate a random index
+
+    return games[randomIndex].getLink();
   }
 
   clog::error << "Error finding game" << clog::endl;
