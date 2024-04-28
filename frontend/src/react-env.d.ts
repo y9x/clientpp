@@ -1,6 +1,3 @@
-/* eslint-disable no-var */
-/* eslint-disable @typescript-eslint/consistent-type-imports */
-
 declare module "*.css" {}
 
 declare module "*.module.css" {

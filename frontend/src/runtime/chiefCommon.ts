@@ -61,10 +61,8 @@ type ExportUserscriptCallback = (data: ExportedUserscriptData) => void;
 
 export type UserscriptContext = (
   code: string,
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   console: typeof import("../console").default,
   getSite: () => typeof currentSite,
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   setLocalStorage: typeof import("../setLocalStorage").default,
   exportUserscript: ExportUserscriptCallback
 ) => void;
@@ -82,7 +80,6 @@ export default function executeUserScript(
   code: string,
   exportUserscript: ExportUserscriptCallback
 ) {
-  // eslint-disable-next-line no-new-func
   const run = new Function(
     "code",
     "console",

@@ -29,7 +29,6 @@ declare interface Settings extends GameWindow {
   tabIndex: number;
 }
 
-// eslint-disable-next-line no-var
 declare var windows: GameWindow[];
 
 /**

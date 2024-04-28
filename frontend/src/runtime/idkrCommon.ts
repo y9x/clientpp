@@ -134,7 +134,6 @@ export type SomeSetting =
 export type ISettingsCollection = Record<string, SomeSetting>;
 
 export interface IClientUtil {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   events: typeof import("../EventEmitter").default;
   // settings: { [key: string]: ISetting };
   // setCSetting(name: string, value: any): ComponentChild;
@@ -160,7 +159,6 @@ type IUserscriptModule = { exports: IUserscriptExports };
 
 export type UserscriptContext = (
   code: string,
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   console: typeof import("../console").default,
   clientUtils: IClientUtil,
   exports: IUserscriptExports,
@@ -173,7 +171,6 @@ export function executeUserScript(
   code: string,
   clientUtils: IClientUtil
 ): IUserscript {
-  // eslint-disable-next-line no-new-func
   const run = new Function(
     "code",
     "console",

@@ -15,7 +15,7 @@ const methods: consoleProp[] = [
 
 const initial = Object.fromEntries(
   methods.map((method) => [method, console[method]])
-) as unknown as { [K in consoleProp]: typeof console[K] };
+) as unknown as { [K in consoleProp]: (typeof console)[K] };
 
 const buffer = Object.fromEntries(
   methods.map((method) => [method, []])
@@ -26,7 +26,7 @@ const cloneConsole = Object.fromEntries(
     method,
     (...data: unknown[]) => buffer[method].push(data),
   ])
-) as unknown as { [K in consoleProp]: typeof console[K] };
+) as unknown as { [K in consoleProp]: (typeof console)[K] };
 
 // devtools hooks after
 setTimeout(() => {

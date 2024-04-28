@@ -62,7 +62,6 @@ const parseMetadata = (script: string) => {
 
 type UserscriptContext = (
   code: string,
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   console: typeof import("../console").default,
   unsafeWindow: typeof globalThis,
   GM_getValue: (key: string) => string | null,
@@ -134,14 +133,12 @@ export default function tampermonkeyRuntime(
       xml.open("GET", require, false);
       xml.send();
 
-      // eslint-disable-next-line no-new-func
       const run = new Function("code", "eval(code)") as (code: string) => void;
 
       run(nameCode(code, require));
     }
   }
 
-  // eslint-disable-next-line no-new-func
   const run = new Function(
     "code",
     "console",
